@@ -1,0 +1,36 @@
+.navbar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  height: 80px;
+  background-color: #0e0e0e;
+
+  .left-content {
+    font-size: 1.5rem;
+  }
+
+  .center-content {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .navbar-container {
+    align-items: center;
+
+    .center-content {
+      order: -1;
+      position: relative;
+      left: 0;
+      transform: translateX(0);
+    }
+  }
+}

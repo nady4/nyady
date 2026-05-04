@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NYADY
+
+E-commerce application built with Next.js 15, Prisma, NextAuth.js, Redux Toolkit, and Mercado Pago.
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: NextAuth.js (Credentials + JWT)
+- **State**: Redux Toolkit
+- **Styling**: Sass (SCSS)
+- **Payments**: Mercado Pago SDK
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Bun
+- PostgreSQL database
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create a `.env` file based on `.env` with your credentials:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=yourSecret
+DATABASE_URL=postgresql://postgres:password@localhost:5432/nyady
+MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
+NEXT_PUBLIC_MP_PUBLIC_KEY=TEST-XXXXXXXXXXXXXXXX
+```
 
-## Learn More
+### Database Setup
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run db:migrate
+bun run db:seed
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Run Development Server
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+bun run dev
+```
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command            | Description           |
+|--------------------|-----------------------|
+| `bun run dev`      | Start dev server      |
+| `bun run build`    | Build for production  |
+| `bun run start`    | Start production server|
+| `bun run lint`     | Run ESLint            |
+| `bun run db:migrate` | Run Prisma migrations |
+| `bun run db:seed`  | Seed database         |
+| `bun run db:generate` | Generate Prisma client |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+app/
+├── (auth)/           # Auth pages (signin, register)
+├── (public)/          # Public pages (catalog, cart, wishlist, products)
+├── (protected)/       # Protected pages (orders, settings, address)
+├── success|failure|pending/  # Payment status pages
+└── api/              # API routes
+
+lib/                  # Prisma client + NextAuth config
+store/               # Redux store + slices
+actions/             # Server Actions
+hooks/               # Custom React hooks
+components/          # UI components
+styles/              # SCSS stylesheets
+prisma/              # Schema + seed
+```
+
+## Features
+
+- Product catalog with search and filters
+- Persistent shopping cart
+- Wishlist
+- Order management
+- Mercado Pago checkout
+- User account settings
+- Shipping address management

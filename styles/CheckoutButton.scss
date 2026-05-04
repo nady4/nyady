@@ -1,0 +1,50 @@
+@use "./variables" as *;
+@use "sass:color";
+
+.checkout-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  .wallet-container {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: $bg-color;
+    border-radius: 0.8rem;
+    box-shadow: 0 0 12px rgba($accent-color, 0.15);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .checkout-button {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border-radius: 0.6rem;
+    border: none;
+    font-family: $body-font;
+    font-size: 1rem;
+    background-color: $accent-color;
+    color: white;
+    cursor: pointer;
+    text-shadow: 0 0 4px black;
+    box-shadow: 0 0 8px rgba($accent-color, 0.5);
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+
+    &:hover:not(:disabled) {
+      background-color: color.adjust($accent-color, $lightness: -8%);
+      transform: translateY(-2px);
+      box-shadow: 0 0 14px rgba($accent-color, 0.6);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+      background-color: color.adjust($accent-color, $lightness: -20%);
+    }
+  }
+}

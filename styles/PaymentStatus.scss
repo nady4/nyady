@@ -1,0 +1,132 @@
+@use "./variables" as *;
+@use "sass:color";
+
+.payment-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-height: calc(100vh - 200px);
+  width: 100%;
+  max-width: 600px;
+  margin: 7rem auto;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: $bg-color;
+  color: $text-color;
+  font-family: $body-font;
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba($accent-color, 0.15);
+  text-align: center;
+
+  h1 {
+    font-family: $title-font;
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 5px $accent-color, 0 0 10px $accent-color,
+      0 0 15px $accent-color;
+  }
+
+  p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .payment-info {
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    background-color: color.adjust($bg-color, $lightness: -3%);
+    border: 2px dashed $border-color;
+    text-align: left;
+    font-size: 0.95rem;
+
+    p {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .payment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+
+    a {
+      font-family: $title-font;
+      font-size: 0.95rem;
+      padding: 0.6rem 1.4rem;
+      border-radius: 0.5rem;
+      background-color: $accent-color;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s;
+
+      &:hover {
+        background-color: $hover-accent-color;
+        transform: scale(1.02);
+        box-shadow: 0 0 10px rgba($accent-color, 0.4);
+      }
+
+      &:active {
+        background-color: $active-accent-color;
+        transform: scale(0.97);
+        box-shadow: none;
+      }
+    }
+  }
+}
+
+.success-page {
+  h1 {
+    text-shadow: 0 0 5px $accent-color, 0 0 12px $accent-color,
+      0 0 18px $accent-color;
+  }
+
+  .payment-info {
+    border-color: $accent-color;
+  }
+}
+
+.failure-page {
+  h1 {
+    text-shadow: 0 0 5px #ff4b6e, 0 0 12px #ff4b6e, 0 0 18px #ff4b6e;
+  }
+
+  .payment-info {
+    border-color: #ff4b6e;
+  }
+}
+
+.pending-page {
+  h1 {
+    text-shadow: 0 0 5px #ffcc33, 0 0 12px #ffcc33, 0 0 18px #ffcc33;
+  }
+
+  .payment-info {
+    border-color: #ffcc33;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .payment-page {
+    padding: 1.5rem;
+
+    .payment-info {
+      text-align: left;
+    }
+
+    .payment-actions {
+      flex-direction: column;
+
+      a {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  }
+}

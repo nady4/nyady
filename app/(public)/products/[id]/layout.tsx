@@ -1,7 +1,6 @@
 "use client";
-import { useEffect } from "react";
+import { ReactNode } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useInitData } from "@/hooks/useInitData";
 import { initializeCart } from "@/store/slices/cartSlice";
 import { initializeWishList } from "@/store/slices/wishListSlice";
@@ -13,21 +12,13 @@ const initializationTasks = [
   { action: getWishlistIds, initializer: initializeWishList },
 ];
 
-export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+const ProductLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { data: session } = useSession();
   const userId = session?.user?.id;
 
   useInitData(userId, initializationTasks);
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (userId) {
-      router.replace("/catalog");
-    } else {
-      router.replace("/signin");
-    }
-  }, [userId, status, router]);
+  return <>{children}</>;
+};
 
-  return null;
-}
+export default ProductLayout;

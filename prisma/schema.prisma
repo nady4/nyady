@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(uuid())
+  address    Address?    @relation(fields: [addressId], references: [id])
+  orders     Order[]
+  wishlist   WishList[]
+  cart       Cart[]
+
+  username   String
+  email      String      @unique
+  password   String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  addressId  String?     @unique
+}
+
+model Address {
+  id         String    @id @default(uuid())
+  user       User?
+
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+}
+
+model WishList {
+  id         String    @id @default(uuid())
+  user       User      @relation(fields: [userId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+
+  userId     String
+  productId  String
+
+  @@unique([userId, productId])
+}
+
+model Cart {
+  id         String    @id @default(uuid())
+  user       User      @relation(fields: [userId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id])
+
+  userId     String
+  productId  String
+  quantity   Int       @default(1)
+
+  @@unique([userId, productId])
+}
+
+model Product {
+  id         String     @id @default(cuid())
+  orderItems OrderItem[]
+  wishLists  WishList[]
+  carts      Cart[]
+
+  name       String
+  photo      String
+  price      Float
+  category   String
+  stock      Int
+}
+
+model OrderItem {
+  id         String   @id @default(uuid())
+  order      Order    @relation(fields: [orderId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+
+  quantity   Int
+
+  orderId    String
+  productId  String
+}
+
+model Order {
+  id         String      @id @default(uuid())
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  status     String
+  total      Float
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  userId     String
+}

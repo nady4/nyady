@@ -1,0 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Silkscreen&family=Tomorrow:wght@400;700&display=swap");
+
+$bg-color: #0e0e0e;
+$hover-bg: #1f1f1f;
+$input-bg: #1a1a1a;
+$border-color: #333;
+$accent-color: #ff007a;
+$hover-accent-color: #ff5eac;
+$active-accent-color: #d70169;
+$text-color: #f0f0f0;
+$error-color: #ff4d4f;
+
+$title-font: "Silkscreen", cursive;
+$body-font: "Tomorrow", sans-serif;
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}

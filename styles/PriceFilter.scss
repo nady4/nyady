@@ -1,0 +1,99 @@
+.price-filter {
+  position: relative;
+  width: 250px;
+  height: 50px;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: white;
+    border-radius: 8px;
+    transform: translateY(-50%);
+    z-index: 1;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    height: 4px;
+    background-color: #ff017b;
+    border-radius: 8px;
+    transform: translateY(-50%);
+    left: var(--min, 0%);
+    right: calc(100% - var(--max, 100%));
+    z-index: 2;
+  }
+
+  .price-filter-input {
+    position: absolute;
+    width: 100%;
+    height: 4px;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: none;
+    z-index: 3;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 1rem;
+      height: 1rem;
+      background-color: white;
+      border-radius: 9999px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      margin-top: -6px;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    &::-moz-range-thumb {
+      width: 1rem;
+      height: 1rem;
+      background-color: white;
+      border-radius: 9999px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      border: none;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    &::-ms-thumb {
+      width: 1rem;
+      height: 1rem;
+      background-color: white;
+      border-radius: 9999px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      pointer-events: auto;
+      cursor: pointer;
+    }
+  }
+
+  .min-range {
+    z-index: 4;
+  }
+
+  .range-values {
+    position: relative;
+    width: 100%;
+    height: 20px;
+    margin-top: 1.5rem;
+
+    span {
+      position: absolute;
+      font-size: 0.9rem;
+      margin-top: 15px;
+      color: #f6e2f6;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+  }
+}
