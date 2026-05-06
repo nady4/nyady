@@ -16,7 +16,7 @@ function RegisterPage() {
     email,
     username,
     password,
-    confirmPassword,
+    confirmPassword
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,16 +27,16 @@ function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, username, password }),
+        body: JSON.stringify({ email, username, password })
       });
 
       if (res.ok) {
         router.push("/signin");
       } else {
         const data = await res.json();
-        throw new Error(data.error || "Registration failed");
+        throw new Error(data.error || "Registro fallido");
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -47,7 +47,7 @@ function RegisterPage() {
 
   return (
     <div className="auth-form">
-      <h2 className="title">Create your account</h2>
+      <h2 className="title">Creá tu cuenta</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -58,21 +58,21 @@ function RegisterPage() {
         />
         <input
           type="text"
-          placeholder="Username"
+          placeholder="Nombre de usuario"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Contraseña"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
         <input
           type="password"
-          placeholder="Confirm Password"
+          placeholder="Confirmar contraseña"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
@@ -83,14 +83,14 @@ function RegisterPage() {
           disabled={!isFormValid}
           style={{
             opacity: isFormValid ? 1 : 0.5,
-            cursor: isFormValid ? "pointer" : "not-allowed",
+            cursor: isFormValid ? "pointer" : "not-allowed"
           }}
         >
-          Register
+          Registrarse
         </button>
       </form>
       <Link href="/signin" className="link">
-        Sign In
+        Iniciar sesión
       </Link>
     </div>
   );

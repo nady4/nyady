@@ -8,24 +8,17 @@
   max-width: 450px;
   width: 100%;
   padding: 2rem;
-  background-color: $bg-color;
+  background-color: $bg-secondary;
   border-radius: 1rem;
-  box-shadow: 0 0 15px rgba($accent-color, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   .title {
     font-family: $title-font;
-    font-size: 2rem;
-    color: white;
-    margin-bottom: 2rem;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: $text-color;
+    margin-bottom: 1.5rem;
     text-align: center;
-    text-shadow: 0 0 5px $accent-color, 0 0 10px $accent-color,
-      0 0 15px $accent-color;
-    transition: color 0.2s;
-
-    &:hover {
-      color: $accent-color;
-      text-shadow: 0 0 10px black, 0 0 20px black, 0 0 30px $hover-accent-color;
-    }
   }
 
   form {
@@ -37,23 +30,24 @@
 
     input {
       width: 100%;
-      padding: 0.75rem 1rem;
+      padding: 0.875rem 1rem;
       margin-bottom: 1rem;
       font-size: 1rem;
-      border: 2px dashed $border-color;
+      font-family: $body-font;
+      border: 1px solid $border-color;
       border-radius: 0.5rem;
-      background: $input-bg;
+      background: $bg-color;
       color: $text-color;
-      transition: border-color 0.2s, background 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
 
       &::placeholder {
-        color: darken($text-color, 30%);
+        color: $text-muted;
       }
 
       &:focus {
         outline: none;
         border-color: $accent-color;
-        background-color: darken($input-bg, 5%);
+        box-shadow: 0 0 0 3px rgba($accent-color, 0.15);
       }
     }
 
@@ -61,29 +55,30 @@
       width: 100%;
       margin-top: 0.5rem;
       color: $error-color;
-      font-family: $title-font;
+      font-family: $body-font;
       font-size: 0.875rem;
     }
 
     button {
       margin-top: 1rem;
-      padding: 0.75rem 1.5rem;
-      font-family: $title-font;
+      padding: 0.875rem 1.5rem;
+      font-family: $body-font;
       font-size: 1rem;
+      font-weight: 500;
       background-color: $accent-color;
-      color: white;
+      color: $text-color;
       border: none;
       border-radius: 0.5rem;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: background 0.2s ease, transform 0.1s ease;
       width: 100%;
 
       &:hover:not(:disabled) {
-        background-color: $hover-accent-color;
+        background-color: $accent-hover;
       }
 
       &:active:not(:disabled) {
-        background-color: $active-accent-color;
+        transform: scale(0.98);
       }
 
       &:disabled {
@@ -95,7 +90,7 @@
 
   .loading {
     font-family: $body-font;
-    color: $text-color;
+    color: $text-muted;
     text-align: center;
     font-size: 1.2rem;
     animation: pulse 1.5s infinite;

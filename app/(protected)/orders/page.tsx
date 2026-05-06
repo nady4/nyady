@@ -20,11 +20,11 @@ async function retryOrder(orderId: string) {
     where: {
       id: orderId,
       userId,
-      status: "pending",
+      status: "pending"
     },
     include: {
-      orderItems: true,
-    },
+      orderItems: true
+    }
   });
 
   if (!order) {
@@ -32,7 +32,7 @@ async function retryOrder(orderId: string) {
   }
 
   await prisma.cart.deleteMany({
-    where: { userId },
+    where: { userId }
   });
 
   if (order.orderItems.length) {
@@ -40,8 +40,8 @@ async function retryOrder(orderId: string) {
       data: order.orderItems.map((item) => ({
         userId,
         productId: item.productId,
-        quantity: item.quantity,
-      })),
+        quantity: item.quantity
+      }))
     });
   }
 
@@ -63,11 +63,11 @@ async function cancelOrder(orderId: string) {
     where: {
       id: orderId,
       userId,
-      status: "pending",
+      status: "pending"
     },
     select: {
-      id: true,
-    },
+      id: true
+    }
   });
 
   if (!order) {
@@ -76,14 +76,14 @@ async function cancelOrder(orderId: string) {
 
   await prisma.orderItem.deleteMany({
     where: {
-      orderId: order.id,
-    },
+      orderId: order.id
+    }
   });
 
   await prisma.order.delete({
     where: {
-      id: order.id,
-    },
+      id: order.id
+    }
   });
 
   redirect("/orders");
@@ -99,59 +99,59 @@ export default async function OrdersPage() {
   const orders = await prisma.order.findMany({
     where: {
       userId: session.user.id as string,
-      NOT: { status: "cancelled" },
+      NOT: { status: "cancelled" }
     },
     orderBy: { createdAt: "desc" },
     include: {
       orderItems: {
         include: {
-          product: true,
-        },
-      },
-    },
+          product: true
+        }
+      }
+    }
   });
 
   if (!orders.length) {
     return (
       <div className="orders-page">
-        <h1>My orders</h1>
-        <p>You dont have any orders</p>
-        <Link href="/">Back to the store</Link>
+        <h1>Mis órdenes</h1>
+        <p>No hay ninguna orden</p>
+        <Link href="/">Volver a la tienda</Link>
       </div>
     );
   }
 
   return (
     <div className="orders-page">
-      <h1>My orders</h1>
+      <h1>Mis órdenes</h1>
       <div className="orders-list">
         {orders.map((order) => (
           <div key={order.id} className="order-card">
             <div className="order-header">
-              <span className="order-id">Order #{order.id.slice(0, 8)}</span>
-              <span className="order-status">
-                Status:{" "}
+              <span className="order-id">Órden #{order.id.slice(0, 8)}</span>
+              <span className={`order-status ${order.status}`}>
+                Estado:{" "}
                 <strong>
                   {order.status === "approved"
-                    ? "Approved"
+                    ? "Aprobada"
                     : order.status === "pending"
-                    ? "Pending"
-                    : order.status === "rejected"
-                    ? "Rejected"
-                    : order.status}
+                      ? "Pendiente"
+                      : order.status === "rejected"
+                        ? "Rechazada"
+                        : order.status}
                 </strong>
               </span>
             </div>
 
             <div className="order-meta">
               <span>
-                Date:{" "}
+                Fecha:{" "}
                 {order.createdAt.toLocaleString("es-AR", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
                   hour: "2-digit",
-                  minute: "2-digit",
+                  minute: "2-digit"
                 })}
               </span>
               <span className="order-total">
@@ -164,7 +164,7 @@ export default async function OrdersPage() {
                 <div key={item.id} className="order-item">
                   <span className="order-item-name">{item.product.name}</span>
                   <span className="order-item-qty">
-                    Quantity: {item.quantity}
+                    Cantidad: {item.quantity}
                   </span>
                   <span className="order-item-subtotal">
                     Subtotal: ${(item.product.price * item.quantity).toFixed(2)}
@@ -177,12 +177,12 @@ export default async function OrdersPage() {
               <div className="order-actions">
                 <form action={retryOrder.bind(null, order.id)}>
                   <button type="submit" className="order-retry-button">
-                    Retry payment
+                    Reintentar pago
                   </button>
                 </form>
                 <form action={cancelOrder.bind(null, order.id)}>
                   <button type="submit" className="order-cancel-button">
-                    Cancel order
+                    Cancelar órden
                   </button>
                 </form>
               </div>
@@ -192,7 +192,7 @@ export default async function OrdersPage() {
       </div>
 
       <div className="orders-actions">
-        <Link href="/">Continue Shopping</Link>
+        <Link href="/" className="button">Volver a la tienda</Link>
       </div>
     </div>
   );

@@ -1,22 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import "@/styles/PaymentStatus.scss";
 
-export default function SuccessPage() {
-  const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [externalReference, setExternalReference] = useState<string | null>(
-    null
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const searchParams = new URLSearchParams(window.location.search);
-    setPaymentId(searchParams.get("payment_id"));
-    setStatus(searchParams.get("status"));
-    setExternalReference(searchParams.get("external_reference"));
-  }, []);
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const paymentId = searchParams?.get("payment_id") || null;
+  const status = searchParams?.get("status") || null;
+  const externalReference = searchParams?.get("external_reference") || null;
 
   return (
     <div className="payment-page success-page">
@@ -34,5 +26,13 @@ export default function SuccessPage() {
         <Link href="/">Back to store</Link>
       </div>
     </div>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="payment-page">Loading...</div>}>
+      <SuccessContent />
+    </Suspense>
   );
 }

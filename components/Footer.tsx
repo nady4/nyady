@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { silkscreen } from "@/app/fonts";
+import { fraunces } from "@/app/fonts";
 import "@/styles/Footer.scss";
 
 function Footer() {
@@ -11,8 +11,8 @@ function Footer() {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <h3 className={`${silkscreen.className} footer-text`}>
-          Made with <Image src="/assets/icons/pixelHeart.svg" alt="Love" width={20} height={20} /> by nady4
+        <h3 className={`${fraunces.className} footer-text`}>
+          Made with <Image src="/assets/icons/heartFilled.svg" alt="Love" width={16} height={16} /> by nady4
         </h3>
       </a>
     </footer>

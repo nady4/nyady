@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { fraunces, inter } from "./fonts";
 import { ReduxProvider } from "@/store/provider";
 import { NextAuthProvider } from "@/providers/NextAuthProvider";
 import NavBar from "@/components/NavBar";
@@ -17,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${fraunces.variable} ${inter.variable}`} suppressHydrationWarning>
         <ReduxProvider>
           <NextAuthProvider>
             <NavBar />

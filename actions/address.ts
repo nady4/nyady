@@ -24,9 +24,9 @@ export async function updateAddress(formData: FormData): Promise<void> {
   const city = formData.get("city") as string;
   const state = formData.get("state") as string;
   const postalCode = formData.get("postalCode") as string;
-  const country = formData.get("country") as string;
+  const country = "Argentina";
 
-  if (!street || !city || !postalCode || !country)
+  if (!street || !city || !postalCode)
     throw new Error("Missing required fields");
 
   const user = await prisma.user.findUnique({

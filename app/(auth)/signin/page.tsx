@@ -26,7 +26,7 @@ function SignInPage() {
     const res = await signIn("credentials", {
       redirect: false,
       email: data.email,
-      password: data.password,
+      password: data.password
     });
 
     if (res?.ok) {
@@ -39,7 +39,6 @@ function SignInPage() {
 
   return (
     <div className="auth-form">
-      <h2 className="title">Welcome</h2>
       <form onSubmit={onSubmit}>
         <input
           type="email"
@@ -48,7 +47,7 @@ function SignInPage() {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Contraseña"
           {...register("password", { required: true })}
         />
         {(error || serverError) && (
@@ -59,14 +58,14 @@ function SignInPage() {
           disabled={!isFormValid}
           style={{
             opacity: isFormValid ? 1 : 0.5,
-            cursor: isFormValid ? "pointer" : "not-allowed",
+            cursor: isFormValid ? "pointer" : "not-allowed"
           }}
         >
-          Sign In
+          Iniciar sesión
         </button>
       </form>
       <Link href="/register" className="link">
-        Register
+        Registrarse
       </Link>
     </div>
   );

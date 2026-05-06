@@ -8,16 +8,52 @@ export const useFilterProducts = (products: ProductType[]) => {
   const { activeCategories } = useAppSelector((state) => state.category);
   const minPrice = useAppSelector((state) => state.price.min);
   const maxPrice = useAppSelector((state) => state.price.max);
+  const activeSizes = useAppSelector((state) => state.filters.activeSizes);
+  const activeColors = useAppSelector((state) => state.filters.activeColors);
+
+  const hasActiveCategoryFilter = Object.values(activeCategories || {}).some(Boolean);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        activeCategories[product.category] &&
-        product.price >= minPrice &&
-        product.price <= maxPrice
-    );
-  }, [products, searchTerm, activeCategories, minPrice, maxPrice]);
+    const hasSizeFilter = Object.values(activeSizes).some(Boolean);
+    const hasColorFilter = Object.values(activeColors).some(Boolean);
+
+    return products.filter((product) => {
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      const matchesCategory = !hasActiveCategoryFilter || (activeCategories?.[product.category] ?? true);
+      const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+
+      let matchesSize = true;
+      let matchesColor = true;
+
+      if (hasSizeFilter && product.sizes?.length) {
+        matchesSize = product.sizes.some((s) => activeSizes[s]);
+      }
+
+      if (hasColorFilter && product.colors?.length) {
+        matchesColor = product.colors.some((c) => activeColors[c]);
+      }
+
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesPrice &&
+        matchesSize &&
+        matchesColor
+      );
+    });
+  }, [
+    products,
+    searchTerm,
+    activeCategories,
+    hasActiveCategoryFilter,
+    minPrice,
+    maxPrice,
+    activeSizes,
+    activeColors,
+  ]);
 
   return filteredProducts;
 };

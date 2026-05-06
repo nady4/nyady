@@ -1,9 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
+import { AddressType } from "@/actions/shipping";
+import { ShippingQuoteResult } from "@/types";
+import Link from "next/link";
 import "@/styles/CheckoutButton.scss";
 
-export default function CheckoutButton({ total }: { total: number }) {
+interface CheckoutButtonProps {
+  total: number;
+  address: AddressType | null | undefined;
+  selectedShipping: ShippingQuoteResult | null;
+}
+
+export default function CheckoutButton({ total, address, selectedShipping }: CheckoutButtonProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,6 +27,8 @@ export default function CheckoutButton({ total }: { total: number }) {
   }, [total]);
 
   const handleCheckout = async () => {
+    if (!address) return;
+    if (!selectedShipping) return;
     if (isLoading || total <= 0) return;
 
     setIsLoading(true);
@@ -33,6 +44,18 @@ export default function CheckoutButton({ total }: { total: number }) {
     }
   };
 
+  if (!address) {
+    return (
+      <div className="checkout-container">
+        <div className="wallet-container">
+          <Link href="/address" className="checkout-button">
+            Add shipping address to checkout
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="checkout-container">
       {orderId ? (
@@ -44,9 +67,9 @@ export default function CheckoutButton({ total }: { total: number }) {
           <button
             className="checkout-button"
             onClick={handleCheckout}
-            disabled={isLoading || total <= 0}
+            disabled={isLoading || total <= 0 || !selectedShipping}
           >
-            {isLoading ? "Creating order..." : "Generate payment link"}
+            {isLoading ? "Creating order..." : selectedShipping ? "Generate payment link" : "Select shipping option"}
           </button>
         </div>
       )}

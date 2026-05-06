@@ -6,43 +6,36 @@ export default async function AddressPage() {
 
   return (
     <div className="form-page">
-      <FormContainer title="Shipping Address">
+      <FormContainer title="Dirección de envío">
         <form action={updateAddress}>
           <input
             type="text"
             name="street"
-            placeholder="Street"
+            placeholder="Calle"
             defaultValue={address?.street || ""}
             required
           />
           <input
             type="text"
             name="city"
-            placeholder="City"
+            placeholder="Ciudad"
             defaultValue={address?.city || ""}
             required
           />
           <input
             type="text"
             name="state"
-            placeholder="State / Province"
+            placeholder="Provincia"
             defaultValue={address?.state || ""}
           />
           <input
             type="text"
             name="postalCode"
-            placeholder="Postal Code"
+            placeholder="Código postal"
             defaultValue={address?.postalCode || ""}
             required
           />
-          <input
-            type="text"
-            name="country"
-            placeholder="Country"
-            defaultValue={address?.country || ""}
-            required
-          />
-          <button type="submit">Save Address</button>
+          <button type="submit">Guardar dirección</button>
         </form>
       </FormContainer>
     </div>

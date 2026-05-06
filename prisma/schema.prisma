@@ -46,13 +46,15 @@ model WishList {
 }
 
 model Cart {
-  id         String    @id @default(uuid())
-  user       User      @relation(fields: [userId], references: [id])
-  product    Product   @relation(fields: [productId], references: [id])
+  id            String    @id @default(uuid())
+  user          User      @relation(fields: [userId], references: [id])
+  product       Product   @relation(fields: [productId], references: [id])
 
-  userId     String
-  productId  String
-  quantity   Int       @default(1)
+  userId        String
+  productId    String
+  quantity     Int       @default(1)
+  selectedSize String?
+  selectedColor String?
 
   @@unique([userId, productId])
 }
@@ -68,6 +70,11 @@ model Product {
   price      Float
   category   String
   stock      Int
+  code       String?
+  sizes      String[]
+  colors    String[]
+  photos    Json?
+  description String?
 }
 
 model OrderItem {

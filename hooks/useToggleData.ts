@@ -8,20 +8,24 @@ import {
   addToWishList,
   removeFromWishList,
 } from "@/store/slices/wishListSlice";
-import { toggleCartProduct } from "@/actions/cart";
+import { toggleCartProduct, addToCartWithDetails } from "@/actions/cart";
 import { toggleWishlistProduct } from "@/actions/wishlist";
 
 export function useToggleCartProduct(productId: string) {
   const dispatch = useAppDispatch();
-  const { data: session } = useSession();
-  const userId = session?.user?.id as string;
+  const { data: session, status } = useSession();
+  const userId = status === "authenticated" ? session?.user?.id as string : undefined;
   const cartIds = useAppSelector((state) => state.cart);
   const isInCart = cartIds.includes(productId);
 
   const onCartClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    (e?: React.MouseEvent, selectedSize?: string, selectedColor?: string) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      if (!userId) return;
 
       if (isInCart) {
         dispatch(removeFromCart(productId));
@@ -29,7 +33,11 @@ export function useToggleCartProduct(productId: string) {
         dispatch(addToCart(productId));
       }
 
-      toggleCartProduct(userId, productId);
+      if (selectedSize || selectedColor) {
+        addToCartWithDetails(userId, productId, selectedSize, selectedColor);
+      } else {
+        toggleCartProduct(userId, productId);
+      }
     },
     [dispatch, isInCart, productId, userId]
   );
@@ -39,8 +47,8 @@ export function useToggleCartProduct(productId: string) {
 
 export function useToggleWishlist(productId: string) {
   const dispatch = useAppDispatch();
-  const { data: session } = useSession();
-  const userId = session?.user?.id as string;
+  const { data: session, status } = useSession();
+  const userId = status === "authenticated" ? session?.user?.id as string : undefined;
   const wishListIds = useAppSelector((state) => state.wishList);
 
   const isWishlisted = useMemo(
@@ -52,6 +60,8 @@ export function useToggleWishlist(productId: string) {
     (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
+
+      if (!userId) return;
 
       if (isWishlisted) {
         dispatch(removeFromWishList(productId));

@@ -1,3 +1,5 @@
+@use "./variables" as *;
+
 .navbar-container {
   position: fixed;
   top: 0;
@@ -7,18 +9,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 2rem;
   height: 80px;
-  background-color: #0e0e0e;
+  background-color: $bg-secondary;
 
   .left-content {
-    font-size: 1.5rem;
+    color: $text-color;
   }
 
   .center-content {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    color: $text-color;
+
+    h1 {
+      font-family: $title-font;
+      font-weight: 500;
+      font-size: 1.8rem;
+      line-height: 32px;
+    }
   }
 }
 

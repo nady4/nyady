@@ -1,17 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Silkscreen&family=Tomorrow:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap");
 
-$bg-color: #0e0e0e;
-$hover-bg: #1f1f1f;
-$input-bg: #1a1a1a;
-$border-color: #333;
-$accent-color: #ff007a;
-$hover-accent-color: #ff5eac;
-$active-accent-color: #d70169;
-$text-color: #f0f0f0;
-$error-color: #ff4d4f;
+$bg-color: #f9f2e7;
+$bg-secondary: #fcfcf9;
+$accent-color: #ecbc3b;
+$accent-hover: #d4a632;
+$border-color: #e5ddd0;
+$text-color: #2c2416;
+$text-muted: #6b5d4d;
+$error-color: #c0392b;
+$success-color: #27ae60;
+$warning-color: #f39c12;
 
-$title-font: "Silkscreen", cursive;
-$body-font: "Tomorrow", sans-serif;
+$title-font: "Fraunces", serif;
+$body-font: "Inter", sans-serif;
 
 @keyframes pulse {
   0% {

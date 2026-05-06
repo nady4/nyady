@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useSession } from "next-auth/react";
 import { useValidateAuth } from "@/hooks/useValidateAuth";
 import { useValidateSettings } from "@/hooks/useValidateSettings";
@@ -8,40 +8,26 @@ import FormContainer from "@/components/FormContainer";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(session?.user?.email || "");
+  const [username, setUsername] = useState(session?.user?.username || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [initialEmail, setInitialEmail] = useState("");
-  const [initialUsername, setInitialUsername] = useState("");
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (session?.user) {
-      const userEmail = session.user.email || "";
-      const userUsername = session.user.username || "";
-      setEmail(userEmail);
-      setUsername(userUsername);
-      setInitialEmail(userEmail);
-      setInitialUsername(userUsername);
-    }
-  }, [session]);
-
-  const hasOtherChanges =
-    email !== initialEmail || username !== initialUsername;
+  const hasOtherChanges = session?.user?.email !== email || session?.user?.username !== username;
 
   const { isFormValid, error, validateForm } = useValidateAuth({
     email,
     username,
     password: newPassword,
-    confirmPassword: newPassword,
+    confirmPassword: newPassword
   });
 
   const { isSubmitEnabled } = useValidateSettings({
     currentPassword,
     newPassword,
     isFormValid,
-    hasOtherChanges,
+    hasOtherChanges
   });
 
   const handleSubmit = (formData: FormData) => {
@@ -58,47 +44,47 @@ export default function SettingsPage() {
 
   if (status === "loading")
     return (
-      <FormContainer title="Account Settings">
-        <p className="loading">Loading session...</p>
+      <FormContainer title="Configuración de la cuenta">
+        <p className="loading">Cargando información...</p>
       </FormContainer>
     );
 
   return (
     <div className="form-page">
-      <FormContainer title="Account Settings">
+      <FormContainer title="Configuración de la cuenta">
         <form action={handleSubmit}>
           <input
             type="email"
             name="email"
-            placeholder="New Email"
+            placeholder="Nuevo Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="text"
             name="username"
-            placeholder="New Username"
+            placeholder="Nuevo Nombre de Usuario"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
           <input
             type="password"
             name="newPassword"
-            placeholder="New Password"
+            placeholder="Nueva Contraseña"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
           />
           <input
             type="password"
             name="currentPassword"
-            placeholder="Current Password"
+            placeholder="Contraseña Actual"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
           />
           {error && <p className="error">{error}</p>}
           <button type="submit" disabled={!isSubmitEnabled || pending}>
-            {pending ? "Saving..." : "Save Changes"}
+            {pending ? "Guardando..." : "Guardar Cambios"}
           </button>
         </form>
       </FormContainer>

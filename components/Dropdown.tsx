@@ -41,35 +41,65 @@ export default function Dropdown() {
         className="dropdown-switch"
         onClick={toggleDropdown}
       >
-        <Image src="/assets/icons/menu.svg" alt="Menu" width={60} height={60} />
+        <Image src="/assets/icons/menu.svg" alt="Menu" width={40} height={40} />
       </button>
       <div
         className={`dropdown-container ${isOpen ? "open" : "closed"}`}
         ref={dropdownRef}
       >
         <Link href="/wishlist">
-          <Image src="/assets/icons/heart.svg" alt="Wishlist" width={30} height={30} />
-          <h3>Wishlist</h3>
+          <Image
+            src="/assets/icons/heart.svg"
+            alt="Wishlist"
+            width={30}
+            height={30}
+          />
+          <h3>Favoritos</h3>
         </Link>
         <Link href="/cart">
-          <Image src="/assets/icons/cart.svg" alt="Cart" width={30} height={30} />
-          <h3>Cart</h3>
+          <Image
+            src="/assets/icons/cart.svg"
+            alt="Cart"
+            width={30}
+            height={30}
+          />
+          <h3>Carrito</h3>
         </Link>
         <Link href="/orders">
-          <Image src="/assets/icons/truck.svg" alt="Orders" width={30} height={30} />
-          <h3>Orders</h3>
+          <Image
+            src="/assets/icons/truck.svg"
+            alt="Orders"
+            width={30}
+            height={30}
+          />
+          <h3>Órdenes</h3>
         </Link>
         <Link href="/address">
-          <Image src="/assets/icons/house.svg" alt="Address" width={30} height={30} />
-          <h3>Address</h3>
+          <Image
+            src="/assets/icons/house.svg"
+            alt="Address"
+            width={30}
+            height={30}
+          />
+          <h3>Dirección</h3>
         </Link>
         <Link href="/settings">
-          <Image src="/assets/icons/gear.svg" alt="Settings" width={30} height={30} />
-          <h3>Settings</h3>
+          <Image
+            src="/assets/icons/gear.svg"
+            alt="Settings"
+            width={30}
+            height={30}
+          />
+          <h3>Configuración</h3>
         </Link>
         <a onClick={() => signOut({ callbackUrl: "/" })}>
-          <Image src="/assets/icons/logout.svg" alt="Logout" width={26} height={26} />
-          <h3>Logout</h3>
+          <Image
+            src="/assets/icons/logout.svg"
+            alt="Logout"
+            width={26}
+            height={26}
+          />
+          <h3>Cerrar sesión</h3>
         </a>
       </div>
     </div>

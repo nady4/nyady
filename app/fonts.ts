@@ -1,13 +1,11 @@
-import { Silkscreen, Tomorrow } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
 
-export const silkscreen = Silkscreen({
-  weight: "400",
+export const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-silkscreen",
+  variable: "--font-fraunces",
 });
 
-export const tomorrow = Tomorrow({
-  weight: "400",
+export const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-tomorrow",
+  variable: "--font-inter",
 });

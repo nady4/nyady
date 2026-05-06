@@ -1,3 +1,5 @@
+@use "./variables" as *;
+
 .dropdown-wrapper {
   position: relative;
   display: inline-block;
@@ -21,15 +23,18 @@
   .dropdown-container {
     position: fixed;
     top: 80px;
-    right: 0;
+    left: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    width: 200px;
-    padding: 10px;
+    gap: 0.75rem;
+    width: 220px;
+    padding: 1rem;
     box-sizing: border-box;
-    background-color: #0e0e0e;
+    background-color: $bg-secondary;
+    border: 1px solid $border-color;
+    border-radius: 0 1rem 0 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
     transition: 0.3s ease-in-out;
     z-index: 20;
 
@@ -39,24 +44,56 @@
       justify-content: flex-start;
       gap: 1rem;
       width: 100%;
-      padding: 8px 10px;
+      padding: 0.75rem;
       box-sizing: border-box;
       cursor: pointer;
       background: none;
       border: none;
-      text-align: left;
+      font-family: $body-font;
+      font-size: 0.95rem;
+      color: $text-color;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
 
       img {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
       }
 
       &:hover {
-        background-color: #1f1f1f;
+        background-color: $bg-color;
       }
     }
+
+    .logout-button {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 1rem;
+      width: 100%;
+      padding: 0.75rem;
+      box-sizing: border-box;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: $body-font;
+      font-size: 0.95rem;
+      color: $text-color;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+
+      img {
+        width: 28px;
+        height: 28px;
+      }
+
+      &:hover {
+        background-color: $bg-color;
+      }
+    }
+
     &.closed {
-      right: -500px;
+      left: -500px;
     }
   }
 }
@@ -68,16 +105,16 @@
 
       a,
       .logout-button {
-        height: 70px;
+        height: 60px;
         width: 70%;
 
         img {
-          width: 35px;
-          height: 35px;
+          width: 32px;
+          height: 32px;
         }
 
         h3 {
-          font-size: 1.5rem;
+          font-size: 1.25rem;
         }
       }
     }

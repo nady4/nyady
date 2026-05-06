@@ -1,5 +1,4 @@
 @use "./variables" as *;
-@use "sass:color";
 
 .checkout-container {
   display: flex;
@@ -14,37 +13,34 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    padding: 1rem;
-    background-color: $bg-color;
-    border-radius: 0.8rem;
-    box-shadow: 0 0 12px rgba($accent-color, 0.15);
-    transition: all 0.25s ease-in-out;
+    padding: 1.5rem;
+    background-color: $bg-secondary;
+    border-radius: 1rem;
+    border: 1px solid $border-color;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
 
   .checkout-button {
     width: 100%;
-    padding: 0.9rem 1.2rem;
-    border-radius: 0.6rem;
-    border: none;
+    padding: 0.875rem 1.25rem;
     font-family: $body-font;
     font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    border: none;
     background-color: $accent-color;
-    color: white;
+    color: $text-color;
     cursor: pointer;
-    text-shadow: 0 0 4px black;
-    box-shadow: 0 0 8px rgba($accent-color, 0.5);
-    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    transition: background-color 0.2s, transform 0.2s;
 
     &:hover:not(:disabled) {
-      background-color: color.adjust($accent-color, $lightness: -8%);
+      background-color: $accent-hover;
       transform: translateY(-2px);
-      box-shadow: 0 0 14px rgba($accent-color, 0.6);
     }
 
     &:disabled {
       cursor: not-allowed;
       opacity: 0.6;
-      background-color: color.adjust($accent-color, $lightness: -20%);
     }
   }
 }

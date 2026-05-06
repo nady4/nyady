@@ -23,15 +23,15 @@ export const useGetProduct = (id: string) => {
 
         let related: ProductType[] = [...sameCategory];
 
-        if (related.length < 5) {
+        if (related.length < 4) {
           const filler = products
             .filter((p) => p.id !== id && !related.some((rp) => rp.id === p.id))
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 5 - related.length);
+            .sort(() => 0.4 - Math.random())
+            .slice(0, 4 - related.length);
 
           related = [...related, ...filler];
         } else {
-          related = related.slice(0, 5);
+          related = related.slice(0, 4);
         }
 
         setProduct(found);
