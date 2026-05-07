@@ -155,7 +155,7 @@ export default async function OrdersPage() {
                 })}
               </span>
               <span className="order-total">
-                Total: ${order.total.toFixed(2)}
+                Total: ${order.total.toLocaleString("es-AR")}
               </span>
             </div>
 
@@ -167,7 +167,7 @@ export default async function OrdersPage() {
                     Cantidad: {item.quantity}
                   </span>
                   <span className="order-item-subtotal">
-                    Subtotal: ${(item.product.price * item.quantity).toFixed(2)}
+                    Subtotal: ${(item.product.price * item.quantity).toLocaleString("es-AR")}
                   </span>
                 </div>
               ))}

@@ -11,10 +11,10 @@ const DoubleRangeSlider = () => {
   );
 
   const min = priceState?.min ?? 0;
-  const max = priceState?.max ?? 100;
+  const max = priceState?.max ?? 50000;
 
   const minLimit = 0;
-  const maxLimit = 100;
+  const maxLimit = 50000;
 
   const handleMinChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,10 +68,10 @@ const DoubleRangeSlider = () => {
       />
       <div className="range-values">
         <span className="min-value" style={{ left: `${minPercent}%` }}>
-          {safeMin}
+          {(safeMin / 1000).toFixed(0)}k
         </span>
         <span className="max-value" style={{ left: `${maxPercent}%` }}>
-          {safeMax}
+          {(safeMax / 1000).toFixed(0)}k
         </span>
       </div>
     </div>

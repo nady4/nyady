@@ -192,7 +192,7 @@ function ProductPage() {
         </div>
         <div className="product-info">
           <h1 className="product-name">{product.name}</h1>
-          <p className="product-price">${product.price?.toFixed(2)}</p>
+          <p className="product-price">${(product.price ?? 0).toLocaleString("es-AR")}</p>
 
           {product.code && (
             <p className="product-code">Código: {product.code}</p>

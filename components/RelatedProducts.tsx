@@ -22,7 +22,7 @@ const RelatedProducts = ({ products }: { products: ProductType[] }) => (
           />
           <p className={inter.className + " name"}>{product.name}</p>
           <p className={fraunces.className + " price"}>
-            ${product.price.toFixed(2)}
+            ${product.price.toLocaleString("es-AR")}
           </p>
         </Link>
       ))}

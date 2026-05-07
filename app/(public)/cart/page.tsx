@@ -181,7 +181,7 @@ export default function CartPage() {
             </button>
           </div>
           <span className="price">
-            ${(item.price * item.quantity).toFixed(2)}
+            ${(item.price * item.quantity).toLocaleString("es-AR")}
           </span>
         </div>
       ))}
@@ -229,14 +229,14 @@ export default function CartPage() {
       )}
 
       <div className="cart-total">
-        <div className="subtotal">Subtotal: ${subtotal.toFixed(2)}</div>
+        <div className="subtotal">Subtotal: ${subtotal.toLocaleString("es-AR")}</div>
         {selectedShipping && (
           <div className="shipping-cost">
             Envío ({selectedShipping.service_type.name}): $
-            {shippingCost.toFixed(2)}
+            {shippingCost.toLocaleString("es-AR")}
           </div>
         )}
-        <div className="total">Total: ${total.toFixed(2)}</div>
+        <div className="total">Total: ${total.toLocaleString("es-AR")}</div>
       </div>
 
       <div className="button-container">

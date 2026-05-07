@@ -290,7 +290,7 @@ export default function ShippingQuote({
                               )}
                             </span>
                             <span className="option-price">
-                              ${option.quote.amounts.price_incl_tax.toFixed(2)}
+                              ${option.quote.amounts.price_incl_tax.toLocaleString("es-AR")}
                             </span>
                           </div>
                         ) : (

@@ -52,7 +52,7 @@ const ProductCard = memo(function ProductCard({
         </button>
         <h2 className={`${inter.className} product-title`}>{name}</h2>
         <p className={`${fraunces.className} product-price`}>
-          ${price?.toFixed(2)}
+          ${(price ?? 0).toLocaleString("es-AR")}
         </p>
         {colors.length > 0 && (
           <div className="product-colors">
