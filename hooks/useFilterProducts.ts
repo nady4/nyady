@@ -18,9 +18,11 @@ export const useFilterProducts = (products: ProductType[]) => {
     const hasColorFilter = Object.values(activeColors).some(Boolean);
 
     return products.filter((product) => {
-      const matchesSearch = product.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchLower) ||
+        (product.description?.toLowerCase().includes(searchLower) ?? false) ||
+        product.category.toLowerCase().includes(searchLower);
 
       const matchesCategory = !hasActiveCategoryFilter || (activeCategories?.[product.category] ?? true);
       const matchesPrice = product.price >= minPrice && product.price <= maxPrice;

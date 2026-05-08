@@ -188,6 +188,12 @@ const TextFilter = ({
   searchTerm: string;
   dispatch: ReturnType<typeof useAppDispatch>;
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      dispatch(setSearchTerm(searchTerm));
+    }
+  };
+
   return (
     <div className="text-filter">
       <input
@@ -195,6 +201,7 @@ const TextFilter = ({
         className={`${inter.className} text-input`}
         value={searchTerm}
         onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+        onKeyDown={handleKeyDown}
         placeholder="Buscar productos..."
       />
       <button

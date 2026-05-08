@@ -108,6 +108,10 @@
   transition: all 0.2s ease;
   width: fit-content;
 
+  @media (max-width: 600px) {
+    display: none;
+  }
+
   &:hover {
     color: $text-color;
     border-color: $text-color;

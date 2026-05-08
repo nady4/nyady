@@ -16,6 +16,29 @@ export async function getProduct(id: string): Promise<ProductType | null> {
   }
 }
 
+export async function searchProducts(query: string): Promise<ProductType[]> {
+  try {
+    if (!query || query.trim().length === 0) {
+      return getProducts();
+    }
+
+    const products = await prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+          { category: { contains: query, mode: "insensitive" } }
+        ]
+      }
+    });
+
+    return products;
+  } catch (error) {
+    console.error("Error searching products:", error);
+    return [];
+  }
+}
+
 export async function getProducts(): Promise<ProductType[]> {
   try {
     const products = await prisma.product.findMany();

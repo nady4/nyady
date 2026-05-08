@@ -102,6 +102,12 @@
     font-size: 0.85rem;
     transition: opacity 0.2s ease;
 
+    &.signin-link {
+      @media (max-width: 900px) {
+        display: none;
+      }
+    }
+
     &:hover {
       opacity: 0.7;
 
@@ -137,28 +143,15 @@
     .info-toggle {
       display: flex;
       align-items: center;
-      gap: 0.3rem;
       background: none;
       border: none;
       color: $text-color;
-      font-size: 0.85rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       cursor: pointer;
       padding: 0.4rem;
       transition: opacity 0.2s ease;
 
       &:hover {
         opacity: 0.7;
-      }
-
-      .chevron {
-        transition: transform 0.2s ease;
-
-        &.open {
-          transform: rotate(180deg);
-        }
       }
     }
 

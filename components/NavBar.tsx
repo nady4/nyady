@@ -55,63 +55,13 @@ function NavBar() {
       ) : (
         <div className="guest-navbar">
           <div className="left-content-guest">
-            <Link href="/signin" className="text-link">
-              <Image
-                src="/assets/icons/signin.svg"
-                alt="Iniciar sesión"
-                width={26}
-                height={26}
-              />
-              <span>INICIAR SESIÓN</span>
-            </Link>
-            <Link href="/signin" className="text-link">
-              <Image
-                src="/assets/icons/user.svg"
-                alt="Cuenta"
-                width={26}
-                height={26}
-              />
-              <span>Cuenta</span>
-            </Link>
-            <Link href="/signin" className="text-link">
-              <Image
-                src="/assets/icons/truck.svg"
-                alt="Mis Pedidos"
-                width={26}
-                height={26}
-              />
-              <span>Mis Pedidos</span>
-            </Link>
-            <Link href="/signin" className="text-link">
-              <Image
-                src="/assets/icons/heart.svg"
-                alt="Mis Favoritos"
-                width={26}
-                height={26}
-              />
-              <span>Mis Favoritos</span>
-            </Link>
-          </div>
-          <div className="center-content">
-            <Link href="/catalog">
-              <h1>
-                <span className="logo-text">N</span>
-                <span className="logo-color">Y</span>
-                <span className="logo-text">AD</span>
-                <span className="logo-text">Y</span>
-              </h1>
-            </Link>
-          </div>
-          <div className="right-content-guest">
             <div className="info-wrapper navbar-info" ref={infoRef}>
               <button className="info-toggle" onClick={toggleInfo}>
-                <span>INFORMACIÓN</span>
                 <Image
-                  src="/assets/icons/chevron-down.svg"
-                  alt="Desplegar"
-                  width={16}
-                  height={16}
-                  className={`chevron ${infoOpen ? "open" : ""}`}
+                  src="/assets/icons/info.svg"
+                  alt="Información"
+                  width={26}
+                  height={26}
                 />
               </button>
               <div className={`info-dropdown ${infoOpen ? "open" : "closed"}`}>
@@ -128,10 +78,22 @@ function NavBar() {
                 ))}
               </div>
             </div>
-            <Link href="/signin" className="text-link">
+          </div>
+          <div className="center-content">
+            <Link href="/catalog">
+              <h1>
+                <span className="logo-text">N</span>
+                <span className="logo-color">Y</span>
+                <span className="logo-text">AD</span>
+                <span className="logo-text">Y</span>
+              </h1>
+            </Link>
+          </div>
+          <div className="right-content-guest">
+            <Link href="/signin" className="icon-link">
               <Image
-                src="/assets/icons/house.svg"
-                alt="Dirección"
+                src="/assets/icons/signin.svg"
+                alt="Iniciar sesión"
                 width={26}
                 height={26}
               />

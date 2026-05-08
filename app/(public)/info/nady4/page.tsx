@@ -6,119 +6,102 @@ import styles from "@/styles/Nady4.module.scss";
 
 export const metadata: Metadata = {
   title: "Nady4 - NYADY",
-  description: "Portfolio de Nadya Jerochim - Full Stack Developer",
+  description: "Portfolio de Nadya Jerochim - Full Stack Developer"
 };
 
 export default function Nady4Page() {
   return (
-    <InfoPage
-      title="Nadya Jerochim"
-      description="Full Stack Developer"
-    >
+    <InfoPage title="Nadya Jerochim" description="Full Stack Developer">
       <div className={styles.intro}>
-        <p>
-          Experienced in building web apps and serverless services with React, Node.js, TypeScript and Next.js, working across SQL and NoSQL databases, clean architecture, documentation and agile collaboration.
-        </p>
+        <p></p>
       </div>
-
       <section className={styles.section}>
-        <h2>Experience</h2>
-        
-        <div className={styles.job}>
-          <div className={styles.jobHeader}>
-            <h3>Developer</h3>
-            <span className={styles.company}>Transistemas</span>
-            <span className={styles.period}>Dec 2024 - Present</span>
-          </div>
-          <ul>
-            <li>Design and development of scalable projects for clients and NGO partners, implementing REST APIs, database schemas, and responsive frontend interfaces.</li>
-            <li>Design and implementation of the organization's full-stack course and student management app.</li>
-            <li>Maintenance and implementation of new requirements for the institutional website.</li>
-            <li>Migration from bundler to Vite, hosting to Vercel, and DNS provider to Cloudflare.</li>
-            <li>Development of Cloudflare Workers for monitoring DNS and nameserver configurations.</li>
-            <li>Implementation of custom email routing using SMTP and POP3.</li>
-            <li>Deployment automation, firewall configuration, and observability.</li>
-            <li>Project documentation covering internal architecture, DNS configurations, deployments, and security policies.</li>
-          </ul>
-        </div>
+        <h2>Proyectos</h2>
 
-        <div className={styles.job}>
-          <div className={styles.jobHeader}>
-            <h3>Development Team Coordinator</h3>
-            <span className={styles.company}>Transistemas</span>
-            <span className={styles.period}>July 2025 - Present</span>
-          </div>
-          <ul>
-            <li>Project management and team coordination, implementing Agile frameworks and task tracking through GitHub and Notion.</li>
-            <li>Client Acquisition and NGO Partnerships for development projects involving lead generation, deal negotiation, functional analysis, stakeholders training and long-term support.</li>
-            <li>Talent Acquisition for the Development Team, including technical interviewing, candidate selection, and structured onboarding.</li>
-            <li>Cross-team coordination between Development, Design, Education, and Communications to assess organizational needs and propose potential software solutions.</li>
-            <li>Leadership of cybersecurity initiatives and modernization of the organization's digital infrastructure.</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2>Education</h2>
-        
-        <div className={styles.education}>
-          <h3>Software Engineering</h3>
-          <span className={styles.company}>Universidad Nacional de Lanús</span>
-          <span className={styles.period}>2019 - 2025</span>
-        </div>
-
-        <div className={styles.education}>
-          <h3>H.S. Diploma, Economics & Administration</h3>
-          <span className={styles.company}>Colegio Jesús María</span>
-          <span className={styles.period}>2011 - 2017</span>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2>Projects</h2>
-        
         <div className={styles.project}>
           <h3>🐱 Nya Store</h3>
-          <p>Full Stack e-commerce platform using Next.js 15 (App Router), TypeScript, Prisma ORM, PostgreSQL, Redux Toolkit, and a complete Mercado Pago payment integration (checkout + redirect flows + webhooks). It handles authentication with NextAuth.js + JWT sessions.</p>
+          <p>
+            Plataforma de e-commerce full-stack usando Next.js 15 (App Router),
+            TypeScript, Prisma ORM, PostgreSQL, Redux Toolkit y una integración
+            completa de Mercado Pago (checkout + flujos de redirect + webhooks).
+            Maneja autenticación con NextAuth.js + JWT sessions.
+          </p>
           <div className={styles.links}>
-            <Link href="https://nya-store.vercel.app" target="_blank">Demo</Link>
-            <Link href="https://github.com/nady4/nya-store" target="_blank">Repo</Link>
+            <Link href="https://nya-store.vercel.app" target="_blank">
+              Demo
+            </Link>
+            <Link href="https://github.com/nady4/nya-store" target="_blank">
+              Repo
+            </Link>
           </div>
         </div>
 
         <div className={styles.project}>
           <h3>💸 Calendar Money</h3>
-          <p>Full-stack cash-flow management web application built using TypeScript, Vite, Node.js, Express and MongoDB. Handles authorization and authentication via JWT and provides detailed financial analytics with charts.</p>
+          <p>
+            Aplicación web full-stack de gestión de flujo de caja construida con
+            TypeScript, Vite, Node.js, Express y MongoDB. Maneja autorización y
+            autenticación vía JWT y provee análisis financiero detallado con
+            gráficos.
+          </p>
           <div className={styles.links}>
-            <Link href="https://calendar-money.vercel.app" target="_blank">Demo</Link>
-            <Link href="https://github.com/nady4/calendar-money" target="_blank">Repo Front</Link>
-            <Link href="https://github.com/nady4/calendar-money-api" target="_blank">Repo Back</Link>
+            <Link href="https://calendar-money.vercel.app" target="_blank">
+              Demo
+            </Link>
+            <Link
+              href="https://github.com/nady4/calendar-money"
+              target="_blank"
+            >
+              Repo Front
+            </Link>
+            <Link
+              href="https://github.com/nady4/calendar-money-api"
+              target="_blank"
+            >
+              Repo Back
+            </Link>
           </div>
         </div>
 
         <div className={styles.project}>
           <h3>👁️ DNS Monitor</h3>
-          <p>Serverless DNS-monitoring system using Cloudflare Workers that checks internal DNS records and nameserver status every 10 minutes, sending email alerts when changes occur. It also uses KV Storage to keep historical snapshots for accurate diff tracking.</p>
+          <p>
+            Sistema serverless de monitoreo DNS usando Cloudflare Workers que
+            verifica registros DNS internos y estado de nameservers cada 10
+            minutos, enviando alertas por email cuando hay cambios. También usa
+            KV Storage para mantener snapshots históricos.
+          </p>
           <div className={styles.links}>
-            <Link href="https://github.com/nady4/dns-monitor" target="_blank">Repo</Link>
+            <Link href="https://github.com/nady4/dns-monitor" target="_blank">
+              Repo
+            </Link>
           </div>
         </div>
 
         <div className={styles.project}>
           <h3>🔗 DS Invite</h3>
-          <p>Cloudflare Workers project handling Discord OAuth login, session cookie creation/validation, and role/invite request flows. Serves a lightweight frontend and provides protected API endpoints with modular controllers and utilities for encryption and cookie handling.</p>
+          <p>
+            Proyecto de Cloudflare Workers manejando OAuth de Discord,
+            creación/validación de cookies de sesión y flujos de solicitud de
+            roles/invitaciones. Sirve un frontend liviano y provee endpoints de
+            API protegidos con controladores modulares.
+          </p>
           <div className={styles.links}>
-            <Link href="https://ds-invite.pages.dev" target="_blank">Demo</Link>
-            <Link href="https://github.com/nady4/ds-invite" target="_blank">Repo</Link>
+            <Link href="https://ds-invite.pages.dev" target="_blank">
+              Demo
+            </Link>
+            <Link href="https://github.com/nady4/ds-invite" target="_blank">
+              Repo
+            </Link>
           </div>
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2>Skills</h2>
-        
+        <h2>Habilidades</h2>
+
         <div className={styles.skillGroup}>
-          <h3>Languages</h3>
+          <h3>Lenguajes</h3>
           <div className={styles.tags}>
             <span>TypeScript</span>
             <span>JavaScript</span>
@@ -160,7 +143,7 @@ export default function Nady4Page() {
         </div>
 
         <div className={styles.skillGroup}>
-          <h3>Databases</h3>
+          <h3>Bases de Datos</h3>
           <div className={styles.tags}>
             <span>PostgreSQL</span>
             <span>MySQL</span>
@@ -195,7 +178,7 @@ export default function Nady4Page() {
         </div>
 
         <div className={styles.skillGroup}>
-          <h3>Tools</h3>
+          <h3>Herramientas</h3>
           <div className={styles.tags}>
             <span>Git</span>
             <span>Figma</span>
@@ -212,31 +195,127 @@ export default function Nady4Page() {
         </div>
 
         <div className={styles.skillGroup}>
-          <h3>Spoken Languages</h3>
+          <h3>Idiomas</h3>
           <div className={styles.tags}>
-            <span>English (C2)</span>
-            <span>Spanish (Native)</span>
+            <span>Inglés (C2)</span>
+            <span>Español (Nativo)</span>
           </div>
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2>Certifications</h2>
-        
+        <h2>Experiencia</h2>
+
+        <div className={styles.job}>
+          <div className={styles.jobHeader}>
+            <h3>Desarrolladora</h3>
+            <span className={styles.company}>Transistemas</span>
+            <span className={styles.period}>Dic 2024 - Actual</span>
+          </div>
+          <ul>
+            <li>
+              Diseño y desarrollo de proyectos escalables para clientes y ONGs,
+              implementando REST APIs, esquemas de base de datos e interfaces
+              frontend responsivas.
+            </li>
+            <li>
+              Diseño e implementación de la aplicación full-stack de gestión de
+              cursos y estudiantes de la organización.
+            </li>
+            <li>
+              Mantenimiento e implementación de nuevos requisitos para el sitio
+              web institucional.
+            </li>
+            <li>
+              Migración de bundler a Vite, hosting a Vercel y proveedor DNS a
+              Cloudflare.
+            </li>
+            <li>
+              Desarrollo de Cloudflare Workers para monitorear configuraciones
+              DNS y nameservers.
+            </li>
+            <li>
+              Implementación de enrutamiento de emails personalizado usando SMTP
+              y POP3.
+            </li>
+            <li>
+              Automatización de deployments, configuración de firewall y
+              observabilidad.
+            </li>
+            <li>
+              Documentación de proyectos incluyendo arquitectura interna,
+              configuraciones DNS, deployments y políticas de seguridad.
+            </li>
+          </ul>
+        </div>
+
+        <div className={styles.job}>
+          <div className={styles.jobHeader}>
+            <h3>Coordinadora de Desarrollo</h3>
+            <span className={styles.company}>Transistemas</span>
+            <span className={styles.period}>Jul 2025 - Actual</span>
+          </div>
+          <ul>
+            <li>
+              Gestión de proyectos y coordinación de equipos, implementando
+              marcos ágiles y seguimiento de tareas a través de GitHub y Notion.
+            </li>
+            <li>
+              Adquisición de clientes y alianzas con ONGs para proyectos de
+              desarrollo que incluyen Generación de leads, negociación, análisis
+              funcional, capacitación de stakeholders y soporte a largo plazo.
+            </li>
+            <li>
+              Adquisición de talento para el equipo de desarrollo, incluyendo
+              entrevistas técnicas, selección de candidatos y onboarding
+              estructurado.
+            </li>
+            <li>
+              Coordinación entre equipos de Desarrollo, Diseño, Educación y
+              Comunicaciones para evaluar necesidades organizacionales y
+              proponer soluciones de software.
+            </li>
+            <li>
+              Liderazgo de iniciativas de ciberseguridad y modernización de la
+              infraestructura digital de la organización.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Educación</h2>
+
+        <div className={styles.education}>
+          <h3>Ingeniería en Sistemas</h3>
+          <span className={styles.company}>Universidad Nacional de Lanús</span>
+          <span className={styles.period}>2019 - 2025</span>
+        </div>
+
+        <div className={styles.education}>
+          <h3>Bachiller en Economía y Administraci��n</h3>
+          <span className={styles.company}>Colegio Jesús María</span>
+          <span className={styles.period}>2011 - 2017</span>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Certificaciones</h2>
+
         <div className={styles.certs}>
           <span>Full Stack Developer - ZTM Academy</span>
           <span>Testing QA - Instituto Web</span>
           <span>UX Design - Platzi</span>
           <span>Scrum Foundation Professional - Certiprof</span>
-          <span>English C2 Proficiency - EF Education First</span>
+          <span>Inglés C2 Proficiency - EF Education First</span>
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2>Contact</h2>
-        
+        <h2>Contacto</h2>
+
         <p>
-          Send me an email at <a href="mailto:dev@nady4.com">dev@nady4.com</a>
+          Envíame un email a <a href="mailto:dev@nady4.com">dev@nady4.com</a>
         </p>
 
         <div className={styles.location}>
@@ -246,19 +325,39 @@ export default function Nady4Page() {
 
         <div className={styles.socials}>
           <Link href="https://github.com/nady4" target="_blank">
-            <Image src="/assets/icons/github.svg" alt="Github" width={24} height={24} />
+            <Image
+              src="/assets/icons/github.svg"
+              alt="Github"
+              width={24}
+              height={24}
+            />
             <span>Github</span>
           </Link>
           <Link href="https://www.linkedin.com/in/nady4" target="_blank">
-            <Image src="/assets/icons/linkedin.svg" alt="LinkedIn" width={24} height={24} />
+            <Image
+              src="/assets/icons/linkedin.svg"
+              alt="LinkedIn"
+              width={24}
+              height={24}
+            />
             <span>LinkedIn</span>
           </Link>
           <Link href="https://x.com/_nady4" target="_blank">
-            <Image src="/assets/D952lAsz-x.svg" alt="X" width={24} height={24} />
+            <Image
+              src="/assets/D952lAsz-x.svg"
+              alt="X"
+              width={24}
+              height={24}
+            />
             <span>X</span>
           </Link>
           <Link href="https://www.instagram.com/nady4_dev" target="_blank">
-            <Image src="/assets/icons/instagram.svg" alt="Instagram" width={24} height={24} />
+            <Image
+              src="/assets/icons/instagram.svg"
+              alt="Instagram"
+              width={24}
+              height={24}
+            />
             <span>Instagram</span>
           </Link>
         </div>
