@@ -12,13 +12,17 @@ interface CheckoutButtonProps {
   selectedShipping: ShippingQuoteResult | null;
 }
 
-export default function CheckoutButton({ total, address, selectedShipping }: CheckoutButtonProps) {
+export default function CheckoutButton({
+  total,
+  address,
+  selectedShipping
+}: CheckoutButtonProps) {
   const [orderId, setOrderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     initMercadoPago(process.env.NEXT_PUBLIC_MP_PUBLIC_KEY as string, {
-      locale: "es-AR",
+      locale: "es-AR"
     });
   }, []);
 
@@ -34,7 +38,7 @@ export default function CheckoutButton({ total, address, selectedShipping }: Che
     setIsLoading(true);
     try {
       const res = await fetch("/api/orders", {
-        method: "POST",
+        method: "POST"
       });
 
       const data = await res.json();
@@ -49,7 +53,7 @@ export default function CheckoutButton({ total, address, selectedShipping }: Che
       <div className="checkout-container">
         <div className="wallet-container">
           <Link href="/address" className="checkout-button">
-            Add shipping address to checkout
+            Agregar dirección de envío para continuar
           </Link>
         </div>
       </div>
@@ -69,7 +73,11 @@ export default function CheckoutButton({ total, address, selectedShipping }: Che
             onClick={handleCheckout}
             disabled={isLoading || total <= 0 || !selectedShipping}
           >
-            {isLoading ? "Creating order..." : selectedShipping ? "Generate payment link" : "Select shipping option"}
+            {isLoading
+              ? "Creando orden..."
+              : selectedShipping
+                ? "Generar orden"
+                : "Selecciona un método de envío"}
           </button>
         </div>
       )}

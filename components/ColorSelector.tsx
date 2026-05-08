@@ -49,3 +49,4 @@ const ColorSelector = memo(function ColorSelector({
 });
 
 export default ColorSelector;
+export { getColorHex };

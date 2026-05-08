@@ -8,7 +8,7 @@ import Dropdown from "./Dropdown";
 import "@/styles/Navbar.scss";
 
 const INFO_OPTIONS = [
-  { href: "/info/tiempos", label: "Tiempos de Elaboración", icon: "/assets/icons/clock.svg" },
+  { href: "/info/elaboracion", label: "Tiempos de Elaboración", icon: "/assets/icons/clock.svg" },
   { href: "/info/envios", label: "Envíos", icon: "/assets/icons/truck.svg" },
   { href: "/info/medios-de-pago", label: "Medios de Pago", icon: "/assets/icons/card.svg" },
   { href: "/info/reembolsos", label: "Reembolsos", icon: "/assets/icons/return.svg" },

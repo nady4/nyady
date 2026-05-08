@@ -7,9 +7,55 @@ import Footer from "@/components/Footer";
 import "@/styles/globals.scss";
 
 export const metadata: Metadata = {
-  title: "NYADY",
-  description: "E-commerce app",
-  icons: "/favicon.svg",
+  title: {
+    default: "NYADY | Pantuflas y Pantubotas Artesanales",
+    template: "%s | NYADY",
+  },
+  description:
+    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales feitas a mano. Envíos a todo Argentina.",
+  keywords: [
+    "pantuflas",
+    "pantubotas",
+    "zapatillas",
+    "pantuflas artesanales",
+    "pantuflas cómodas",
+    "pantubotas de polar",
+    "NYADY",
+    "zapatillas de casa",
+    "calzado indoor",
+    "pantuflas mujer",
+    "pantuflas hombre",
+    "pantuflas niño",
+  ],
+  openGraph: {
+    title: "NYADY | Pantuflas y Pantubotas Artesanales",
+    description:
+      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales feitas a mano.",
+    url: "https://nyady.com",
+    siteName: "NYADY",
+    images: [
+      {
+        url: "https://nyady.com/assets/products/pantuflon.png",
+        width: 1200,
+        height: 630,
+        alt: "NYADY - Pantuflas y Pantubotas Artesanales",
+      },
+    ],
+    locale: "es_AR",
+    type: "website",
+  },
+  metadataBase: new URL("https://nyady.com"),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({

@@ -1,13 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { getCartProducts, updateCartQuantity, removeFromCartById } from "@/actions/cart";
+import {
+  getCartProducts,
+  updateCartQuantity,
+  removeFromCartById
+} from "@/actions/cart";
 import { getUserAddress } from "@/actions/address";
 import CheckoutButton from "@/components/CheckoutButton";
 import ShippingQuote from "@/components/ShippingQuote";
 import { AddressType, ShippingQuoteItem } from "@/actions/shipping";
 import { ProductType, ShippingQuoteResult } from "@/types";
+import { getColorHex } from "@/components/ColorSelector";
 import Link from "next/link";
 import "@/styles/Cart.scss";
 
@@ -120,10 +125,23 @@ export default function CartPage() {
     await removeFromCartById(cartId);
   };
 
-  const subtotal = cart.reduce(
+  const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
+
+  const discountInfo = useMemo(() => {
+    if (totalQuantity >= 20) {
+      return { percent: 20, label: "MAYORISTA x20 - 20%", applied: true };
+    } else if (totalQuantity >= 4) {
+      return { percent: 10, label: "REVENDEDORA x4 - 10%", applied: true };
+    }
+    return { percent: 0, label: "", applied: false };
+  }, [totalQuantity]);
+
+  const subtotalBeforeDiscount = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+  const discountAmount = subtotalBeforeDiscount * (discountInfo.percent / 100);
+  const subtotal = subtotalBeforeDiscount - discountAmount;
   const shippingCost = selectedShipping?.amounts.price_incl_tax || 0;
   const total = subtotal + shippingCost;
 
@@ -151,9 +169,9 @@ export default function CartPage() {
 
   return (
     <div className="cart">
-      <h2>Purchase Order</h2>
+      <h2>Carrito</h2>
       {cart.map((item) => (
-        <div key={item.id} className="cart-item">
+        <div key={item.cartId} className="cart-item">
           <Image
             src={item.photo}
             alt={item.name}
@@ -164,27 +182,31 @@ export default function CartPage() {
           <div className="item-details">
             <span className="name">{item.name}</span>
             {item.selectedSize && (
-              <span className="variant">Size: {item.selectedSize}</span>
+              <span className="variant">Talle: {item.selectedSize}</span>
             )}
             {item.selectedColor && (
               <span className="variant">
                 Color:
                 <span
                   className="color-dot"
-                  style={{ backgroundColor: item.selectedColor }}
+                  style={{ backgroundColor: getColorHex(item.selectedColor) }}
                 />
               </span>
             )}
           </div>
           <div className="quantity">
             <button
-              onClick={() => handleDecreaseQuantity(item.cartId, item.id, item.quantity)}
+              onClick={() =>
+                handleDecreaseQuantity(item.cartId, item.id, item.quantity)
+              }
             >
               -
             </button>
             <span>{item.quantity}</span>
             <button
-              onClick={() => handleIncreaseQuantity(item.cartId, item.id, item.quantity)}
+              onClick={() =>
+                handleIncreaseQuantity(item.cartId, item.id, item.quantity)
+              }
             >
               +
             </button>
@@ -196,9 +218,33 @@ export default function CartPage() {
           >
             ×
           </button>
-          <span className="price">
-            ${(item.price * item.quantity).toLocaleString("es-AR")}
-          </span>
+          <div className="price-container">
+            {item.quantity >= 4 && item.quantity < 20 ? (
+              <>
+                <span className="price-original">
+                  ${(item.price * item.quantity).toLocaleString("es-AR")}
+                </span>
+                <span className="price-discounted discount-10">
+                  ${((item.price * item.quantity) * 0.9).toLocaleString("es-AR")}
+                </span>
+                <span className="discount-badge">10% DESCUENTO</span>
+              </>
+            ) : item.quantity >= 20 ? (
+              <>
+                <span className="price-original">
+                  ${(item.price * item.quantity).toLocaleString("es-AR")}
+                </span>
+                <span className="price-discounted discount-20">
+                  ${((item.price * item.quantity) * 0.8).toLocaleString("es-AR")}
+                </span>
+                <span className="discount-badge">20% DESCUENTO</span>
+              </>
+            ) : (
+              <span className="price">
+                ${(item.price * item.quantity).toLocaleString("es-AR")}
+              </span>
+            )}
+          </div>
         </div>
       ))}
 
@@ -236,7 +282,7 @@ export default function CartPage() {
         </div>
       )}
 
-      {status !== "authenticated" && (
+      {status === "authenticated" && (
         <div className="login-prompt">
           <Link href="/signin" className="login-button">
             Iniciá sesión para calcular envío y finalizar tu compra
@@ -245,7 +291,23 @@ export default function CartPage() {
       )}
 
       <div className="cart-total">
-        <div className="subtotal">Subtotal: ${subtotal.toLocaleString("es-AR")}</div>
+        {discountInfo.percent > 0 && (
+          <div className="subtotal">
+            <span className="subtotal-original">
+              ${subtotalBeforeDiscount.toLocaleString("es-AR")}
+            </span>
+          </div>
+        )}
+        {discountInfo.percent > 0 && (
+          <div className="discount-amount">
+            <span className={`discount-badge discount-${discountInfo.percent}`}>
+              {discountInfo.percent}% DESCUENTO
+            </span>
+            <span className={`discount-value price-discounted discount-${discountInfo.percent}`}>
+              -${discountAmount.toLocaleString("es-AR")}
+            </span>
+          </div>
+        )}
         {selectedShipping && (
           <div className="shipping-cost">
             Envío ({selectedShipping.service_type.name}): $

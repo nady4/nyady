@@ -59,7 +59,17 @@ export default function ShippingQuote({
   );
   const fetchRequestedRef = useRef(false);
 
-  const getDeliveryDate = useCallback((dateStr: string): string => {
+  const getDeliveryDays = useCallback((dateStr: string): { min: number; max: number } => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deliveryDate = new Date(dateStr);
+    deliveryDate.setHours(0, 0, 0, 0);
+    const diffTime = deliveryDate.getTime() - today.getTime();
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return { min: days, max: days + 7 };
+  }, []);
+
+  const formatDeliveryDate = useCallback((dateStr: string): string => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + 3);
     return date.toLocaleDateString("es-AR", {
@@ -242,6 +252,9 @@ export default function ShippingQuote({
   return (
     <div className="shipping-quote">
       <h3>Opciones de envío</h3>
+      <p className="elaboration-note">
+        Los productos se <Link href="/elaboracion">elaboran</Link> entre 3 y 7 días
+      </p>
       <div className="shipping-groups">
         {groupedOptions.map((group, gIdx) => {
           const groupKey = group.service_type.code;
@@ -285,9 +298,14 @@ export default function ShippingQuote({
                               {option.carrier.name}
                             </span>
                             <span className="delivery-time">
-                              {getDeliveryDate(
+                              {getDeliveryDays(
                                 option.quote.delivery_time.estimated_delivery
-                              )}
+                              ).min}
+                              {" a "}
+                              {getDeliveryDays(
+                                option.quote.delivery_time.estimated_delivery
+                              ).max}
+                              {" días"}
                             </span>
                             <span className="option-price">
                               ${option.quote.amounts.price_incl_tax.toLocaleString("es-AR")}
@@ -295,32 +313,37 @@ export default function ShippingQuote({
                           </div>
                         ) : (
                           <>
-                            <div
-                              className="option-row with-points"
-                              onClick={() =>
-                                hasPoints
-                                  ? toggleCarrier(optionKey)
-                                  : handleSelect(groupKey, option)
-                              }
-                            >
-                              <span className="carrier-name">
-                                {option.carrier.name}
+<div
+                            className="option-row with-points"
+                            onClick={() =>
+                              hasPoints
+                                ? toggleCarrier(optionKey)
+                                : handleSelect(groupKey, option)
+                            }
+                          >
+                            <span className="carrier-name">
+                              {option.carrier.name}
+                            </span>
+                            {hasPoints && (
+                              <span className="pickup-count">
+                                ({option.quote.pickup_points?.length} puntos) ▶
                               </span>
-                              {hasPoints && (
-                                <span className="pickup-count">
-                                  ({option.quote.pickup_points?.length} puntos)
-                                </span>
-                              )}
-                              <span className="delivery-time">
-                                {getDeliveryDate(
-                                  option.quote.delivery_time.estimated_delivery
-                                )}
-                              </span>
-                              <span className="option-price">
-                                $
-                                {option.quote.amounts.price_incl_tax.toFixed(2)}
-                              </span>
-                            </div>
+                            )}
+                            <span className="delivery-time">
+                              {getDeliveryDays(
+                                option.quote.delivery_time.estimated_delivery
+                              ).min}
+                              {" a "}
+                              {getDeliveryDays(
+                                option.quote.delivery_time.estimated_delivery
+                              ).max}
+                              {" días"}
+                            </span>
+                            <span className="option-price">
+                              $
+                              {option.quote.amounts.price_incl_tax.toFixed(2)}
+                            </span>
+                          </div>
 
                             {hasPoints && isExpandedCarrier && (
                               <div className="pickup-points-list">

@@ -12,7 +12,14 @@ function Footer() {
         rel="noopener noreferrer"
       >
         <h3 className={`${fraunces.className} footer-text`}>
-          Made with <Image src="/assets/icons/heartFilled.svg" alt="Love" width={16} height={16} /> by nady4
+          Hecho con{" "}
+          <Image
+            src="/assets/icons/heartFilled.svg"
+            alt="Love"
+            width={16}
+            height={16}
+          />{" "}
+          por nady4
         </h3>
       </a>
     </footer>

@@ -10,7 +10,7 @@ import { getUserAddress } from "@/actions/address";
 import "@/styles/Dropdown.scss";
 
 const INFO_OPTIONS = [
-  { href: "/info/tiempos", label: "Tiempos de Elaboración", icon: "/assets/icons/clock.svg" },
+  { href: "/info/elaboracion", label: "Tiempos de Elaboración", icon: "/assets/icons/clock.svg" },
   { href: "/info/envios", label: "Envíos", icon: "/assets/icons/truck.svg" },
   { href: "/info/medios-de-pago", label: "Medios de Pago", icon: "/assets/icons/card.svg" },
   { href: "/info/reembolsos", label: "Reembolsos", icon: "/assets/icons/return.svg" },
@@ -39,7 +39,7 @@ export default function Dropdown() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const cartItems = useAppSelector((state) => state.cart);
-  const uniqueItemCount = new Set(cartItems).size;
+  const totalQuantity = cartItems.length;
 
   useEffect(() => {
     const loadAddress = async () => {
@@ -165,8 +165,8 @@ export default function Dropdown() {
               width={26}
               height={26}
             />
-            {uniqueItemCount > 0 && (
-              <span className="cart-badge">{uniqueItemCount}</span>
+            {totalQuantity > 0 && (
+              <span className="cart-badge">{totalQuantity}</span>
             )}
           </div>
         </Link>

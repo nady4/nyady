@@ -10,6 +10,22 @@
     font-weight: 600;
   }
 
+  .elaboration-note {
+    margin: 0 0 1rem;
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: 400;
+
+    a {
+      color: inherit;
+      text-decoration: underline;
+
+      &:hover {
+        color: #666;
+      }
+    }
+  }
+
   .loading, .error, .no-quotes {
     color: #666;
     font-size: 0.875rem;
@@ -116,13 +132,12 @@
           font-weight: 500;
           font-size: 0.85rem;
           color: #2c2416;
-          flex: 1;
         }
 
         .pickup-count {
           font-size: 0.7rem;
           color: #888;
-          margin-left: 0.5rem;
+          margin-left: auto;
         }
 
         .delivery-time {
