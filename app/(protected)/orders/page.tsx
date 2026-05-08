@@ -114,21 +114,23 @@ export default async function OrdersPage() {
   if (!orders.length) {
     return (
       <div className="orders-page">
-        <h1>Mis órdenes</h1>
-        <p>No hay ninguna orden</p>
-        <Link href="/">Volver a la tienda</Link>
+        <h1>Mis pedidos</h1>
+        <p>No hay ningún pedido</p>
+        <Link href="/" className="back-button">
+          Volver a la tienda
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="orders-page">
-      <h1>Mis órdenes</h1>
+      <h1>Mis pedidos</h1>
       <div className="orders-list">
         {orders.map((order) => (
           <div key={order.id} className="order-card">
             <div className="order-header">
-              <span className="order-id">Órden #{order.id.slice(0, 8)}</span>
+              <span className="order-id">Pedido #{order.id.slice(0, 8)}</span>
               <span className={`order-status ${order.status}`}>
                 Estado:{" "}
                 <strong>
@@ -167,7 +169,10 @@ export default async function OrdersPage() {
                     Cantidad: {item.quantity}
                   </span>
                   <span className="order-item-subtotal">
-                    Subtotal: ${(item.product.price * item.quantity).toLocaleString("es-AR")}
+                    Subtotal: $
+                    {(item.product.price * item.quantity).toLocaleString(
+                      "es-AR"
+                    )}
                   </span>
                 </div>
               ))}
@@ -182,7 +187,7 @@ export default async function OrdersPage() {
                 </form>
                 <form action={cancelOrder.bind(null, order.id)}>
                   <button type="submit" className="order-cancel-button">
-                    Cancelar órden
+                    Cancelar pedido
                   </button>
                 </form>
               </div>
@@ -192,7 +197,9 @@ export default async function OrdersPage() {
       </div>
 
       <div className="orders-actions">
-        <Link href="/" className="button">Volver a la tienda</Link>
+        <Link href="/" className="button">
+          Volver a la tienda
+        </Link>
       </div>
     </div>
   );

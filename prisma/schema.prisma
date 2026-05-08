@@ -56,7 +56,7 @@ model Cart {
   selectedSize String?
   selectedColor String?
 
-  @@unique([userId, productId])
+  @@unique([userId, productId, selectedSize, selectedColor])
 }
 
 model Product {

@@ -7,6 +7,28 @@ import { useToggleWishlist } from "@/hooks/useToggleData";
 import { fraunces, inter } from "@/app/fonts";
 import { ProductType } from "@/types";
 
+const COLOR_HEX: Record<string, string> = {
+  Negro: "#1a1a1a",
+  Marrón: "#8b4513",
+  Gris: "#6b7280",
+  Beige: "#f5f5dc",
+  "Rosa claro": "#ffb6c1",
+  Fucsia: "#ff00ff",
+  Bordó: "#800020",
+  Caspeado: "#c4a35a",
+  Camel: "#c19a6b",
+  Violeta: "#8b00ff",
+  "Animal Print": "#d2b48c"
+};
+
+function getColorHex(color: string): string {
+  if (color.startsWith("#")) return color;
+  const key = Object.keys(COLOR_HEX).find(
+    (k) => k.toLowerCase() === color.toLowerCase()
+  );
+  return COLOR_HEX[key || ""] || "#cccccc";
+}
+
 interface ProductCardProps extends ProductType {
   cartIds?: string[];
 }
@@ -39,15 +61,11 @@ const ProductCard = memo(function ProductCard({
         />
         <button className="product-heart-button" onClick={onHeartClick}>
           <Image
-            src={
-              isWishlisted
-                ? "/assets/icons/heartFilled.svg"
-                : "/assets/icons/heart.svg"
-            }
+            src="/assets/icons/heartFilled.svg"
             alt="heart"
             width={24}
             height={24}
-            className="product-heart"
+            className={`product-heart ${isWishlisted ? "active" : ""}`}
           />
         </button>
         <h2 className={`${inter.className} product-title`}>{name}</h2>
@@ -60,7 +78,7 @@ const ProductCard = memo(function ProductCard({
               <span
                 key={idx}
                 className="color-dot"
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: getColorHex(color) }}
                 title={color}
               />
             ))}

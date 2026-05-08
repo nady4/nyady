@@ -19,7 +19,26 @@ export async function getProduct(id: string): Promise<ProductType | null> {
 export async function getProducts(): Promise<ProductType[]> {
   try {
     const products = await prisma.product.findMany();
-    return products;
+
+    const customOrder = [
+      "pantubota-valkyria",
+      "pantuflón",
+      "pantubota-alpina",
+      "chinela-plush",
+      "pantubota-studs",
+      "pantufla-aurora",
+      "pantufla-fogata",
+      "pantufla-lena",
+      "pantubota-freya"
+    ];
+
+    return products.sort((a, b) => {
+      const indexA = customOrder.indexOf(a.id);
+      const indexB = customOrder.indexOf(b.id);
+      const posA = indexA === -1 ? 999 : indexA;
+      const posB = indexB === -1 ? 999 : indexB;
+      return posA - posB;
+    });
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];

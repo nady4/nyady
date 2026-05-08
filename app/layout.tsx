@@ -9,6 +9,7 @@ import "@/styles/globals.scss";
 export const metadata: Metadata = {
   title: "NYADY",
   description: "E-commerce app",
+  icons: "/favicon.svg",
 };
 
 export default function RootLayout({

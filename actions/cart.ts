@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ProductType } from "@/types";
 
-type CartProductType = ProductType & { quantity: number };
+type CartProductType = ProductType & { quantity: number; cartId: string };
 
 export async function toggleCartProduct(userId: string | undefined, productId: string) {
   if (!userId || userId === "undefined" || !productId) {
@@ -62,7 +62,12 @@ export async function addToCartWithDetails(
   }
 
   const existingCart = await prisma.cart.findFirst({
-    where: { userId, productId },
+    where: { 
+      userId, 
+      productId,
+      selectedSize: selectedSize || null,
+      selectedColor: selectedColor || null,
+    },
   });
 
   if (existingCart) {
@@ -70,8 +75,6 @@ export async function addToCartWithDetails(
       where: { id: existingCart.id },
       data: {
         quantity: existingCart.quantity + 1,
-        selectedSize: selectedSize || existingCart.selectedSize,
-        selectedColor: selectedColor || existingCart.selectedColor,
       },
     });
   } else {
@@ -165,6 +168,7 @@ export async function getCartProducts(
       quantity: item.quantity,
       selectedSize: item.selectedSize || undefined,
       selectedColor: item.selectedColor || undefined,
+      cartId: item.id,
     }));
   } catch (error) {
     console.error("Error fetching cart:", error);

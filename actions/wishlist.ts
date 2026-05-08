@@ -7,6 +7,20 @@ export async function toggleWishlistProduct(userId: string, productId: string) {
   if (!userId) throw new Error("Missing userId");
   if (!productId) throw new Error("Missing productId");
 
+  try {
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+    if (!userExists) {
+      console.error("[toggleWishlistProduct] User not found:", userId);
+      return;
+    }
+  } catch (error) {
+    console.error("[toggleWishlistProduct] Error checking user:", error);
+    return;
+  }
+
   const existingWish = await prisma.wishList.findFirst({
     where: { userId, productId },
   });

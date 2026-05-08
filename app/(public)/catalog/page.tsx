@@ -1,13 +1,13 @@
 "use client";
 import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { useAppDispatch } from "@/hooks/useStore";
 import { useLoadPageData } from "@/hooks/useLoadPageData";
-import SearchBar from "@/components/SearchBar";
-import ProductList from "@/components/ProductList";
-import { useEffect, useState } from "react";
-import { initializeCart } from "@/store/slices/cartSlice";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { ProductType } from "@/types";
 import { getCartProducts } from "@/actions/cart";
+import { initializeCart } from "@/store/slices/cartSlice";
+import ProductList from "@/components/ProductList";
+import Filters from "@/components/Filters";
+import { ProductType } from "@/types";
 
 let cartPageCache: ProductType[] | null = null;
 let cartPagePromise: Promise<ProductType[]> | null = null;
@@ -17,7 +17,6 @@ export default function CatalogPage() {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
   const dispatch = useAppDispatch();
-  const cartProducts = useAppSelector((state) => state.cart);
 
   useEffect(() => {
     if (status !== "authenticated" || !userId) return;
@@ -42,7 +41,7 @@ export default function CatalogPage() {
 
   return (
     <div className="home-container">
-      <SearchBar />
+      <Filters />
       <ProductList isLoadingExternal={loading} />
     </div>
   );

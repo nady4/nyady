@@ -134,6 +134,27 @@
       }
     }
 
+    .remove-item {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid #ef4444;
+      background-color: transparent;
+      color: #ef4444;
+      font-size: 1.25rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #ef4444;
+        color: white;
+      }
+    }
+
     .price {
       font-size: 1rem;
       color: $text-color;

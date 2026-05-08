@@ -33,12 +33,20 @@ function SignInPage() {
       router.push("/");
       router.refresh();
     } else {
-      setServerError(res?.error);
+      const errorMsg = res?.error?.toLowerCase() || "";
+      if (errorMsg.includes("credentials") || errorMsg.includes("signin")) {
+        setServerError("Email o contraseña incorrectos");
+      } else if (errorMsg.includes("user")) {
+        setServerError("Usuario no encontrado");
+      } else {
+        setServerError("Error al iniciar sesión. Intentalo más tarde.");
+      }
     }
   });
 
   return (
     <div className="auth-form">
+      <h1 className="form-title">Iniciar sesión</h1>
       <form onSubmit={onSubmit}>
         <input
           type="email"

@@ -15,6 +15,7 @@ interface CartItem extends ProductType {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
+  cartId: string;
 }
 
 export default function CartPage() {
@@ -74,6 +75,7 @@ export default function CartPage() {
   }, [status, userId]);
 
   const handleIncreaseQuantity = (
+    cartId: string,
     productId: string,
     currentQuantity: number
   ) => {
@@ -82,7 +84,7 @@ export default function CartPage() {
 
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
+        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
       )
     );
 
@@ -90,6 +92,7 @@ export default function CartPage() {
   };
 
   const handleDecreaseQuantity = (
+    cartId: string,
     productId: string,
     currentQuantity: number
   ) => {
@@ -97,18 +100,24 @@ export default function CartPage() {
     const newQuantity = currentQuantity - 1;
 
     if (newQuantity <= 0) {
-      setCart((prev) => prev.filter((item) => item.id !== productId));
+      setCart((prev) => prev.filter((item) => item.cartId !== cartId));
       updateCartQuantity(userId, productId, newQuantity);
       return;
     }
 
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId ? { ...item, quantity: newQuantity } : item
+        item.cartId === cartId ? { ...item, quantity: newQuantity } : item
       )
     );
 
     updateCartQuantity(userId, productId, newQuantity);
+  };
+
+  const handleRemoveItem = (cartId: string, productId: string) => {
+    if (!userId) return;
+    setCart((prev) => prev.filter((item) => item.cartId !== cartId));
+    updateCartQuantity(userId, productId, 0);
   };
 
   const subtotal = cart.reduce(
@@ -169,17 +178,24 @@ export default function CartPage() {
           </div>
           <div className="quantity">
             <button
-              onClick={() => handleDecreaseQuantity(item.id, item.quantity)}
+              onClick={() => handleDecreaseQuantity(item.cartId, item.id, item.quantity)}
             >
               -
             </button>
             <span>{item.quantity}</span>
             <button
-              onClick={() => handleIncreaseQuantity(item.id, item.quantity)}
+              onClick={() => handleIncreaseQuantity(item.cartId, item.id, item.quantity)}
             >
               +
             </button>
           </div>
+          <button
+            className="remove-item"
+            onClick={() => handleRemoveItem(item.cartId, item.id)}
+            title="Eliminar"
+          >
+            ×
+          </button>
           <span className="price">
             ${(item.price * item.quantity).toLocaleString("es-AR")}
           </span>

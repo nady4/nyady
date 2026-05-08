@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getProducts } from "@/actions/products";
 import { ProductType } from "@/types";
 
 export const useGetProduct = (id: string) => {
@@ -12,19 +11,23 @@ export const useGetProduct = (id: string) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const products = await getProducts();
-        const found = products.find((p) => p.id === id);
-
-        if (!found) throw new Error("Product not found");
-
-        const sameCategory = products.filter(
-          (p) => p.category === found.category && p.id !== id
+        const res = await fetch(`/api/products/${id}`);
+        if (!res.ok) throw new Error("Product not found");
+        
+        const productData = await res.json();
+        setProduct(productData);
+        
+        const categoryRes = await fetch("/api/products");
+        const allProducts: ProductType[] = await categoryRes.json();
+        
+        const sameCategory = allProducts.filter(
+          (p) => p.category === productData.category && p.id !== id
         );
 
         let related: ProductType[] = [...sameCategory];
 
         if (related.length < 4) {
-          const filler = products
+          const filler = allProducts
             .filter((p) => p.id !== id && !related.some((rp) => rp.id === p.id))
             .sort(() => 0.4 - Math.random())
             .slice(0, 4 - related.length);
@@ -34,7 +37,6 @@ export const useGetProduct = (id: string) => {
           related = related.slice(0, 4);
         }
 
-        setProduct(found);
         setRelatedProducts(related);
       } catch (err) {
         const error = err as Error;

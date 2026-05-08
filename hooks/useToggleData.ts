@@ -2,6 +2,7 @@
 import { useCallback } from "react";
 import { useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { addToCart, removeFromCart } from "@/store/slices/cartSlice";
 import {
@@ -14,6 +15,7 @@ import { toggleWishlistProduct } from "@/actions/wishlist";
 export function useToggleCartProduct(productId: string) {
   const dispatch = useAppDispatch();
   const { data: session, status } = useSession();
+  const router = useRouter();
   const userId = status === "authenticated" ? session?.user?.id as string : undefined;
   const cartIds = useAppSelector((state) => state.cart);
   const isInCart = cartIds.includes(productId);
@@ -25,7 +27,10 @@ export function useToggleCartProduct(productId: string) {
         e.stopPropagation();
       }
 
-      if (!userId) return;
+      if (!userId) {
+        router.push("/signin");
+        return;
+      }
 
       if (isInCart) {
         dispatch(removeFromCart(productId));
@@ -39,7 +44,7 @@ export function useToggleCartProduct(productId: string) {
         toggleCartProduct(userId, productId);
       }
     },
-    [dispatch, isInCart, productId, userId]
+    [dispatch, isInCart, productId, userId, router]
   );
 
   return { isInCart, onCartClick };
@@ -48,6 +53,7 @@ export function useToggleCartProduct(productId: string) {
 export function useToggleWishlist(productId: string) {
   const dispatch = useAppDispatch();
   const { data: session, status } = useSession();
+  const router = useRouter();
   const userId = status === "authenticated" ? session?.user?.id as string : undefined;
   const wishListIds = useAppSelector((state) => state.wishList);
 
@@ -61,7 +67,10 @@ export function useToggleWishlist(productId: string) {
       e.preventDefault();
       e.stopPropagation();
 
-      if (!userId) return;
+      if (!userId) {
+        router.push("/signin");
+        return;
+      }
 
       if (isWishlisted) {
         dispatch(removeFromWishList(productId));
@@ -71,7 +80,7 @@ export function useToggleWishlist(productId: string) {
 
       toggleWishlistProduct(userId, productId);
     },
-    [dispatch, isWishlisted, productId, userId]
+    [dispatch, isWishlisted, productId, userId, router]
   );
 
   return { isWishlisted, onHeartClick };

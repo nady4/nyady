@@ -1,0 +1,97 @@
+@use "./variables" as *;
+
+.infoContainer {
+  min-height: 100vh;
+  padding: 120px 2rem 4rem;
+  background-color: $bg-color;
+
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    .title {
+      font-family: $title-font;
+      font-size: 2.5rem;
+      font-weight: 500;
+      color: $text-color;
+      margin-bottom: 1rem;
+    }
+
+    .description {
+      font-family: $body-font;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: $text-color;
+      opacity: 0.8;
+      margin-bottom: 2rem;
+    }
+
+    .body {
+      font-family: $body-font;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: $text-color;
+
+      h2 {
+        font-family: $title-font;
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      h3 {
+        font-family: $title-font;
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      p {
+        margin-bottom: 1rem;
+      }
+
+      ul, ol {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+
+        li {
+          margin-bottom: 0.5rem;
+        }
+      }
+
+      a {
+        color: $logo-color;
+        text-decoration: underline;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+
+      .highlight {
+        background-color: $bg-secondary;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .infoContainer {
+    padding: 100px 1rem 2rem;
+
+    .content {
+      .title {
+        font-size: 2rem;
+      }
+
+      .description {
+        font-size: 1rem;
+      }
+    }
+  }
+}
