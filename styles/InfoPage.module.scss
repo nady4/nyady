@@ -6,7 +6,7 @@
   background-color: $bg-color;
 
   .content {
-    max-width: 800px;
+    max-width: 1000px;
     margin: 0 auto;
 
     .title {
@@ -36,7 +36,7 @@
         font-family: $title-font;
         font-size: 1.5rem;
         font-weight: 500;
-        margin-top: 2rem;
+        margin-top: 4rem;
         margin-bottom: 1rem;
       }
 
@@ -52,7 +52,8 @@
         margin-bottom: 1rem;
       }
 
-      ul, ol {
+      ul,
+      ol {
         margin-bottom: 1.5rem;
         padding-left: 1.5rem;
 
@@ -63,15 +64,15 @@
 
       a {
         color: $logo-color;
-        text-decoration: underline;
 
         &:hover {
+          color: #000000;
           opacity: 0.8;
         }
       }
 
       .highlight {
-        background-color: $bg-secondary;
+        background-color: $logo-color;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function getUserAddress() {
   const session = await getServerSession(authOptions);
@@ -52,4 +53,5 @@ export async function updateAddress(formData: FormData): Promise<void> {
   }
 
   revalidatePath("/address");
+  redirect("/catalog");
 }

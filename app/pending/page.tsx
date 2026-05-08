@@ -1,38 +1,20 @@
-"use client";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import Link from "next/link";
-import "@/styles/PaymentStatus.scss";
+import type { Metadata } from "next";
 
-function PendingContent() {
-  const searchParams = useSearchParams();
-  const paymentId = searchParams?.get("payment_id") || null;
-  const status = searchParams?.get("status") || null;
-  const externalReference = searchParams?.get("external_reference") || null;
-
-  return (
-    <div className="payment-page pending-page">
-      <h1>Payment under review</h1>
-      <p>Your payment is being processed. This may take a few minutes depending on the payment method chosen.</p>
-
-      <div className="payment-info">
-        {paymentId && <p>Payment ID: {paymentId}</p>}
-        {externalReference && <p>Order #: {externalReference}</p>}
-        {status && <p>Status from Mercado Pago: {status}</p>}
-      </div>
-
-      <div className="payment-actions">
-        <Link href="/orders">View my orders</Link>
-        <Link href="/">Go to home</Link>
-      </div>
-    </div>
-  );
-}
+export const metadata: Metadata = {
+  title: "Pago en revisión - NYADY",
+  description: "Tu pago está siendo procesado. Esto puede tomar unos minutos según el medio de pago elegido.",
+};
 
 export default function PendingPage() {
   return (
-    <Suspense fallback={<div className="payment-page">Loading...</div>}>
-      <PendingContent />
-    </Suspense>
+    <div className="payment-page pending-page">
+      <h1>Pago en revisión</h1>
+      <p>Tu pago está siendo procesado. Esto puede tomar unos minutos según el medio de pago elegido.</p>
+
+      <div className="payment-actions">
+        <a href="/orders">Ver mis pedidos</a>
+        <a href="/">Ir a inicio</a>
+      </div>
+    </div>
   );
 }

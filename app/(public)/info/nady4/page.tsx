@@ -5,37 +5,79 @@ import InfoPage from "@/components/InfoPage";
 import styles from "@/styles/Nady4.module.scss";
 
 export const metadata: Metadata = {
-  title: "Nady4 - NYADY",
-  description: "Portfolio de Nadya Jerochim - Full Stack Developer"
+  title: "nady4 - NYADY",
+  description:
+    "Soy una indie dev autodidacta buscando hacer algo real y artesanal. Me propuse desarrollar este e-commerce completo con <b>Next.js, PostgreSQL y Prisma</b>, diseñando interfaces personalizadas para que los calzados artesanales que fabrico con mi familia muestren su calidad y se vendan online directos de fábrica, al mejor precio posible."
 };
 
 export default function Nady4Page() {
   return (
     <InfoPage title="Nadya Jerochim" description="Full Stack Developer">
-      <div className={styles.intro}>
-        <p></p>
-      </div>
-      <section className={styles.section}>
-        <h2>Proyectos</h2>
+      <div className={`${styles.intro} ${styles.highlight}`}>
+        <p>
+          Soy una desarrolladora web autodidacta buscando hacer algo real y
+          artesanal en tiempos de IA.
+        </p>
+        <p>
+          Me propuse vibe-codear este e-commerce completo con Next.js,
+          PostgreSQL y Prisma, diseñando interfaces personalizadas para que los
+          calzados artesanales que fabrico con mi familia muestren su calidad y
+          se vendan online directos de fábrica, al mejor precio posible.
+        </p>
+        <p>
+          Integré la API de Mercado Pago para procesar todos los medios de pago
+          de forma segura y Zipnova para automatizar cotizaciones y seguimiento
+          de envíos en tiempo real.
+        </p>
+        <p>Espero que encuentres algo que te guste.</p>
 
-        <div className={styles.project}>
-          <h3>🐱 Nya Store</h3>
-          <p>
-            Plataforma de e-commerce full-stack usando Next.js 15 (App Router),
-            TypeScript, Prisma ORM, PostgreSQL, Redux Toolkit y una integración
-            completa de Mercado Pago (checkout + flujos de redirect + webhooks).
-            Maneja autenticación con NextAuth.js + JWT sessions.
-          </p>
-          <div className={styles.links}>
-            <Link href="https://nya-store.vercel.app" target="_blank">
-              Demo
+        <p>
+          Si tenés alguna duda, me podés <a href="/info/contacto">contactar</a>{" "}
+          o consultar las{" "}
+          <a href="/info/preguntas-frecuentes">preguntas frecuentes</a>.
+        </p>
+        <div className={styles.socials}>
+          <Link href="https://github.com/nady4" target="_blank">
+            <Image
+              src="/assets/icons/github.svg"
+              alt="Github"
+              width={24}
+              height={24}
+            />
+            <span>Github</span>
+          </Link>
+          <Link href="https://www.linkedin.com/in/nady4" target="_blank">
+            <Image
+              src="/assets/icons/linkedin.svg"
+              alt="LinkedIn"
+              width={24}
+              height={24}
+            />
+            <span>LinkedIn</span>
+          </Link>
+          <Link href="https://nady4.com" target="_blank">
+            <Image
+              src="/assets/icons/portfolio.svg"
+              alt="Portfolio"
+              width={24}
+              height={24}
+            />
+            <span>Portfolio</span>
+          </Link>
+<Link href="mailto:dev@nady4.com" target="_blank">
+              <Image
+                src="/assets/icons/mail.svg"
+                alt="Email"
+                width={24}
+                height={24}
+              />
+              <span>dev@nady4.com</span>
             </Link>
-            <Link href="https://github.com/nady4/nya-store" target="_blank">
-              Repo
-            </Link>
-          </div>
         </div>
+      </div>
 
+      <section className={styles.section}>
+        <h2>Otros Proyectos</h2>
         <div className={styles.project}>
           <h3>💸 Calendar Money</h3>
           <p>
@@ -98,9 +140,110 @@ export default function Nady4Page() {
       </section>
 
       <section className={styles.section}>
+        <h2>Experiencia</h2>
+
+        <div className={styles.job}>
+          <div className={styles.jobHeader}>
+            <h3>Desarrolladora Full Stack</h3>
+            <span className={styles.company}>Transistemas</span>
+            <span className={styles.period}>(Dic 2024 - Actual)</span>
+          </div>
+          <ul>
+            <li>
+              Diseño y desarrollo de proyectos escalables para clientes y ONGs,
+              implementando REST APIs, esquemas de base de datos e interfaces
+              frontend responsivas.
+            </li>
+            <li>
+              Diseño e implementación de la aplicación full-stack de gestión de
+              cursos y estudiantes de la organización.
+            </li>
+            <li>
+              Mantenimiento e implementación de nuevos requisitos para el sitio
+              web institucional.
+            </li>
+            <li>
+              Migración de bundler a Vite, hosting a Vercel y proveedor DNS a
+              Cloudflare.
+            </li>
+            <li>
+              Desarrollo de Cloudflare Workers para monitorear configuraciones
+              DNS y nameservers.
+            </li>
+            <li>
+              Implementación de enrutamiento de emails personalizado usando SMTP
+              y POP3.
+            </li>
+            <li>
+              Automatización de deployments, configuración de firewall y
+              observabilidad.
+            </li>
+            <li>
+              Documentación de proyectos incluyendo arquitectura interna,
+              configuraciones DNS, deployments y políticas de seguridad.
+            </li>
+          </ul>
+        </div>
+
+        <div className={styles.job}>
+          <div className={styles.jobHeader}>
+            <h3>Coordinadora de Desarrollo</h3>
+            <span className={styles.company}>Transistemas</span>
+            <span className={styles.period}>(Jul 2025 - Actual)</span>
+          </div>
+          <ul>
+            <li>
+              Gestión de proyectos y coordinación de equipos, implementando
+              marcos ágiles y seguimiento de tareas a través de GitHub y Notion.
+            </li>
+            <li>
+              Adquisición de clientes y alianzas con ONGs para proyectos de
+              desarrollo que incluyen Generación de leads, negociación, análisis
+              funcional, capacitación de stakeholders y soporte a largo plazo.
+            </li>
+            <li>
+              Adquisición de talento para el equipo de desarrollo, incluyendo
+              entrevistas técnicas, selección de candidatos y onboarding
+              estructurado.
+            </li>
+            <li>
+              Coordinación entre equipos de Desarrollo, Diseño, Educación y
+              Comunicaciones para evaluar necesidades organizacionales y
+              proponer soluciones de software.
+            </li>
+            <li>
+              Liderazgo de iniciativas de ciberseguridad y modernización de la
+              infraestructura digital de la organización.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h2>Educación</h2>
+
+        <div className={styles.education}>
+          <h3>Licenciatura en Sistemas</h3>
+          <span className={styles.company}>Universidad Nacional de Lanús</span>
+          <span className={styles.period}> (2019 - 2025)</span>
+        </div>
+
+        <div className={styles.education}>
+          <h3>Bachiller en Economía y Administración</h3>
+          <span className={styles.company}>Colegio Jesús María</span>
+          <span className={styles.period}> (2011 - 2017)</span>
+        </div>
+      </section>
+
+      <section className={styles.section}>
         <h2>Habilidades</h2>
 
         <div className={styles.skillGroup}>
+          <h3>Idiomas</h3>
+          <div className={styles.tags}>
+            <span>Inglés (C2)</span>
+            <span>Español (Nativo)</span>
+          </div>
           <h3>Lenguajes</h3>
           <div className={styles.tags}>
             <span>TypeScript</span>
@@ -193,130 +336,39 @@ export default function Nady4Page() {
             <span>n8n</span>
           </div>
         </div>
-
-        <div className={styles.skillGroup}>
-          <h3>Idiomas</h3>
-          <div className={styles.tags}>
-            <span>Inglés (C2)</span>
-            <span>Español (Nativo)</span>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2>Experiencia</h2>
-
-        <div className={styles.job}>
-          <div className={styles.jobHeader}>
-            <h3>Desarrolladora</h3>
-            <span className={styles.company}>Transistemas</span>
-            <span className={styles.period}>Dic 2024 - Actual</span>
-          </div>
-          <ul>
-            <li>
-              Diseño y desarrollo de proyectos escalables para clientes y ONGs,
-              implementando REST APIs, esquemas de base de datos e interfaces
-              frontend responsivas.
-            </li>
-            <li>
-              Diseño e implementación de la aplicación full-stack de gestión de
-              cursos y estudiantes de la organización.
-            </li>
-            <li>
-              Mantenimiento e implementación de nuevos requisitos para el sitio
-              web institucional.
-            </li>
-            <li>
-              Migración de bundler a Vite, hosting a Vercel y proveedor DNS a
-              Cloudflare.
-            </li>
-            <li>
-              Desarrollo de Cloudflare Workers para monitorear configuraciones
-              DNS y nameservers.
-            </li>
-            <li>
-              Implementación de enrutamiento de emails personalizado usando SMTP
-              y POP3.
-            </li>
-            <li>
-              Automatización de deployments, configuración de firewall y
-              observabilidad.
-            </li>
-            <li>
-              Documentación de proyectos incluyendo arquitectura interna,
-              configuraciones DNS, deployments y políticas de seguridad.
-            </li>
-          </ul>
-        </div>
-
-        <div className={styles.job}>
-          <div className={styles.jobHeader}>
-            <h3>Coordinadora de Desarrollo</h3>
-            <span className={styles.company}>Transistemas</span>
-            <span className={styles.period}>Jul 2025 - Actual</span>
-          </div>
-          <ul>
-            <li>
-              Gestión de proyectos y coordinación de equipos, implementando
-              marcos ágiles y seguimiento de tareas a través de GitHub y Notion.
-            </li>
-            <li>
-              Adquisición de clientes y alianzas con ONGs para proyectos de
-              desarrollo que incluyen Generación de leads, negociación, análisis
-              funcional, capacitación de stakeholders y soporte a largo plazo.
-            </li>
-            <li>
-              Adquisición de talento para el equipo de desarrollo, incluyendo
-              entrevistas técnicas, selección de candidatos y onboarding
-              estructurado.
-            </li>
-            <li>
-              Coordinación entre equipos de Desarrollo, Diseño, Educación y
-              Comunicaciones para evaluar necesidades organizacionales y
-              proponer soluciones de software.
-            </li>
-            <li>
-              Liderazgo de iniciativas de ciberseguridad y modernización de la
-              infraestructura digital de la organización.
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2>Educación</h2>
-
-        <div className={styles.education}>
-          <h3>Ingeniería en Sistemas</h3>
-          <span className={styles.company}>Universidad Nacional de Lanús</span>
-          <span className={styles.period}>2019 - 2025</span>
-        </div>
-
-        <div className={styles.education}>
-          <h3>Bachiller en Economía y Administraci��n</h3>
-          <span className={styles.company}>Colegio Jesús María</span>
-          <span className={styles.period}>2011 - 2017</span>
-        </div>
       </section>
 
       <section className={styles.section}>
         <h2>Certificaciones</h2>
 
         <div className={styles.certs}>
-          <span>Full Stack Developer - ZTM Academy</span>
-          <span>Testing QA - Instituto Web</span>
-          <span>UX Design - Platzi</span>
-          <span>Scrum Foundation Professional - Certiprof</span>
-          <span>Inglés C2 Proficiency - EF Education First</span>
+          <span>
+            <span className={styles.certsName}>Full Stack Developer</span>
+            <span className={styles.certsOrg}>ZTM Academy</span>
+          </span>
+          <span>
+            <span className={styles.certsName}>Testing QA</span>
+            <span className={styles.certsOrg}>Instituto Web</span>
+          </span>
+          <span>
+            <span className={styles.certsName}>UX Design</span>
+            <span className={styles.certsOrg}>Platzi</span>
+          </span>
+          <span>
+            <span className={styles.certsName}>
+              Scrum Foundation Professional
+            </span>
+            <span className={styles.certsOrg}>Certiprof</span>
+          </span>
+          <span>
+            <span className={styles.certsName}>Inglés C2 Proficiency</span>
+            <span className={styles.certsOrg}>EF Education First</span>
+          </span>
         </div>
       </section>
 
       <section className={styles.section}>
         <h2>Contacto</h2>
-
-        <p>
-          Envíame un email a <a href="mailto:dev@nady4.com">dev@nady4.com</a>
-        </p>
 
         <div className={styles.location}>
           <span>Nadya Jerochim</span>
@@ -342,24 +394,24 @@ export default function Nady4Page() {
             />
             <span>LinkedIn</span>
           </Link>
-          <Link href="https://x.com/_nady4" target="_blank">
+          <Link href="https://nady4.com" target="_blank">
             <Image
-              src="/assets/D952lAsz-x.svg"
-              alt="X"
+              src="/assets/icons/portfolio.svg"
+              alt="Portfolio"
               width={24}
               height={24}
             />
-            <span>X</span>
+            <span>Portfolio</span>
           </Link>
-          <Link href="https://www.instagram.com/nady4_dev" target="_blank">
-            <Image
-              src="/assets/icons/instagram.svg"
-              alt="Instagram"
-              width={24}
-              height={24}
-            />
-            <span>Instagram</span>
-          </Link>
+<Link href="mailto:dev@nady4.com" target="_blank">
+              <Image
+                src="/assets/icons/mail.svg"
+                alt="Email"
+                width={24}
+                height={24}
+              />
+              <span>dev@nady4.com</span>
+            </Link>
         </div>
       </section>
     </InfoPage>

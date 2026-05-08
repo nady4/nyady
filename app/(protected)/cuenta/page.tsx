@@ -2,7 +2,6 @@
 import { useState, useTransition } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useValidateAuth } from "@/hooks/useValidateAuth";
-import { useValidateCuenta } from "@/hooks/useValidateCuenta";
 import { updateUser } from "@/actions/user";
 import FormContainer from "@/components/FormContainer";
 
@@ -12,23 +11,37 @@ export default function CuentaPage() {
   const [username, setUsername] = useState(session?.user?.username || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [serverError, setServerError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const hasOtherChanges = session?.user?.email !== email || session?.user?.username !== username;
+  const hasChanges = email !== (session?.user?.email || "") || username !== (session?.user?.username || "");
 
-  const { isFormValid, error, validateForm } = useValidateAuth({
+  const { error, validateForm } = useValidateAuth({
     email,
     username,
     password: newPassword,
     confirmPassword: newPassword
   });
 
-  const { isSubmitEnabled } = useValidateCuenta({
-    currentPassword,
-    newPassword,
-    isFormValid,
-    hasOtherChanges
-  });
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    setServerError(null);
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(e.target.value);
+    setServerError(null);
+  };
+
+  const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPassword(e.target.value);
+    setServerError(null);
+  };
+
+  const handleCurrentPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentPassword(e.target.value);
+    setServerError(null);
+  };
 
   const handleSubmit = (formData: FormData) => {
     if (newPassword && !validateForm()) return;
@@ -37,53 +50,60 @@ export default function CuentaPage() {
         await updateUser(formData);
         window.location.href = "/catalog";
       } catch (err) {
-        console.error(err);
+        const errorMsg = err instanceof Error ? err.message : "Error desconocido";
+        if (errorMsg.toLowerCase().includes("password") || errorMsg.toLowerCase().includes("invalid")) {
+          setServerError("Contraseña incorrecta");
+        } else {
+          setServerError(errorMsg);
+        }
       }
     });
   };
 
+  const canSubmit = currentPassword && (hasChanges || newPassword);
+
   if (status === "loading")
     return (
-      <FormContainer title="Configuración de la cuenta">
+      <FormContainer title="Mi Cuenta">
         <p className="loading">Cargando información...</p>
       </FormContainer>
     );
 
   return (
     <div className="form-page">
-      <FormContainer title="Configuración de la cuenta">
+      <FormContainer title="Mi Cuenta">
         <form action={handleSubmit}>
           <input
             type="email"
             name="email"
-            placeholder="Nuevo Email"
+            placeholder={session?.user?.email || "Email"}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
           />
           <input
             type="text"
             name="username"
-            placeholder="Nuevo Nombre de Usuario"
+            placeholder={session?.user?.username || "Nombre de usuario"}
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={handleUsernameChange}
           />
           <input
             type="password"
             name="newPassword"
-            placeholder="Nueva Contraseña"
+            placeholder="Nueva Contraseña (opcional)"
             value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
+            onChange={handleNewPasswordChange}
           />
           <input
             type="password"
             name="currentPassword"
             placeholder="Contraseña Actual"
             value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
+            onChange={handleCurrentPasswordChange}
             required
           />
-          {error && <p className="error">{error}</p>}
-          <button type="submit" disabled={!isSubmitEnabled || pending}>
+          {(error || serverError) && <p className="error">{error || serverError}</p>}
+          <button type="submit" disabled={!canSubmit || pending}>
             {pending ? "Guardando..." : "Guardar Cambios"}
           </button>
           <button

@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import "@/styles/Orders.scss";
+
+export const metadata: Metadata = {
+  title: "Mis pedidos - NYADY",
+  description: "Ver el historial de tus pedidos de pantuflas y pantubotas artesanales.",
+};
 
 async function retryOrder(orderId: string) {
   "use server";

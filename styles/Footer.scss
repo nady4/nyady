@@ -15,6 +15,17 @@
   z-index: 20;
   border-top: 1px solid $border-color;
   color: $text-muted;
+
+  a {
+    color: $text-color;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.7;
+    }
+  }
 }
 
 .footer-links {

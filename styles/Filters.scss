@@ -1,240 +1,244 @@
 @use "./variables" as *;
 
-.filters-container {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  position: relative;
-  top: 80px;
-  z-index: 10;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: $bg-secondary;
-
-  .size-filter {
-    height: auto;
-    min-height: 100px;
-    width: 550px;
-    max-width: 100%;
+.home-container {
+  .filters-container {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    justify-content: center;
+    justify-content: space-around;
     align-items: center;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    padding: 0.75rem 1rem;
 
-    .size-row {
+    .size-filter {
+      height: auto;
+      min-height: 100px;
+      width: 550px;
+      max-width: 100%;
       display: flex;
+      flex-direction: column;
       gap: 0.5rem;
       justify-content: center;
       align-items: center;
-      flex-wrap: nowrap;
-    }
 
-    .size-button {
-      min-width: 3rem;
-      padding: 0.4rem 0.6rem;
-      border: 1px solid $border-color;
-      border-radius: 0.3rem;
-      background-color: $bg-color;
-      color: $text-color;
-      font-family: $body-font;
-      font-size: 0.85rem;
-      cursor: pointer;
-
-      &:hover {
-        border-color: $accent-color;
+      .size-row {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap;
       }
 
-      &.active {
-        border-color: $accent-color;
-        background-color: $accent-color;
+      .size-button {
+        min-width: 3rem;
+        padding: 0.4rem 0.6rem;
+        border: 1px solid $border-color;
+        border-radius: 0.3rem;
+        background-color: $bg-color;
         color: $text-color;
-        font-weight: 500;
+        font-family: $body-font;
+        font-size: 0.85rem;
+        cursor: pointer;
+
+        &:hover {
+          border-color: $accent-color;
+        }
+
+        &.active {
+          border-color: $accent-color;
+          background-color: $accent-color;
+          color: $text-color;
+          font-weight: 500;
+        }
       }
     }
-  }
 
-  .color-filter {
-    width: 300px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-
-    .color-button {
+    .color-filter {
+      width: 300px;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
       justify-content: center;
-      width: auto;
-      height: auto;
-      padding: 0.25rem;
-      border: 2px solid transparent;
-      border-radius: 0.5rem;
-      background: transparent;
-      cursor: pointer;
 
-      &:hover {
-        transform: scale(1.05);
-      }
+      .color-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        height: auto;
+        padding: 0.25rem;
+        border: 2px solid transparent;
+        border-radius: 0.5rem;
+        background: transparent;
+        cursor: pointer;
 
-      &.active {
-        border-color: $accent-color;
-        background-color: rgba($accent-color, 0.1);
-      }
+        &:hover {
+          transform: scale(1.05);
+        }
 
-      .color-circle {
-        width: 1.25rem;
-        height: 1.25rem;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 50%;
-      }
+        &.active {
+          border-color: $accent-color;
+          background-color: rgba($accent-color, 0.1);
+        }
 
-      .color-label {
-        margin-top: 0.15rem;
-        font-size: 0.6rem;
-        color: $text-muted;
-        white-space: nowrap;
-      }
-    }
-  }
+        .color-circle {
+          width: 1.25rem;
+          height: 1.25rem;
+          border: 1px solid rgba(0, 0, 0, 0.15);
+          border-radius: 50%;
+        }
 
-  .price-filter {
-    width: 250px;
-    height: 3rem;
-    min-width: 140px;
-    display: flex;
-    justify-content: center;
-  }
-
-  .text-filter {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 400px;
-
-    .text-input {
-      width: 100%;
-      padding: 0.625rem 1rem;
-      border: 1px solid $border-color;
-      border-radius: 0.5rem 0 0 0.5rem;
-      font-family: $body-font;
-      background: $bg-color;
-      color: $text-color;
-      height: 2.5rem;
-
-      &:focus {
-        outline: none;
-        border-color: $accent-color;
+        .color-label {
+          margin-top: 0.15rem;
+          font-size: 0.6rem;
+          color: $text-muted;
+          white-space: nowrap;
+        }
       }
     }
 
-    .text-button {
+    .price-filter {
+      width: 250px;
+      height: 3rem;
+      min-width: 140px;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 0.625rem 1rem;
-      border: 1px solid $accent-color;
-      border-left: none;
-      border-radius: 0 0.5rem 0.5rem 0;
-      background-color: $logo-color;
-      height: 2.5rem;
-      cursor: pointer;
+    }
 
-      &:hover {
-        background-color: $accent-hover;
+    .text-filter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 400px;
+
+      .text-input {
+        width: 100%;
+        padding: 0.625rem 1rem;
+        border: 1px solid $border-color;
+        border-radius: 0.5rem 0 0 0.5rem;
+        font-family: $body-font;
+        background: $bg-color;
+        color: $text-color;
+        height: 2.5rem;
+
+        &:focus {
+          outline: none;
+          border-color: $accent-color;
+        }
+      }
+
+      .text-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.625rem 1rem;
+        border: 1px solid $accent-color;
+        border-left: none;
+        border-radius: 0 0.5rem 0.5rem 0;
+        background-color: $logo-color;
+        height: 2.5rem;
+        cursor: pointer;
+
+        &:hover {
+          background-color: $accent-hover;
+        }
       }
     }
   }
 }
 
 @media (max-width: 768px) {
-  .filters-container {
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem 0.5rem;
-    top: 60px;
+  .home-container {
+    .filters-container {
+      flex-direction: column;
+      gap: 1rem;
+      padding: 1rem 0.5rem;
+      top: 60px;
 
-    .size-filter {
-      width: 100%;
-      min-height: auto;
-      gap: 0.75rem;
+      .size-filter {
+        width: 100%;
+        min-height: auto;
+        gap: 0.75rem;
 
-      .size-row {
-        flex-wrap: wrap;
+        .size-row {
+          flex-wrap: wrap;
+          gap: 0.4rem;
+        }
+
+        .size-button {
+          min-width: 2.5rem;
+          padding: 0.35rem 0.5rem;
+          font-size: 0.8rem;
+        }
+      }
+
+      .color-filter {
+        width: 100%;
         gap: 0.4rem;
       }
 
-      .size-button {
-        min-width: 2.5rem;
-        padding: 0.35rem 0.5rem;
-        font-size: 0.8rem;
-      }
-    }
-
-    .color-filter {
-      width: 100%;
-      gap: 0.4rem;
-    }
-
-    .price-filter {
-      width: 100%;
-      height: auto;
-    }
-
-    .text-filter {
-      width: 100%;
-
-      .text-input {
-        height: 2.2rem;
-        font-size: 0.9rem;
+      .price-filter {
+        width: 100%;
+        height: auto;
       }
 
-      .text-button {
-        height: 2.2rem;
-        padding: 0.5rem 0.75rem;
+      .text-filter {
+        width: 100%;
+
+        .text-input {
+          height: 2.2rem;
+          font-size: 0.9rem;
+        }
+
+        .text-button {
+          height: 2.2rem;
+          padding: 0.5rem 0.75rem;
+        }
       }
     }
   }
 }
 
 @media (max-width: 480px) {
-  .filters-container {
-    top: 50px;
-    gap: 0.75rem;
+  .home-container {
+    .filters-container {
+      top: 50px;
+      gap: 0.75rem;
 
-    .size-filter {
-      gap: 0.5rem;
+      .size-filter {
+        gap: 0.5rem;
 
-      .size-row {
-        gap: 0.3rem;
-      }
-
-      .size-button {
-        min-width: 2rem;
-        padding: 0.3rem 0.4rem;
-        font-size: 0.75rem;
-      }
-    }
-
-    .color-filter {
-      .color-button {
-        padding: 0.2rem;
-
-        .color-circle {
-          width: 1rem;
-          height: 1rem;
+        .size-row {
+          gap: 0.3rem;
         }
 
-        .color-label {
-          font-size: 0.5rem;
+        .size-button {
+          min-width: 2rem;
+          padding: 0.3rem 0.4rem;
+          font-size: 0.75rem;
         }
       }
-    }
 
-    .text-filter {
-      .text-input {
-        padding: 0.5rem 0.75rem;
+      .color-filter {
+        .color-button {
+          padding: 0.2rem;
+
+          .color-circle {
+            width: 1rem;
+            height: 1rem;
+          }
+
+          .color-label {
+            font-size: 0.5rem;
+          }
+        }
+      }
+
+      .text-filter {
+        .text-input {
+          padding: 0.5rem 0.75rem;
+        }
       }
     }
   }

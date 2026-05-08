@@ -30,7 +30,7 @@ function SignInPage() {
     });
 
     if (res?.ok) {
-      router.push("/");
+      router.push("/catalog");
       router.refresh();
     } else {
       const errorMsg = res?.error?.toLowerCase() || "";

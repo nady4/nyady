@@ -1,5 +1,11 @@
+import type { Metadata } from "next";
 import { getUserAddress, updateAddress } from "@/actions/address";
 import FormContainer from "@/components/FormContainer";
+
+export const metadata: Metadata = {
+  title: "Dirección de envío - NYADY",
+  description: "Gestiona tu dirección de envío para recibir tus pantuflas y pantubotas artesanales en casa.",
+};
 
 export default async function AddressPage() {
   const address = await getUserAddress();

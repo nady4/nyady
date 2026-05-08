@@ -41,7 +41,7 @@ const products = [
     price: 26900,
     category: "Pantuflas",
     stock: 50,
-    code: "🏷️ PC: PANTUFLA AURORA",
+    code: "SKU-PC-PANTUFLA-AURORA",
     sizes: sizes.closed,
     colors: ["Negro", "Marrón", "Bordó", "Nevado"],
     description: "Pantufla Aurora clásica"
@@ -53,7 +53,7 @@ const products = [
     price: 25900,
     category: "Pantuflas",
     stock: 50,
-    code: "🏷️ PF: PANTUFLÓN",
+    code: "SKU-PF-PANTUFLON",
     sizes: sizes.pantuflon,
     colors: [
       "Negro",
@@ -75,7 +75,7 @@ const products = [
     price: 28500,
     category: "Pantubotas",
     stock: 50,
-    code: "🏷️ PB-L: PANTUBOTA ARTIC",
+    code: "SKU-PB-L-PANTUBOTA-ARTIC",
     sizes: sizes.long,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Alpina cómoda y elegante"
@@ -87,7 +87,7 @@ const products = [
     price: 25900,
     category: "Pantubotas",
     stock: 50,
-    code: "🏷️ PB-C: PANTUBOTA FREYA",
+    code: "SKU-PB-C-PANTUBOTA-FREYA",
     sizes: sizes.short,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Freya perfecta para el diario"
@@ -99,7 +99,7 @@ const products = [
     price: 26500,
     category: "Pantubotas",
     stock: 50,
-    code: "🏷️ PB-T: PANTUBOTA STUDS",
+    code: "SKU-PB-T-PANTUBOTA-STUDS",
     sizes: sizes.short,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Studs decorativas"
@@ -111,7 +111,7 @@ const products = [
     price: 29500,
     category: "Pantubotas",
     stock: 50,
-    code: "🏷️ PB-M: PANTUBOTA VALKYRIA",
+    code: "SKU-PB-M-PANTUBOTA-VALKYRIA",
     sizes: sizes.short,
     colors: ["Negro", "Beige", "Fucsia"],
     description: "Pantubota Valkyria suave y acogedora"
@@ -123,7 +123,7 @@ const products = [
     price: 24500,
     category: "Hornitos",
     stock: 50,
-    code: "🏷️ HC: PANTUFLA LEÑA",
+    code: "SKU-HC-PANTUFLA-LENA",
     sizes: sizes.hornito,
     colors: ["Negro", "Marrón"],
     description: "Pantufla Leña para mantenerte abrigado"
@@ -135,7 +135,7 @@ const products = [
     price: 24900,
     category: "Hornitos",
     stock: 50,
-    code: "🏷️ HB: PANTUFLA FOGATA",
+    code: "SKU-HB-PANTUFLA-FOGATA",
     sizes: sizes.hornito,
     colors: ["Negro", "Gris", "Beige"],
     description: "Pantufla Fogata tipo bota"
@@ -147,7 +147,7 @@ const products = [
     price: 20900,
     category: "Chinelas",
     stock: 50,
-    code: "🏷️ C: CHINELA PLUSH",
+    code: "SKU-C-CHINELA-PLUSH",
     sizes: sizes.chinela,
     colors: ["Negro", "Animal Print", "Beige"],
     description: "Chinela Plush casual"
@@ -175,7 +175,8 @@ async function main() {
   await prisma.product.deleteMany({});
 
   for (const product of products) {
-    const id = product.name.toLowerCase().replace(/\s+/g, "-").replace(/ñ/g, "n").replace(/í/g, "i");
+    let id = product.name.toLowerCase().replace(/\s+/g, "-").replace(/ñ/g, "n").replace(/í/g, "i").replace(/ó/g, "o");
+    if (product.name === "Pantuflón") id = "pantuflon";
     await prisma.product.create({
       data: {
         id,

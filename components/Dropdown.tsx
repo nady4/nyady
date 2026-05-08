@@ -3,10 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { signOut } from "next-auth/react";
 import { useAppSelector } from "@/hooks/useStore";
-import { getUserAddress } from "@/actions/address";
 import "@/styles/Dropdown.scss";
 
 const INFO_OPTIONS = [
@@ -25,42 +22,12 @@ const INFO_OPTIONS = [
   { href: "/info/nady4", label: "Nady4", icon: "/assets/icons/code.svg" },
 ];
 
-type AddressType = {
-  street: string;
-  city: string;
-  state: string;
-  postalCode: string;
-} | null;
-
 export default function Dropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
-  const [address, setAddress] = useState<AddressType>(null);
-  const [loadingAddress, setLoadingAddress] = useState(true);
   const pathname = usePathname();
-  const { data: session } = useSession();
   const cartItems = useAppSelector((state) => state.cart);
   const totalQuantity = cartItems.length;
-
-  useEffect(() => {
-    const loadAddress = async () => {
-      if (session?.user?.email) {
-        try {
-          const userAddress = await getUserAddress();
-          setAddress(userAddress);
-        } catch (error) {
-          console.error("Error loading address:", error);
-        }
-      }
-      setLoadingAddress(false);
-    };
-    loadAddress();
-  }, [session?.user?.email]);
-
-  const formatAddress = (addr: AddressType) => {
-    if (!addr) return "Agregar dirección";
-    return `Enviar a ${addr.street}, ${addr.city}, ${addr.state}, ${addr.postalCode}`;
-  };
 
   const toggleInfo = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,33 +52,23 @@ export default function Dropdown() {
   return (
     <div className="navbar-wrapper" key={pathname}>
       <div className="left-content">
-        <a onClick={() => signOut({ callbackUrl: "/" })} className="icon-link">
-          <Image
-            src="/assets/icons/logout.svg"
-            alt="Cerrar sesión"
-            width={26}
-            height={26}
-          />
-        </a>
-        <Link href="/cuenta" className="text-link">
+        <Link href="/cuenta" className="icon-link">
           <Image
             src="/assets/icons/user.svg"
-            alt="Cuenta"
+            alt="Mi Cuenta"
             width={26}
             height={26}
           />
-          <span>Cuenta</span>
         </Link>
-        <Link href="/orders" className="text-link">
+        <Link href="/orders" className="icon-link">
           <Image
             src="/assets/icons/truck.svg"
             alt="Mis Pedidos"
             width={26}
             height={26}
           />
-          <span>Mis Pedidos</span>
         </Link>
-        <Link href="/wishlist" className="text-link favorite-link">
+        <Link href="/wishlist" className="icon-link favorite-link">
           <Image
             src="/assets/icons/heart.svg"
             alt="Mis Favoritos"
@@ -119,20 +76,28 @@ export default function Dropdown() {
             height={26}
             className="favorite-icon"
           />
-          <span>Mis Favoritos</span>
+        </Link>
+      </div>
+
+      <div className="center-content">
+        <Link href="/catalog">
+          <h1>
+            <span className="logo-text">N</span>
+            <span className="logo-color">Y</span>
+            <span className="logo-text">AD</span>
+            <span className="logo-text">Y</span>
+          </h1>
         </Link>
       </div>
 
       <div className="right-content">
         <div className="info-wrapper navbar-info" ref={dropdownRef}>
           <button className="info-toggle" onClick={toggleInfo}>
-            <span>INFORMACIÓN</span>
             <Image
-              src="/assets/icons/chevron-down.svg"
-              alt="Desplegar"
-              width={16}
-              height={16}
-              className={`chevron ${infoOpen ? "open" : ""}`}
+              src="/assets/icons/info.svg"
+              alt="Información"
+              width={26}
+              height={26}
             />
           </button>
           <div className={`info-dropdown ${infoOpen ? "open" : "closed"}`}>
@@ -149,14 +114,13 @@ export default function Dropdown() {
             ))}
           </div>
         </div>
-        <Link href="/address" className="text-link address-button">
+        <Link href="/address" className="icon-link">
           <Image
             src="/assets/icons/house.svg"
             alt="Dirección"
             width={26}
             height={26}
           />
-          <span>{loadingAddress ? "Cargando..." : formatAddress(address)}</span>
         </Link>
         <Link href="/cart" className="icon-link cart-link">
           <div className="cart-icon-wrapper">

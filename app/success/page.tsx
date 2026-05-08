@@ -1,38 +1,24 @@
-"use client";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import Link from "next/link";
-import "@/styles/PaymentStatus.scss";
+import type { Metadata } from "next";
 
-function SuccessContent() {
-  const searchParams = useSearchParams();
-  const paymentId = searchParams?.get("payment_id") || null;
-  const status = searchParams?.get("status") || null;
-  const externalReference = searchParams?.get("external_reference") || null;
-
-  return (
-    <div className="payment-page success-page">
-      <h1>Payment successful!</h1>
-      <p>Your payment was processed correctly.</p>
-
-      <div className="payment-info">
-        {paymentId && <p>Payment ID: {paymentId}</p>}
-        {externalReference && <p>Order #: {externalReference}</p>}
-        {status && <p>Status from Mercado Pago: {status}</p>}
-      </div>
-
-      <div className="payment-actions">
-        <Link href="/orders">View my orders</Link>
-        <Link href="/">Back to store</Link>
-      </div>
-    </div>
-  );
-}
+export const metadata: Metadata = {
+  title: "Pago exitoso - NYADY",
+  description: "Tu pago fue procesado correctamente. Gracias por tu compra de pantuflas artesanales.",
+};
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="payment-page">Loading...</div>}>
-      <SuccessContent />
-    </Suspense>
+    <div className="payment-page success-page">
+      <h1>¡Pago exitoso!</h1>
+      <p>Tu pago fue procesado correctamente.</p>
+
+      <div className="payment-info">
+        <p>Serás redirigido a tus pedidos.</p>
+      </div>
+
+      <div className="payment-actions">
+        <a href="/orders">Ver mis pedidos</a>
+        <a href="/">Volver a la tienda</a>
+      </div>
+    </div>
   );
 }

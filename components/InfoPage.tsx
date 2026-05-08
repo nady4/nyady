@@ -10,10 +10,14 @@ interface InfoPageProps {
 
 export const metadata: Metadata = {
   title: "NYADY - Información",
-  description: "Página de información de NYADY",
+  description: "Página de información de NYADY"
 };
 
-export default function InfoPage({ title, description, children }: InfoPageProps) {
+export default function InfoPage({
+  title,
+  description,
+  children
+}: InfoPageProps) {
   return (
     <main className={`${fraunces.className} ${styles.infoContainer}`}>
       <section className={styles.content}>

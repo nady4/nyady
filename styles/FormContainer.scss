@@ -44,7 +44,9 @@
         border-radius: 0.5rem;
         background: $bg-color;
         color: $text-color;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
 
         &::placeholder {
           color: $text-muted;
@@ -71,12 +73,14 @@
         font-family: $body-font;
         font-size: 1rem;
         font-weight: 500;
-        background-color: $accent-color;
-        color: $text-color;
+        background-color: $button-color;
+        color: $bg-secondary;
         border: none;
         border-radius: 0.5rem;
         cursor: pointer;
-        transition: background 0.2s ease, transform 0.1s ease;
+        transition:
+          background 0.2s ease,
+          transform 0.1s ease;
         width: 100%;
 
         &:hover:not(:disabled) {
@@ -93,7 +97,7 @@
         }
 
         &.danger {
-          background-color: $error-color;
+          background-color: #f84444;
           color: white;
 
           &:hover:not(:disabled) {

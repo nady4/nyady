@@ -111,7 +111,7 @@ export default function LandingPage() {
             style={{ transform: `translateX(${currentIndex * -100 + (currentTranslate / 20)}%)` }}
           >
             <div className="carousel-slide">
-              <Link href="/products/pantuflón">
+              <Link href="/products/pantuflon">
                 <Image
                   src="/assets/products/pantuflon.png"
                   alt="Pantuflón NYADY"
