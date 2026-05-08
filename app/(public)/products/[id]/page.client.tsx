@@ -83,7 +83,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
     const size = selectedSize || sizes[0] || undefined;
     const color = selectedColor || colors[0] || undefined;
 
-    onCartClick(e, size, color);
+    onCartClick(e, size, color, quantity);
   };
 
   return (

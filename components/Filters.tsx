@@ -32,8 +32,6 @@ function getColorHex(color: string): string {
   return COLOR_HEX[key || ""] || "#cccccc";
 }
 
-const CHUNK_SIZE = 10;
-
 const SizeFilter = () => {
   const dispatch = useAppDispatch();
   const { allSizes } = useGetFilters();
@@ -48,6 +46,7 @@ const SizeFilter = () => {
 
   if (!allSizes.length) return null;
 
+  const CHUNK_SIZE = Math.ceil(allSizes.length / 2);
   const sizeChunks = [];
   for (let i = 0; i < allSizes.length; i += CHUNK_SIZE) {
     sizeChunks.push(allSizes.slice(i, i + CHUNK_SIZE));
@@ -166,15 +165,6 @@ const PriceFilter = () => {
         min={minLimit}
         max={maxLimit}
         step={1000}
-        value={safeMax}
-        onChange={handleMaxChange}
-        className="price-filter-input max-range"
-      />
-      <input
-        type="range"
-        min={minLimit}
-        max={maxLimit}
-        step={1}
         value={safeMax}
         onChange={handleMaxChange}
         className="price-filter-input max-range"

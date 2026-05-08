@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { getCartProducts, updateCartQuantity } from "@/actions/cart";
+import { getCartProducts, updateCartQuantity, removeFromCartById } from "@/actions/cart";
 import { getUserAddress } from "@/actions/address";
 import CheckoutButton from "@/components/CheckoutButton";
 import ShippingQuote from "@/components/ShippingQuote";
@@ -114,10 +114,10 @@ export default function CartPage() {
     updateCartQuantity(userId, productId, newQuantity);
   };
 
-  const handleRemoveItem = (cartId: string, productId: string) => {
+  const handleRemoveItem = async (cartId: string) => {
     if (!userId) return;
     setCart((prev) => prev.filter((item) => item.cartId !== cartId));
-    updateCartQuantity(userId, productId, 0);
+    await removeFromCartById(cartId);
   };
 
   const subtotal = cart.reduce(
@@ -191,7 +191,7 @@ export default function CartPage() {
           </div>
           <button
             className="remove-item"
-            onClick={() => handleRemoveItem(item.cartId, item.id)}
+            onClick={() => handleRemoveItem(item.cartId)}
             title="Eliminar"
           >
             ×

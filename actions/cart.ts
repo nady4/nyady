@@ -55,7 +55,8 @@ export async function addToCartWithDetails(
   userId: string | undefined,
   productId: string,
   selectedSize?: string,
-  selectedColor?: string
+  selectedColor?: string,
+  quantity: number = 1
 ) {
   if (!userId || userId === "undefined" || !productId) {
     return;
@@ -74,7 +75,7 @@ export async function addToCartWithDetails(
     await prisma.cart.update({
       where: { id: existingCart.id },
       data: {
-        quantity: existingCart.quantity + 1,
+        quantity: existingCart.quantity + quantity,
       },
     });
   } else {
@@ -82,7 +83,7 @@ export async function addToCartWithDetails(
       data: {
         userId,
         productId,
-        quantity: 1,
+        quantity,
         selectedSize: selectedSize || null,
         selectedColor: selectedColor || null,
       },
@@ -90,6 +91,19 @@ export async function addToCartWithDetails(
   }
 
   revalidatePath("/");
+}
+
+export async function removeFromCartById(cartId: string) {
+  try {
+    await prisma.cart.delete({
+      where: { id: cartId },
+    });
+    revalidatePath("/");
+    revalidatePath("/cart");
+  } catch (error) {
+    console.error("Error removing from cart:", error);
+    throw error;
+  }
 }
 
 export async function updateCartQuantity(

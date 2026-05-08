@@ -112,10 +112,11 @@ export default function Dropdown() {
         </Link>
         <Link href="/wishlist" className="text-link favorite-link">
           <Image
-            src="/assets/icons/heartFilled.svg"
+            src="/assets/icons/heart.svg"
             alt="Mis Favoritos"
             width={26}
             height={26}
+            className="favorite-icon"
           />
           <span>Mis Favoritos</span>
         </Link>

@@ -2,13 +2,21 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const generateSizes = (start: number, end: number): string[] => {
+  const sizes: string[] = [];
+  for (let i = start; i < end; i += 2) {
+    sizes.push(`${i}/${i + 1}`);
+  }
+  return sizes;
+};
+
 const sizes = {
-  long: Array.from({ length: 9 }, (_, i) => `${21 + i}/${22 + i}`),
-  short: Array.from({ length: 9 }, (_, i) => `${21 + i}/${22 + i}`),
-  closed: Array.from({ length: 9 }, (_, i) => `${21 + i}/${22 + i}`),
-  pantuflon: Array.from({ length: 9 }, (_, i) => `${25 + i}/${26 + i}`),
-  chinela: Array.from({ length: 9 }, (_, i) => `${35 + i}/${36 + i}`),
-  hornito: Array.from({ length: 9 }, (_, i) => `${21 + i}/${22 + i}`)
+  long: generateSizes(21, 42),
+  short: generateSizes(21, 42),
+  closed: generateSizes(21, 46),
+  pantuflon: generateSizes(25, 42),
+  chinela: generateSizes(35, 46),
+  hornito: generateSizes(21, 46)
 };
 
 const COLOR_HEX: Record<string, string> = {
@@ -160,6 +168,10 @@ async function main() {
     },
   });
 
+  await prisma.cart.deleteMany({});
+  await prisma.wishList.deleteMany({});
+  await prisma.orderItem.deleteMany({});
+  await prisma.order.deleteMany({});
   await prisma.product.deleteMany({});
 
   for (const product of products) {
