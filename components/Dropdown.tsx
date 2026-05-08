@@ -125,7 +125,7 @@ export default function Dropdown() {
         <Link href="/cart" className="icon-link cart-link">
           <div className="cart-icon-wrapper">
             <Image
-              src="/assets/icons/cart.svg"
+              src="/assets/icons/cart_dark.svg"
               alt="Carrito"
               width={26}
               height={26}

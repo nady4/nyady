@@ -66,10 +66,6 @@ export default function Product({ product, relatedProducts }: ProductProps) {
     return product.price * (1 - discountInfo.percent / 100);
   }, [product.price, discountInfo.percent]);
 
-  const unitPrice = product.price ?? 0;
-  const subtotalBeforeDiscount = unitPrice * quantity;
-  const totalDiscount = unitPrice * quantity - finalPrice * quantity;
-
   const handleColorChange = useCallback((color: string) => {
     setSelectedColor(color);
     setSelectedImageIndex(0);
@@ -156,19 +152,6 @@ export default function Product({ product, relatedProducts }: ProductProps) {
             )}
           </p>
 
-          {discountInfo.percent > 0 && (
-            <div className="discount-subtotal">
-              <p className="subtotal-original">
-                x {quantity} ={" "}
-                <span>${subtotalBeforeDiscount.toLocaleString("es-AR")}</span>
-              </p>
-              <p className="subtotal-discount">
-                {discountInfo.percent}% Descuento: -$
-                {totalDiscount.toLocaleString("es-AR")}
-              </p>
-            </div>
-          )}
-
           {product.code && (
             <p className="product-code">Código: {product.code}</p>
           )}
@@ -223,19 +206,9 @@ export default function Product({ product, relatedProducts }: ProductProps) {
               <span>{quantity}</span>
               <button onClick={() => setQuantity((q) => q + 1)}>+</button>
             </div>
-            {quantity >= 4 && (
-              <div className="discount-info">
-                <span className="discount-tier">
-                  <p>
-                    ✨ PROMO x{quantity} ({quantity >= 20 ? "20" : "10"}%
-                    DESCUENTO)
-                  </p>
-                </span>
-              </div>
-            )}
             <button className="cart-button" onClick={handleAddToCart}>
               <Image
-                src="/assets/icons/cart.svg"
+                src="/assets/icons/cart_light.svg"
                 alt="cart"
                 width={20}
                 height={20}

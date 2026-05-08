@@ -239,7 +239,7 @@
         .wishlist-button {
           width: 48px;
           height: 48px;
-          border: 1px solid $button-color;
+          border: 0px solid $button-color;
           border-radius: 0.5rem;
           background-color: transparent;
           cursor: pointer;
@@ -249,12 +249,11 @@
           transition: all 0.2s ease;
 
           &:hover {
-            border-color: $logo-color;
+            transform: scale(1.2);
           }
 
-          &.active {
-            background-color: $logo-color;
-            border-color: $logo-color;
+          &:active {
+            transform: scale(0.95);
           }
         }
 
@@ -278,7 +277,7 @@
             transition: background-color 0.2s ease;
 
             &:hover {
-              background-color: $bg-secondary;
+              background-color: rgba($button-color, 0.1);
             }
           }
 
@@ -293,11 +292,11 @@
 
         .cart-button {
           flex: 1;
+          border: 0;
           height: 48px;
-          border: 1px solid $button-color;
           border-radius: 0.5rem;
-          background-color: $button-color;
-          color: $bg-secondary;
+          background-color: $accent-color;
+          color: $text-color;
           font-family: $title-font;
           font-size: 1rem;
           font-weight: 600;
@@ -309,7 +308,14 @@
           transition: all 0.2s ease;
 
           &:hover {
-            opacity: 0.9;
+            color: white;
+            border: 1px solid $button-color;
+            background-color: $button-color;
+          }
+
+          &:active {
+            color: $accent-color;
+            transform: scale(0.98);
           }
         }
 

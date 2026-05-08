@@ -43,7 +43,7 @@
       color: $text-color;
     }
 
-    .logo-gold {
+    .logo-accent {
       color: $logo-color;
     }
   }
@@ -91,6 +91,7 @@
     display: flex;
     align-items: center;
     gap: 0.3rem;
+    font-family: $title-font;
 
     .chevron {
       transition: transform 0.2s ease;
@@ -179,12 +180,29 @@
     height: 56px;
   }
 
+  .left-content {
+    a[href="/orders"],
+    a[href="/wishlist"] {
+      display: none;
+    }
+  }
+
   .center-content h1 {
     font-size: 1.3rem;
+  }
+
+  .right-content {
+    .address-link {
+      display: none;
+    }
   }
 
   .info-wrapper .info-dropdown {
     min-width: 220px;
     right: -10px;
+  }
+
+  .cart-link {
+    display: none;
   }
 }
