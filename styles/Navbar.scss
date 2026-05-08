@@ -120,6 +120,10 @@
     padding: 0.4rem 0.8rem;
     border-radius: 4px;
     font-size: 0.8rem;
+
+    @media (max-width: 900px) {
+      border: none;
+    }
   }
 
   .info-wrapper {
@@ -230,8 +234,28 @@
 
 @media screen and (max-width: 900px) {
   .navbar-container {
+    padding: 0.8rem 1.5rem;
+
     .left-content {
       gap: 1rem;
+      color: $text-color;
+
+      .text-link {
+        color: $text-color;
+      }
+
+      .text-link span {
+        display: none;
+      }
+    }
+
+    .left-content-guest {
+      gap: 1rem;
+      color: $text-color;
+
+      .text-link {
+        color: $text-color;
+      }
 
       .text-link span {
         display: none;
@@ -240,20 +264,26 @@
 
     .right-content {
       gap: 1rem;
+      color: $text-color;
+
+      .text-link {
+        color: $text-color;
+      }
 
       .text-link span {
         display: none;
       }
 
       .info-wrapper {
-        .info-toggle span {
-          display: none;
+        .info-toggle {
+          color: $text-color;
         }
       }
 
       .address-button {
         padding: 0.5rem;
-        border: none;
+        border: 1px solid $text-color;
+        color: $text-color;
 
         span {
           display: none;
@@ -265,7 +295,7 @@
 
 @media screen and (max-width: 600px) {
   .navbar-container {
-    padding: 0.8rem 1rem;
+    padding: 0.75rem 1rem;
     height: 70px;
 
     .center-content {
@@ -277,6 +307,63 @@
       h1 {
         font-size: 1.4rem;
       }
+    }
+
+    .right-content {
+      gap: 0.75rem;
+
+      .info-wrapper {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+
+        .info-dropdown {
+          min-width: 200px;
+          right: -10px;
+
+          a {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+
+    .left-content {
+      gap: 0.75rem;
+    }
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .navbar-container {
+    padding: 0.6rem 0.75rem;
+    height: 60px;
+
+    .center-content h1 {
+      font-size: 1.2rem;
+    }
+
+    .right-content {
+      gap: 0.5rem;
+
+      .info-wrapper {
+        margin-left: 0.25rem;
+        margin-right: 0.25rem;
+
+        .info-toggle {
+          padding: 0.3rem;
+        }
+      }
+    }
+
+    .left-content {
+      gap: 0.5rem;
+    }
+
+    .cart-badge {
+      width: 16px;
+      height: 16px;
+      font-size: 0.6rem;
     }
   }
 }

@@ -41,7 +41,7 @@ const products = [
     price: 26900,
     category: "Pantuflas",
     stock: 50,
-    code: "SKU-PANTUFLA-AURORA-01",
+    code: "🏷️ PC: PANTUFLA AURORA",
     sizes: sizes.closed,
     colors: ["Negro", "Marrón", "Bordó", "Nevado"],
     description: "Pantufla Aurora clásica"
@@ -53,7 +53,7 @@ const products = [
     price: 25900,
     category: "Pantuflas",
     stock: 50,
-    code: "SKU-PANTUFLON-01",
+    code: "🏷️ PF: PANTUFLÓN",
     sizes: sizes.pantuflon,
     colors: [
       "Negro",
@@ -75,7 +75,7 @@ const products = [
     price: 28500,
     category: "Pantubotas",
     stock: 50,
-    code: "SKU-PANTUBOTA-ALPINA-01",
+    code: "🏷️ PB-L: PANTUBOTA ARTIC",
     sizes: sizes.long,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Alpina cómoda y elegante"
@@ -87,7 +87,7 @@ const products = [
     price: 25900,
     category: "Pantubotas",
     stock: 50,
-    code: "SKU-PANTUBOTA-FREYA-01",
+    code: "🏷️ PB-C: PANTUBOTA FREYA",
     sizes: sizes.short,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Freya perfecta para el diario"
@@ -99,7 +99,7 @@ const products = [
     price: 26500,
     category: "Pantubotas",
     stock: 50,
-    code: "SKU-PANTUBOTA-STUDS-01",
+    code: "🏷️ PB-T: PANTUBOTA STUDS",
     sizes: sizes.short,
     colors: ["Negro", "Marrón", "Gris", "Beige", "Rosa claro", "Fucsia"],
     description: "Pantubota Studs decorativas"
@@ -111,7 +111,7 @@ const products = [
     price: 29500,
     category: "Pantubotas",
     stock: 50,
-    code: "SKU-PANTUBOTA-VALKYRIA-01",
+    code: "🏷️ PB-M: PANTUBOTA VALKYRIA",
     sizes: sizes.short,
     colors: ["Negro", "Beige", "Fucsia"],
     description: "Pantubota Valkyria suave y acogedora"
@@ -123,7 +123,7 @@ const products = [
     price: 24500,
     category: "Hornitos",
     stock: 50,
-    code: "SKU-PANTUFLA-LENA-01",
+    code: "🏷️ HC: PANTUFLA LEÑA",
     sizes: sizes.hornito,
     colors: ["Negro", "Marrón"],
     description: "Pantufla Leña para mantenerte abrigado"
@@ -135,7 +135,7 @@ const products = [
     price: 24900,
     category: "Hornitos",
     stock: 50,
-    code: "SKU-PANTUFLA-FOGATA-01",
+    code: "🏷️ HB: PANTUFLA FOGATA",
     sizes: sizes.hornito,
     colors: ["Negro", "Gris", "Beige"],
     description: "Pantufla Fogata tipo bota"
@@ -147,7 +147,7 @@ const products = [
     price: 20900,
     category: "Chinelas",
     stock: 50,
-    code: "SKU-CHINELA-PLUSH-01",
+    code: "🏷️ C: CHINELA PLUSH",
     sizes: sizes.chinela,
     colors: ["Negro", "Animal Print", "Beige"],
     description: "Chinela Plush casual"

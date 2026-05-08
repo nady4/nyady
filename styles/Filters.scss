@@ -147,3 +147,95 @@
     }
   }
 }
+
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0.5rem;
+    top: 60px;
+
+    .size-filter {
+      width: 100%;
+      min-height: auto;
+      gap: 0.75rem;
+
+      .size-row {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+      }
+
+      .size-button {
+        min-width: 2.5rem;
+        padding: 0.35rem 0.5rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    .color-filter {
+      width: 100%;
+      gap: 0.4rem;
+    }
+
+    .price-filter {
+      width: 100%;
+      height: auto;
+    }
+
+    .text-filter {
+      width: 100%;
+
+      .text-input {
+        height: 2.2rem;
+        font-size: 0.9rem;
+      }
+
+      .text-button {
+        height: 2.2rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .filters-container {
+    top: 50px;
+    gap: 0.75rem;
+
+    .size-filter {
+      gap: 0.5rem;
+
+      .size-row {
+        gap: 0.3rem;
+      }
+
+      .size-button {
+        min-width: 2rem;
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
+      }
+    }
+
+    .color-filter {
+      .color-button {
+        padding: 0.2rem;
+
+        .color-circle {
+          width: 1rem;
+          height: 1rem;
+        }
+
+        .color-label {
+          font-size: 0.5rem;
+        }
+      }
+    }
+
+    .text-filter {
+      .text-input {
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  }
+}

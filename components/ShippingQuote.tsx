@@ -66,7 +66,7 @@ export default function ShippingQuote({
     deliveryDate.setHours(0, 0, 0, 0);
     const diffTime = deliveryDate.getTime() - today.getTime();
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return { min: days, max: days + 7 };
+    return { min: days - 3, max: days - 4 };
   }, []);
 
   const formatDeliveryDate = useCallback((dateStr: string): string => {
@@ -294,17 +294,13 @@ export default function ShippingQuote({
                             className="option-row"
                             onClick={() => handleSelect(groupKey, option)}
                           >
-                            <span className="carrier-name">
+<span className="carrier-name">
                               {option.carrier.name}
                             </span>
                             <span className="delivery-time">
                               {getDeliveryDays(
                                 option.quote.delivery_time.estimated_delivery
                               ).min}
-                              {" a "}
-                              {getDeliveryDays(
-                                option.quote.delivery_time.estimated_delivery
-                              ).max}
                               {" días"}
                             </span>
                             <span className="option-price">
@@ -313,7 +309,7 @@ export default function ShippingQuote({
                           </div>
                         ) : (
                           <>
-<div
+                          <div
                             className="option-row with-points"
                             onClick={() =>
                               hasPoints
@@ -333,10 +329,6 @@ export default function ShippingQuote({
                               {getDeliveryDays(
                                 option.quote.delivery_time.estimated_delivery
                               ).min}
-                              {" a "}
-                              {getDeliveryDays(
-                                option.quote.delivery_time.estimated_delivery
-                              ).max}
                               {" días"}
                             </span>
                             <span className="option-price">

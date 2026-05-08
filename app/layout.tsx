@@ -3,7 +3,7 @@ import { fraunces, inter } from "./fonts";
 import { ReduxProvider } from "@/store/provider";
 import { NextAuthProvider } from "@/providers/NextAuthProvider";
 import NavBar from "@/components/NavBar";
-import Footer from "@/components/Footer";
+import { Footer } from "@/components/Footer";
 import "@/styles/globals.scss";
 
 export const metadata: Metadata = {
@@ -27,6 +27,10 @@ export const metadata: Metadata = {
     "pantuflas hombre",
     "pantuflas niño",
   ],
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "NYADY | Pantuflas y Pantubotas Artesanales",
     description:

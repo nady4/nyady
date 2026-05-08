@@ -1,5 +1,4 @@
-import NavBar from "@/components/NavBar";
-import Footer from "@/components/Footer";
+import { FooterLinks } from "@/components/Footer";
 
 export default function PublicLayout({
   children,
@@ -8,9 +7,8 @@ export default function PublicLayout({
 }) {
   return (
     <>
-      <NavBar />
       {children}
-      <Footer />
+      <FooterLinks />
     </>
   );
 }

@@ -1,6 +1,6 @@
 @use "./variables" as *;
 
-.footer {
+.footer-fixed {
   display: flex;
   position: fixed;
   bottom: 0;
@@ -14,11 +14,61 @@
   font-size: 0.875rem;
   z-index: 20;
   border-top: 1px solid $border-color;
+  color: $text-muted;
+}
 
-  .footer-text {
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1.5rem 1rem;
+  margin-bottom: 3rem;
+  background-color: $bg-secondary;
+  color: $text-color;
+  font-family: $body-font;
+  font-size: 0.875rem;
+  border-top: 1px solid $border-color;
+
+  .links {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    a {
+      color: $text-muted;
+      text-decoration: none;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: $text-color;
+      }
+    }
+  }
+
+  .socials {
+    display: flex;
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $text-color;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  .copyright {
     color: $text-muted;
+    font-size: 0.8rem;
   }
 }

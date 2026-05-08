@@ -20,6 +20,7 @@ const INFO_OPTIONS = [
   { href: "/info/terminos", label: "Términos y Condiciones", icon: "/assets/icons/file.svg" },
   { href: "/info/arrepentimiento", label: "Botón de Arrepentimiento", icon: "/assets/icons/cancel.svg" },
   { href: "/info/blog", label: "Blog", icon: "/assets/icons/blog.svg" },
+  { href: "/info/nady4", label: "Nady4", icon: "/assets/icons/code.svg" },
 ];
 
 function NavBar() {
@@ -62,6 +63,33 @@ function NavBar() {
                 height={26}
               />
               <span>INICIAR SESIÓN</span>
+            </Link>
+            <Link href="/signin" className="text-link">
+              <Image
+                src="/assets/icons/user.svg"
+                alt="Cuenta"
+                width={26}
+                height={26}
+              />
+              <span>Cuenta</span>
+            </Link>
+            <Link href="/signin" className="text-link">
+              <Image
+                src="/assets/icons/truck.svg"
+                alt="Mis Pedidos"
+                width={26}
+                height={26}
+              />
+              <span>Mis Pedidos</span>
+            </Link>
+            <Link href="/signin" className="text-link">
+              <Image
+                src="/assets/icons/heart.svg"
+                alt="Mis Favoritos"
+                width={26}
+                height={26}
+              />
+              <span>Mis Favoritos</span>
             </Link>
           </div>
           <div className="center-content">

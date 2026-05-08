@@ -22,6 +22,7 @@ const INFO_OPTIONS = [
   { href: "/info/terminos", label: "Términos y Condiciones", icon: "/assets/icons/file.svg" },
   { href: "/info/arrepentimiento", label: "Botón de Arrepentimiento", icon: "/assets/icons/cancel.svg" },
   { href: "/info/blog", label: "Blog", icon: "/assets/icons/blog.svg" },
+  { href: "/info/nady4", label: "Nady4", icon: "/assets/icons/code.svg" },
 ];
 
 type AddressType = {

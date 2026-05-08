@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useValidateAuth } from "@/hooks/useValidateAuth";
 import { useValidateCuenta } from "@/hooks/useValidateCuenta";
 import { updateUser } from "@/actions/user";
@@ -85,6 +85,13 @@ export default function CuentaPage() {
           {error && <p className="error">{error}</p>}
           <button type="submit" disabled={!isSubmitEnabled || pending}>
             {pending ? "Guardando..." : "Guardar Cambios"}
+          </button>
+          <button
+            type="button"
+            className="danger"
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
+            Cerrar Sesión
           </button>
         </form>
       </FormContainer>

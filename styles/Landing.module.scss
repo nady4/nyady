@@ -4,7 +4,11 @@
   min-height: calc(100vh - 160px);
   display: flex;
   align-items: center;
-  padding: 60px 40px;
+  padding: 40px 20px;
+
+  @media (max-width: 900px) {
+    padding: 20px 16px;
+  }
   background: $bg-secondary;
 }
 
@@ -84,6 +88,10 @@
 .ctaContainer {
   display: flex;
   gap: 1rem;
+
+  @media (max-width: 900px) {
+    justify-content: center;
+  }
 }
 
 .authButton {

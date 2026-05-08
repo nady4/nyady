@@ -49,8 +49,9 @@ export async function POST(request: Request) {
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error("Error creating user:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "An error occurred while creating the user" },
+      { error: "An error occurred while creating the user", details: message },
       { status: 500 }
     );
   }

@@ -91,6 +91,15 @@
           opacity: 0.5;
           cursor: not-allowed;
         }
+
+        &.danger {
+          background-color: $error-color;
+          color: white;
+
+          &:hover:not(:disabled) {
+            background-color: darken($error-color, 10%);
+          }
+        }
       }
     }
 

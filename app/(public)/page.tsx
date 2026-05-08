@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { signOut, useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getProducts } from "@/actions/products";
 import { ProductType } from "@/types";
@@ -89,7 +89,7 @@ export default function LandingPage() {
           <h1 className={styles.title}>Elevá tu comodidad, definí tu estilo.</h1>
           <p className={styles.subtitle}>Encontrá el equilibrio perfecto entre comodidad, diseño y calidad.</p>
           <div className={styles.ctaContainer}>
-            <Link href="/catalog" className={styles.cta}>Abrir Catálogo</Link>
+              <Link href="/catalog" className={styles.cta}>Abrir Catálogo</Link>
             {session ? (
               <button onClick={() => signOut({ callbackUrl: "/" })} className={styles.authButton}>Cerrar Sesión</button>
             ) : (
@@ -97,8 +97,8 @@ export default function LandingPage() {
             )}
           </div>
         </div>
-        <div 
-          ref={containerRef}
+          <div 
+            ref={containerRef}
           className="carousel-container"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}

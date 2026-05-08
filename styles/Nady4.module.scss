@@ -1,0 +1,212 @@
+@use "./variables" as *;
+
+.intro {
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.section {
+  margin-bottom: 2.5rem;
+
+  h2 {
+    font-family: $title-font;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $text-color;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid $accent-color;
+  }
+}
+
+.job {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: $bg-secondary;
+  border-radius: 0.5rem;
+
+  .jobHeader {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+
+    h3 {
+      font-family: $title-font;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .company {
+      font-weight: 500;
+      color: $logo-color;
+    }
+
+    .period {
+      font-size: 0.9rem;
+      color: $text-muted;
+    }
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
+
+    li {
+      margin-bottom: 0.4rem;
+      line-height: 1.6;
+    }
+  }
+}
+
+.education {
+  margin-bottom: 1rem;
+
+  h3 {
+    font-family: $title-font;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  .company {
+    font-weight: 500;
+    color: $logo-color;
+  }
+
+  .period {
+    font-size: 0.9rem;
+    color: $text-muted;
+  }
+}
+
+.project {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: $bg-secondary;
+  border-radius: 0.5rem;
+
+  h3 {
+    font-family: $title-font;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+
+  .links {
+    display: flex;
+    gap: 1rem;
+
+    a {
+      color: $logo-color;
+      font-weight: 500;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
+
+.skillGroup {
+  margin-bottom: 1.25rem;
+
+  h3 {
+    font-family: $title-font;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    span {
+      padding: 0.35rem 0.75rem;
+      background: $bg-secondary;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.certs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  span {
+    padding: 0.5rem 1rem;
+    background: $bg-secondary;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+.location {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 1.5rem 0;
+
+  span:first-child {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $text-color;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.7;
+    }
+
+    img {
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .job {
+    padding: 0.75rem;
+
+    .jobHeader {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
+  .socials {
+    gap: 1rem;
+
+    a span {
+      display: none;
+    }
+  }
+}
