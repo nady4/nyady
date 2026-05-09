@@ -15,7 +15,7 @@ export default function Nady4Page() {
     <InfoPage title="Nadya Jerochim" description="Full Stack Developer">
       <div className={`${styles.intro} ${styles.highlight}`}>
         <p>
-          Soy una desarrolladora web autodidacta buscando hacer algo real y
+          Soy una desarrolladora web autodidacta indie-dev-coded buscando hacer algo real y
           artesanal en tiempos de IA.
         </p>
         <p>
