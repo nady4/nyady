@@ -22,8 +22,9 @@ export default function TiemposPage() {
 
       <h2>Notas Importantes</h2>
       <ul>
-        <li>Los tiempos comienzan a contar desde la confirmación del pago</li>
         <li>Te informaremos por email sobre el progreso de tu pedido</li>
+        <li>Los tiempos de elaboración comienzan a contar desde la confirmación del pago</li>
+        <li>Los tiempos de envío comienzan a contar cuando finalice su elaboración</li>
       </ul>
     </InfoPage>
   );
