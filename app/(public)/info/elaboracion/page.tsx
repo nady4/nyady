@@ -17,7 +17,8 @@ export default function TiemposPage() {
         Todos nuestros productos son fabricados artesanalmente en nuestro taller. El tiempo de elaboración varía según la demanda de nuestros clientes.
       </p>
       
-      <h2>Tiempo Estimado: </h2>><strong>3 a 7 días hábiles</strong>
+      <h2>Tiempo Estimado: </h2>
+      <p>3 a 7 días hábiles</p>
 
       <h2>Notas Importantes</h2>
       <ul>
