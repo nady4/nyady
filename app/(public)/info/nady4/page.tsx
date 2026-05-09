@@ -7,7 +7,7 @@ import styles from "@/styles/Nady4.module.scss";
 export const metadata: Metadata = {
   title: "nady4 - NYADY",
   description:
-    "Soy una indie dev autodidacta buscando hacer algo real y artesanal. Me propuse desarrollar este e-commerce completo con <b>Next.js, PostgreSQL y Prisma</b>, diseñando interfaces personalizadas para que los calzados artesanales que fabrico con mi familia muestren su calidad y se vendan online."
+    "Soy una desarrolladora web autodidacta buscando hacer algo real y artesanal en tiempos de IA."
 };
 
 export default function Nady4Page() {
@@ -15,8 +15,7 @@ export default function Nady4Page() {
     <InfoPage title="Nadya Jerochim" description="Full Stack Developer">
       <div className={`${styles.intro} ${styles.highlight}`}>
         <p>
-          Soy una desarrolladora web autodidacta indie-dev-coded buscando hacer algo real y
-          artesanal en tiempos de IA.
+          Soy una desarrolladora web autodidacta buscando hacer algo real y artesanal en tiempos de IA.
         </p>
         <p>
           Me propuse diseñar y vibecodear este e-commerce con Next.js,
