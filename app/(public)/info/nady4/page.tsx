@@ -19,7 +19,7 @@ export default function Nady4Page() {
           artesanal en tiempos de IA.
         </p>
         <p>
-          Me propuse vibe-codear este e-commerce completo con Next.js,
+          Me propuse vibecodear este e-commerce completo con Next.js,
           PostgreSQL y Prisma, diseñando interfaces personalizadas para que los
           calzados artesanales que fabrico con mi familia muestren su calidad y
           se vendan online directos de fábrica, al mejor precio posible.
