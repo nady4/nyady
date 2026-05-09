@@ -19,10 +19,9 @@ export default function Nady4Page() {
           artesanal en tiempos de IA.
         </p>
         <p>
-          Me propuse vibecodear este e-commerce completo con Next.js,
-          PostgreSQL y Prisma, diseñando interfaces personalizadas para que los
-          calzados artesanales que fabrico con mi familia muestren su calidad y
-          se vendan online directos de fábrica, al mejor precio posible.
+          Me propuse diseñar y vibecodear este e-commerce con Next.js,
+          PostgreSQL y Prisma, para que los
+          calzados artesanales que fabrico con mi familia se vendan online.
         </p>
         <p>
           Integré la API de Mercado Pago para procesar todos los medios de pago
