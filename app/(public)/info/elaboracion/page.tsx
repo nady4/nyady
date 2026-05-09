@@ -19,7 +19,7 @@ export default function TiemposPage() {
       
       <h2>Tiempo Estimado: </h2>
       <strong>3 a 7 días hábiles</strong>
-      <p>El tiempo de elaboración varía según la demanda de nuestros clientes./<p>
+      <p>El tiempo de elaboración varía según la demanda de nuestros clientes.</p>
 
       <h2>Notas Importantes</h2>
       <ul>
