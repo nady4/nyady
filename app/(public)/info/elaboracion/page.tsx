@@ -17,8 +17,7 @@ export default function TiemposPage() {
         En NYADY, cada producto es elaborado artesanalmente al detalle.
       </p>
       
-      <h2>Tiempo Estimado: </h2>
-      <strong>3 a 7 días hábiles</strong>
+      <h2>Tiempo Estimado: <strong>3 a 7 días hábiles</strong></h2>
       <p>El tiempo de elaboración varía según la demanda de nuestros clientes.</p>
 
       <h2>Notas Importantes</h2>
