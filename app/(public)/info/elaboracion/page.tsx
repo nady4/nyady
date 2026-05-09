@@ -10,11 +10,11 @@ export default function TiemposPage() {
   return (
     <InfoPage
       title="Tiempos de Elaboración"
-      description="En NYADY, cada producto es elaborado artesanalmente al detalle. Conocé nuestros plazos de entrega."
+      description="Conocé nuestros plazos de entrega."
     >
       <h2>Proceso de Elaboración</h2>
       <p>
-        Todos nuestros productos son fabricados artesanalmente en nuestro taller.
+        En NYADY, cada producto es elaborado artesanalmente al detalle.
       </p>
       
       <h2>Tiempo Estimado: </h2>
