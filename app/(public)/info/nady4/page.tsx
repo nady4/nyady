@@ -7,7 +7,7 @@ import styles from "@/styles/Nady4.module.scss";
 export const metadata: Metadata = {
   title: "nady4 - NYADY",
   description:
-    "Soy una indie dev autodidacta buscando hacer algo real y artesanal. Me propuse desarrollar este e-commerce completo con <b>Next.js, PostgreSQL y Prisma</b>, diseñando interfaces personalizadas para que los calzados artesanales que fabrico con mi familia muestren su calidad y se vendan online directos de fábrica, al mejor precio posible."
+    "Soy una indie dev autodidacta buscando hacer algo real y artesanal. Me propuse desarrollar este e-commerce completo con <b>Next.js, PostgreSQL y Prisma</b>, diseñando interfaces personalizadas para que los calzados artesanales que fabrico con mi familia muestren su calidad y se vendan online."
 };
 
 export default function Nady4Page() {
