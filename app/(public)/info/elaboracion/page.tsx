@@ -14,11 +14,12 @@ export default function TiemposPage() {
     >
       <h2>Proceso de Elaboración</h2>
       <p>
-        Todos nuestros productos son fabricados artesanalmente en nuestro taller. El tiempo de elaboración varía según la demanda de nuestros clientes.
+        Todos nuestros productos son fabricados artesanalmente en nuestro taller.
       </p>
       
       <h2>Tiempo Estimado: </h2>
-      <p>3 a 7 días hábiles</p>
+      <strong>3 a 7 días hábiles</strong>
+      <p>El tiempo de elaboración varía según la demanda de nuestros clientes./<p>
 
       <h2>Notas Importantes</h2>
       <ul>
