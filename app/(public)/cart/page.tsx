@@ -20,6 +20,7 @@ interface CartItem extends ProductType {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
+  selectedTacoOption?: string;
   cartId: string;
 }
 
@@ -193,6 +194,9 @@ export default function CartPage() {
                 />
               </span>
             )}
+            {item.selectedTacoOption && (
+              <span className="variant">Tipo: {item.selectedTacoOption}</span>
+            )}
           </div>
           <div className="quantity">
             <button
@@ -225,7 +229,7 @@ export default function CartPage() {
                   ${(item.price * item.quantity).toLocaleString("es-AR")}
                 </span>
                 <span className="price-discounted discount-10">
-                  ${((item.price * item.quantity) * 0.9).toLocaleString("es-AR")}
+                  ${(item.price * item.quantity * 0.9).toLocaleString("es-AR")}
                 </span>
                 <span className="discount-badge">10% DESCUENTO</span>
               </>
@@ -235,7 +239,7 @@ export default function CartPage() {
                   ${(item.price * item.quantity).toLocaleString("es-AR")}
                 </span>
                 <span className="price-discounted discount-20">
-                  ${((item.price * item.quantity) * 0.8).toLocaleString("es-AR")}
+                  ${(item.price * item.quantity * 0.8).toLocaleString("es-AR")}
                 </span>
                 <span className="discount-badge">20% DESCUENTO</span>
               </>
@@ -282,7 +286,7 @@ export default function CartPage() {
         </div>
       )}
 
-      {status === "authenticated" && (
+      {status !== "authenticated" && (
         <div className="login-prompt">
           <Link href="/signin" className="login-button">
             Iniciá sesión para calcular envío y finalizar tu compra
@@ -291,30 +295,62 @@ export default function CartPage() {
       )}
 
       <div className="cart-total">
-        {discountInfo.percent > 0 && (
-          <div className="subtotal">
-            <span className="subtotal-original">
-              ${subtotalBeforeDiscount.toLocaleString("es-AR")}
-            </span>
-          </div>
-        )}
+        <div className="subtotal-line">
+          Subtotal: ${subtotalBeforeDiscount.toLocaleString("es-AR")}
+        </div>
         {discountInfo.percent > 0 && (
           <div className="discount-amount">
             <span className={`discount-badge discount-${discountInfo.percent}`}>
               {discountInfo.percent}% DESCUENTO
             </span>
-            <span className={`discount-value price-discounted discount-${discountInfo.percent}`}>
+            <span
+              className={`discount-value price-discounted discount-${discountInfo.percent}`}
+            >
               -${discountAmount.toLocaleString("es-AR")}
             </span>
           </div>
         )}
+        {discountInfo.percent > 0 && (
+          <div className="subtotal-after-discount">
+            Subtotal: ${subtotal.toLocaleString("es-AR")}
+          </div>
+        )}
         {selectedShipping && (
           <div className="shipping-cost">
-            Envío ({selectedShipping.service_type.name}): $
-            {shippingCost.toLocaleString("es-AR")}
+            {selectedShipping.service_type.name}: $
+            {shippingCost.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
           </div>
         )}
         <div className="total">Total: ${total.toLocaleString("es-AR")}</div>
+        {selectedShipping &&
+          (() => {
+            const estimated = selectedShipping.delivery_time.estimated_delivery;
+            const deliveryDate = new Date(estimated);
+            deliveryDate.setHours(0, 0, 0, 0);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = deliveryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            const minDate = new Date(today);
+            minDate.setDate(minDate.getDate() + diffDays + 3);
+            const maxDate = new Date(today);
+            maxDate.setDate(maxDate.getDate() + diffDays + 7);
+
+            const formatDate = (d: Date) => {
+              const day = d.getDate().toString().padStart(2, "0");
+              const month = (d.getMonth() + 1).toString().padStart(2, "0");
+              return `${day}/${month}`;
+            };
+
+            return (
+              <div className="shipping-date">
+                Entrega estimada: {formatDate(minDate)} - {formatDate(maxDate)}
+              </div>
+            );
+          })()}
       </div>
 
       <div className="button-container">

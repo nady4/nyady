@@ -21,7 +21,7 @@ export function useToggleCartProduct(productId: string) {
   const isInCart = cartIds.includes(productId);
 
   const onCartClick = useCallback(
-    (e?: React.MouseEvent, selectedSize?: string, selectedColor?: string, quantity: number = 1) => {
+    (e?: React.MouseEvent, selectedSize?: string, selectedColor?: string, selectedTacoOption?: string, quantity: number = 1) => {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -38,8 +38,8 @@ export function useToggleCartProduct(productId: string) {
         dispatch(addToCart(productId));
       }
 
-      if (selectedSize || selectedColor) {
-        addToCartWithDetails(userId, productId, selectedSize, selectedColor, quantity);
+      if (selectedSize || selectedColor || selectedTacoOption) {
+        addToCartWithDetails(userId, productId, selectedSize, selectedColor, selectedTacoOption, quantity);
       } else {
         toggleCartProduct(userId, productId);
       }

@@ -59,7 +59,12 @@ export async function POST() {
             failure: `${process.env.NEXTAUTH_URL}/failure`,
             pending: `${process.env.NEXTAUTH_URL}/pending`,
           },
-          auto_return: "approved",
+          // auto_return requires https back_urls. MP rejects http URLs (e.g. a
+          // http://localhost dev NEXTAUTH_URL) with "auto_return invalid.
+          // back_url.success must be defined", so only enable it for https.
+          ...(process.env.NEXTAUTH_URL?.startsWith("https://")
+            ? { auto_return: "approved" }
+            : {}),
           notification_url: `${process.env.NEXTAUTH_URL}/api/mp-webhook`,
           external_reference: order.id,
         }),

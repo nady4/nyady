@@ -10,8 +10,10 @@ export type ProductType = {
   sizes?: string[];
   colors?: string[];
   photos?: Record<string, string[]> | null | unknown;
+  tacoOptions?: string[];
   selectedSize?: string;
   selectedColor?: string;
+  selectedTacoOption?: string;
   weight?: number;
   height?: number;
   width?: number;
@@ -40,6 +42,11 @@ export type ShippingQuoteResult = {
   delivery_time: {
     estimated_delivery: string;
     estimation_expires_at: string;
+    times?: {
+      dispatch?: string;
+      last_mile?: string;
+      delivery?: string;
+    };
   };
   amounts: {
     price: number;

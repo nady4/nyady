@@ -162,6 +162,7 @@
 }
 
 .cart-link {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,6 +173,20 @@
   &:hover {
     background-color: rgba(0, 0, 0, 0.05);
   }
+}
+
+// Small dot (no count) on the cart icon when the cart has items. Uses the
+// design accent color; hidden on mobile along with .cart-link.
+.cart-badge {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: $accent-color;
+  border: 1.5px solid $bg-secondary;
+  pointer-events: none;
 }
 
 @media (max-width: 600px) {

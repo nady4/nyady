@@ -1,21 +1,47 @@
 "use client";
-import type { Metadata } from "next";
 import { useSession } from "next-auth/react";
-import { useLoadPageData } from "@/hooks/useLoadPageData";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { TextFilter } from "@/components/Filters";
+import { useLoadPageData } from "@/hooks/useLoadPageData";
+import { getCartProducts } from "@/actions/cart";
+import { initializeCart } from "@/store/slices/cartSlice";
 import ProductList from "@/components/ProductList";
+import Filters from "@/components/Filters";
+import { ProductType } from "@/types";
 
-import "@/styles/ProductList.scss";
+let wishlistPageCache: ProductType[] | null = null;
+let wishlistPagePromise: Promise<ProductType[]> | null = null;
 
 export default function WishlistPage() {
   const { loading } = useLoadPageData("wishlist");
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
   const dispatch = useAppDispatch();
-  const searchTerm = useAppSelector((state) => state.searchTerm) ?? "";
+
+  useEffect(() => {
+    if (status !== "authenticated" || !userId) return;
+
+    const loadCart = async () => {
+      let products: ProductType[];
+      if (wishlistPageCache) {
+        products = wishlistPageCache;
+      } else if (wishlistPagePromise) {
+        products = await wishlistPagePromise;
+      } else {
+        wishlistPagePromise = getCartProducts(userId);
+        products = await wishlistPagePromise;
+        wishlistPageCache = products;
+        wishlistPagePromise = null;
+      }
+      dispatch(initializeCart(products.map((p) => p.id)));
+    };
+
+    loadCart();
+  }, [userId, status, dispatch]);
 
   return (
     <div className="home-container">
-      <TextFilter searchTerm={searchTerm} dispatch={dispatch} />
+      <Filters />
       <ProductList isLoadingExternal={loading} />
     </div>
   );

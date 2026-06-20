@@ -3,8 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { fraunces } from "@/app/fonts";
 import { getUserAddress } from "@/actions/address";
+import { getCartIds } from "@/actions/cart";
 import "@/styles/Navbar.scss";
 
 const INFO_OPTIONS = [
@@ -75,21 +77,24 @@ export default function NavBar() {
   const infoRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [address, setAddress] = useState<AddressType>(null);
+  const pathname = usePathname();
+  const [hasCartItems, setHasCartItems] = useState(false);
 
-  const loadAddress = useCallback(async () => {
+  useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
-      try {
-        const userAddress = await getUserAddress();
-        setAddress(userAddress);
-      } catch (error) {
-        console.error("Error loading address:", error);
-      }
+      getUserAddress().then(setAddress).catch(console.error);
     }
   }, [status, session?.user?.email]);
 
+  // Show a dot on the cart icon when the cart has items. Re-fetch on navigation
+  // (pathname) so the indicator stays in sync after add/remove on other pages,
+  // since the NavBar persists across routes and has no shared cart store.
   useEffect(() => {
-    loadAddress();
-  }, [loadAddress]);
+    if (status !== "authenticated" || !session?.user?.id) return;
+    getCartIds(session.user.id as string)
+      .then((ids) => setHasCartItems(ids.length > 0))
+      .catch(() => setHasCartItems(false));
+  }, [status, session?.user?.id, pathname]);
 
   const toggleInfo = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -225,6 +230,9 @@ export default function NavBar() {
               width={24}
               height={24}
             />
+            {status === "authenticated" && hasCartItems && (
+              <span className="cart-badge" aria-hidden="true" />
+            )}
           </Link>
         </div>
       </div>

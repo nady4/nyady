@@ -27,10 +27,12 @@ export default function Product({ product, relatedProducts }: ProductProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedTacoOption, setSelectedTacoOption] = useState<string>("");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
 
   const colors = useMemo(() => product.colors || [], [product.colors]);
   const sizes = useMemo(() => product.sizes || [], [product.sizes]);
+  const tacoOptions = useMemo(() => product.tacoOptions || [], [product.tacoOptions]);
 
   const photosMap = useMemo(() => {
     if (!product.photos) return {};
@@ -82,8 +84,9 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
     const size = selectedSize || sizes[0] || undefined;
     const color = selectedColor || colors[0] || undefined;
+    const tacoOption = selectedTacoOption || tacoOptions[0] || undefined;
 
-    onCartClick(e, size, color, quantity);
+    onCartClick(e, size, color, tacoOption, quantity);
   };
 
   return (
@@ -175,6 +178,23 @@ export default function Product({ product, relatedProducts }: ProductProps) {
                 selectedColor={selectedColor || colors[0]}
                 onColorChange={handleColorChange}
               />
+            </div>
+          )}
+
+          {tacoOptions.length > 0 && (
+            <div className="product-taco-option">
+              <span className="taco-option-label">Tipo:</span>
+              <div className="taco-options">
+                {tacoOptions.map((option: string) => (
+                  <button
+                    key={option}
+                    className={`taco-option ${selectedTacoOption === option ? "selected" : ""}`}
+                    onClick={() => setSelectedTacoOption(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

@@ -218,6 +218,16 @@
     color: $text-color;
     border-top: 1px solid $border-color;
 
+    .subtotal-line {
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .subtotal-after-discount {
+      font-size: 1rem;
+      margin-top: 0.25rem;
+    }
+
     .price-discounted {
       font-size: 1rem;
       font-family: $title-font;
@@ -239,6 +249,18 @@
       .subtotal-original {
         text-decoration: line-through;
       }
+    }
+
+    .subtotal-line {
+      font-size: 1rem;
+      opacity: 0.7;
+      margin-top: 0.5rem;
+    }
+
+    .subtotal-after-discount {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
     }
 
     .discount-amount {
@@ -275,6 +297,12 @@
       font-size: 0.9rem;
       opacity: 0.8;
       margin-top: 0.25rem;
+    }
+
+    .shipping-date {
+      font-size: 0.85rem;
+      opacity: 0.7;
+      margin-top: 0.5rem;
     }
 
     .total {

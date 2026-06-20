@@ -55,8 +55,9 @@ model Cart {
   quantity     Int       @default(1)
   selectedSize String?
   selectedColor String?
+  selectedTacoOption String?
 
-  @@unique([userId, productId, selectedSize, selectedColor])
+  @@unique([userId, productId, selectedSize, selectedColor, selectedTacoOption])
 }
 
 model Product {
@@ -75,6 +76,7 @@ model Product {
   colors    String[]
   photos    Json?
   description String?
+  tacoOptions String[]
 }
 
 model OrderItem {

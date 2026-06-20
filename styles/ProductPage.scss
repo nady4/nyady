@@ -230,6 +230,45 @@
         }
       }
 
+      .product-taco-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+
+        .taco-option-label {
+          font-family: $body-font;
+          font-size: 1rem;
+          font-weight: 500;
+          color: $text-color;
+        }
+
+        .taco-options {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .taco-option {
+          padding: 0.5rem 1rem;
+          border: 1px solid $border-color;
+          background-color: transparent;
+          cursor: pointer;
+          font-family: $body-font;
+          font-size: 0.875rem;
+          transition: all 0.2s ease;
+
+          &:hover {
+            border-color: $text-color;
+          }
+
+          &.selected {
+            background-color: $text-color;
+            color: white;
+            border-color: $text-color;
+          }
+        }
+      }
+
       .product-actions {
         display: flex;
         align-items: center;

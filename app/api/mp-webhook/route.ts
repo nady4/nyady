@@ -25,13 +25,27 @@ export async function POST(req: Request) {
         const externalReference = payment.external_reference as string | null;
 
         if (externalReference) {
-          await prisma.order.update({
+          const order = await prisma.order.update({
             where: { id: externalReference },
             data: { status },
+            select: { userId: true },
           });
-          await prisma.cart.deleteMany({
-            where: { userId: payment.metadata?.userId as string },
-          });
+
+          // Clear only this buyer's cart, and only once the order is committed.
+          // The previous version read userId from payment.metadata (which the
+          // orders route never sends) — undefined is ignored by Prisma's
+          // deleteMany, so it would have wiped every user's cart on each
+          // webhook. Clear on both "approved" (paid) and "pending" (offline
+          // methods like RapiPago that settle later) so the cart is emptied
+          // once the order is in flight, not only after it's paid.
+          if (
+            (status === "approved" || status === "pending") &&
+            order.userId
+          ) {
+            await prisma.cart.deleteMany({
+              where: { userId: order.userId },
+            });
+          }
         }
       }
     }

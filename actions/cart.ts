@@ -56,9 +56,29 @@ export async function addToCartWithDetails(
   productId: string,
   selectedSize?: string,
   selectedColor?: string,
+  selectedTacoOption?: string,
   quantity: number = 1
 ) {
   if (!userId || userId === "undefined" || !productId) {
+    return;
+  }
+
+  // Guard against stale sessions: if the JWT references a user that no longer
+  // exists in the DB (e.g. after a migrate reset / re-seed during dev), the
+  // create below would throw a Cart_userId_fkey violation. Match the guard in
+  // toggleCartProduct and no-op instead of crashing.
+  try {
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      console.error("[addToCartWithDetails] User not found:", userId);
+      return;
+    }
+  } catch (error) {
+    console.error("[addToCartWithDetails] Error checking user:", error);
     return;
   }
 
@@ -68,6 +88,7 @@ export async function addToCartWithDetails(
       productId,
       selectedSize: selectedSize || null,
       selectedColor: selectedColor || null,
+      selectedTacoOption: selectedTacoOption || null,
     },
   });
 
@@ -86,6 +107,7 @@ export async function addToCartWithDetails(
         quantity,
         selectedSize: selectedSize || null,
         selectedColor: selectedColor || null,
+        selectedTacoOption: selectedTacoOption || null,
       },
     });
   }
@@ -115,6 +137,23 @@ export async function updateCartQuantity(
     return;
   }
   if (!productId) throw new Error("Missing productId");
+
+  // Same stale-session guard as addToCartWithDetails / toggleCartProduct: the
+  // create branch below would otherwise throw Cart_userId_fkey.
+  try {
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      console.error("[updateCartQuantity] User not found:", userId);
+      return;
+    }
+  } catch (error) {
+    console.error("[updateCartQuantity] Error checking user:", error);
+    return;
+  }
 
   const existingCart = await prisma.cart.findFirst({
     where: { userId, productId },
@@ -182,6 +221,7 @@ export async function getCartProducts(
       quantity: item.quantity,
       selectedSize: item.selectedSize || undefined,
       selectedColor: item.selectedColor || undefined,
+      selectedTacoOption: item.selectedTacoOption || undefined,
       cartId: item.id,
     }));
   } catch (error) {
