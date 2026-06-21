@@ -1,0 +1,156 @@
+@use "./variables.scss" as *;
+
+.order-tracking {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-top: 1px solid $border-color;
+  padding-top: 0.75rem;
+
+  .tracking-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    font-family: $body-font;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: $text-color;
+    background-color: $bg-secondary;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+      background-color: $border-color;
+    }
+
+    > span:first-child {
+      flex: 1;
+      text-align: left;
+    }
+
+    .tracking-status-badge {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      background-color: rgba($accent-color, 0.18);
+      color: $text-color;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .tracking-caret {
+      color: $text-muted;
+      font-size: 0.75rem;
+    }
+  }
+
+  .tracking-panel {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background-color: $bg-secondary;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .tracking-loading,
+  .tracking-error,
+  .tracking-empty {
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.88rem;
+  }
+
+  .tracking-error {
+    color: $error-color;
+  }
+
+  .tracking-detail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: baseline;
+
+    .tracking-label {
+      color: $text-muted;
+    }
+
+    .tracking-value {
+      font-family: $title-font;
+      font-weight: 600;
+      color: $text-color;
+    }
+  }
+
+  .tracking-external-link {
+    font-family: $body-font;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: $accent-hover;
+    text-decoration: none;
+    align-self: flex-start;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .tracking-timeline {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .tracking-event {
+    position: relative;
+    display: flex;
+    gap: 0.6rem;
+    padding-left: 0.1rem;
+
+    &:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 14px;
+      bottom: -10px;
+      width: 2px;
+      background-color: $border-color;
+    }
+
+    .tracking-event-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: $accent-color;
+      margin-top: 4px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .tracking-event-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+
+      .tracking-event-name {
+        font-weight: 500;
+        color: $text-color;
+      }
+
+      .tracking-event-time {
+        font-size: 0.8rem;
+        color: $text-muted;
+      }
+    }
+  }
+}

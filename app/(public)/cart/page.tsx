@@ -12,7 +12,12 @@ import CheckoutButton from "@/components/CheckoutButton";
 import ShippingQuote from "@/components/ShippingQuote";
 import { AddressType, ShippingQuoteItem } from "@/actions/shipping";
 import { ProductType, ShippingQuoteResult } from "@/types";
-import { getColorHex } from "@/components/ColorSelector";
+import {
+  computeDiscounts,
+  getWholesaleDiscountPercent,
+  CouponLike
+} from "@/lib/discounts";
+import { getColorHex } from "@/lib/colors";
 import Link from "next/link";
 import "@/styles/Cart.scss";
 
@@ -32,7 +37,54 @@ export default function CartPage() {
   const [selectedShipping, setSelectedShipping] =
     useState<ShippingQuoteResult | null>(null);
 
+  // Coupon state. `appliedCoupon` holds a validated coupon (code + type +
+  // value) once the user clicks "Aplicar" and the server confirms it. It is
+  // cleared on any quantity change so the user re-validates against the new
+  // subtotal — the server re-validates at checkout anyway, so this is purely
+  // to keep the displayed discount honest.
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponLike | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const userId = session?.user?.id;
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  };
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (data.ok && data.coupon) {
+        setAppliedCoupon({
+          code: data.coupon.code,
+          type: data.coupon.type,
+          value: data.coupon.value
+        });
+        setCouponInput(data.coupon.code);
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(data.error || "Cupón inválido");
+      }
+    } catch {
+      setCouponError("No se pudo validar el cupón");
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -94,6 +146,11 @@ export default function CartPage() {
       )
     );
 
+    // A quantity change can move the subtotal across wholesale tiers or change
+    // a FIXED coupon's clamped amount, so clear the applied coupon and require
+    // re-validation. The server re-validates at checkout regardless.
+    if (appliedCoupon) handleRemoveCoupon();
+
     updateCartQuantity(userId, productId, newQuantity);
   };
 
@@ -107,6 +164,7 @@ export default function CartPage() {
 
     if (newQuantity <= 0) {
       setCart((prev) => prev.filter((item) => item.cartId !== cartId));
+      if (appliedCoupon) handleRemoveCoupon();
       updateCartQuantity(userId, productId, newQuantity);
       return;
     }
@@ -117,34 +175,54 @@ export default function CartPage() {
       )
     );
 
+    if (appliedCoupon) handleRemoveCoupon();
+
     updateCartQuantity(userId, productId, newQuantity);
   };
 
   const handleRemoveItem = async (cartId: string) => {
     if (!userId) return;
     setCart((prev) => prev.filter((item) => item.cartId !== cartId));
+    if (appliedCoupon) handleRemoveCoupon();
     await removeFromCartById(cartId);
   };
 
   const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const discountInfo = useMemo(() => {
-    if (totalQuantity >= 20) {
-      return { percent: 20, label: "MAYORISTA x20 - 20%", applied: true };
-    } else if (totalQuantity >= 4) {
-      return { percent: 10, label: "REVENDEDORA x4 - 10%", applied: true };
-    }
-    return { percent: 0, label: "", applied: false };
-  }, [totalQuantity]);
+  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
+  const discountInfo = {
+    percent: wholesalePercent,
+    label:
+      wholesalePercent === 20
+        ? "MAYORISTA x20 - 20%"
+        : wholesalePercent === 10
+          ? "REVENDEDORA x4 - 10%"
+          : "",
+    applied: wholesalePercent > 0
+  };
 
   const subtotalBeforeDiscount = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const discountAmount = subtotalBeforeDiscount * (discountInfo.percent / 100);
-  const subtotal = subtotalBeforeDiscount - discountAmount;
+
+  // Shared with the server (lib/discounts.ts) so the charged total matches.
+  // The coupon stacks on top of the wholesale-discounted subtotal.
+  const discounts = useMemo(
+    () =>
+      computeDiscounts({
+        productsTotal: subtotalBeforeDiscount,
+        totalQuantity,
+        coupon: appliedCoupon
+      }),
+    [subtotalBeforeDiscount, totalQuantity, appliedCoupon]
+  );
+
+  const discountAmount = discounts.wholesaleAmount;
+  const subtotal = discounts.subtotalAfterWholesale;
+  const couponDiscount = discounts.couponAmount;
   const shippingCost = selectedShipping?.amounts.price_incl_tax || 0;
-  const total = subtotal + shippingCost;
+  const total = discounts.discountedSubtotal + shippingCost;
 
   const shippingItems: ShippingQuoteItem[] = cart.map((item) => ({
     weight: 200,
@@ -294,6 +372,45 @@ export default function CartPage() {
         </div>
       )}
 
+      {status === "authenticated" && (
+        <div className="coupon-section">
+          {appliedCoupon ? (
+            <div className="coupon-applied">
+              <span className="coupon-applied-code">
+                Cupón {appliedCoupon.code} aplicado
+              </span>
+              <button
+                type="button"
+                className="coupon-remove"
+                onClick={handleRemoveCoupon}
+              >
+                Quitar
+              </button>
+            </div>
+          ) : (
+            <div className="coupon-input-row">
+              <input
+                type="text"
+                className="coupon-input"
+                placeholder="Código de cupón"
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value)}
+                autoComplete="off"
+              />
+              <button
+                type="button"
+                className="coupon-apply"
+                onClick={handleApplyCoupon}
+                disabled={couponLoading || !couponInput.trim()}
+              >
+                {couponLoading ? "..." : "Aplicar"}
+              </button>
+            </div>
+          )}
+          {couponError && <p className="coupon-error">{couponError}</p>}
+        </div>
+      )}
+
       <div className="cart-total">
         <div className="subtotal-line">
           Subtotal: ${subtotalBeforeDiscount.toLocaleString("es-AR")}
@@ -313,6 +430,16 @@ export default function CartPage() {
         {discountInfo.percent > 0 && (
           <div className="subtotal-after-discount">
             Subtotal: ${subtotal.toLocaleString("es-AR")}
+          </div>
+        )}
+        {appliedCoupon && couponDiscount > 0 && (
+          <div className="coupon-discount">
+            <span className="coupon-discount-label">
+              Cupón {appliedCoupon.code}
+            </span>
+            <span className="coupon-discount-value">
+              -${couponDiscount.toLocaleString("es-AR")}
+            </span>
           </div>
         )}
         {selectedShipping && (
@@ -358,6 +485,9 @@ export default function CartPage() {
           total={total}
           address={address}
           selectedShipping={selectedShipping}
+          shippingItems={shippingItems}
+          declaredValue={subtotal}
+          couponCode={appliedCoupon?.code}
         />
       </div>
     </div>

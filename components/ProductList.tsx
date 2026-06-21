@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useFilterProducts } from "@/hooks/useFilterProducts";
 import { useAppSelector, useAppDispatch } from "@/hooks/useStore";
 import { setCategories } from "@/store/slices/categorySlice";
@@ -12,7 +12,6 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
   const dispatch = useAppDispatch();
   const products = useAppSelector((state) => state.products);
   const cartIds = useAppSelector((state) => state.cart);
-  const [loading, setLoading] = useState(true);
 
   const filteredProducts = useFilterProducts(products);
   const categories = useMemo(
@@ -20,11 +19,11 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
     [products]
   );
 
-  useEffect(() => {
-    if (products.length > 0 || isLoadingExternal === false) {
-      setLoading(false);
-    }
-  }, [products.length, isLoadingExternal]);
+  // Loading is derived, not stored: we're loading until either products have
+  // arrived or the page-level loader (isLoadingExternal) has finished. Keeping
+  // this as derived state avoids a setState-in-effect and the cascading render
+  // it would cause.
+  const loading = isLoadingExternal !== false && products.length === 0;
 
   useEffect(() => {
     dispatch(setCategories(categories));
@@ -32,7 +31,17 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
 
   if (loading)
     return (
-      <p className={`${fraunces.className} status`}>Cargando productos...</p>
+      <div className="product-list-skeleton" aria-busy="true" aria-live="polite">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="skeleton-card">
+            <div className="skeleton-image" />
+            <div className="skeleton-line skeleton-title" />
+            <div className="skeleton-line skeleton-price" />
+            <div className="skeleton-dots" />
+          </div>
+        ))}
+        <span className="sr-only">Cargando productos...</span>
+      </div>
     );
 
   if (!loading && filteredProducts.length === 0)

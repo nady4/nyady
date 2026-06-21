@@ -32,11 +32,6 @@ const INFO_OPTIONS = [
     icon: "/assets/icons/tag.svg"
   },
   {
-    href: "/info/gift-cards",
-    label: "Gift Cards",
-    icon: "/assets/icons/gift.svg"
-  },
-  {
     href: "/info/preguntas-frecuentes",
     label: "Preguntas Frecuentes",
     icon: "/assets/icons/help.svg"

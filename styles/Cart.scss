@@ -228,6 +228,24 @@
       margin-top: 0.25rem;
     }
 
+    .coupon-discount {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+
+      .coupon-discount-label {
+        color: $text-muted;
+      }
+
+      .coupon-discount-value {
+        color: $success-color;
+        font-weight: 600;
+      }
+    }
+
     .price-discounted {
       font-size: 1rem;
       font-family: $title-font;
@@ -388,6 +406,103 @@
           transform: translateY(-1px);
         }
       }
+    }
+  }
+
+  .coupon-section {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: $bg-color;
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+
+    .coupon-input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .coupon-input {
+      flex: 1;
+      padding: 0.6rem 0.75rem;
+      font-family: $body-font;
+      font-size: 0.9rem;
+      color: $text-color;
+      background-color: $bg-secondary;
+      border: 1px solid $border-color;
+      border-radius: 0.375rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &:focus {
+        outline: none;
+        border-color: $accent-color;
+      }
+
+      &::placeholder {
+        color: $text-muted;
+        text-transform: none;
+        letter-spacing: 0;
+      }
+    }
+
+    .coupon-apply {
+      padding: 0.6rem 1.25rem;
+      background-color: $accent-color;
+      color: $text-color;
+      border: none;
+      border-radius: 0.375rem;
+      font-family: $body-font;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+
+      &:hover:not(:disabled) {
+        background-color: $accent-hover;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    .coupon-applied {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+
+      .coupon-applied-code {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: $success-color;
+      }
+
+      .coupon-remove {
+        padding: 0.35rem 0.75rem;
+        background-color: transparent;
+        color: $error-color;
+        border: 1px solid $error-color;
+        border-radius: 0.375rem;
+        font-family: $body-font;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+
+        &:hover {
+          background-color: rgba($error-color, 0.1);
+        }
+      }
+    }
+
+    .coupon-error {
+      margin: 0.5rem 0 0;
+      font-size: 0.82rem;
+      color: $error-color;
     }
   }
 

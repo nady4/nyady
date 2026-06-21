@@ -17,8 +17,7 @@ const COLOR_HEX: Record<string, string> = {
   Bordó: "#800020",
   Caspeado: "#c4a35a",
   Camel: "#c19a6b",
-  Violeta: "#8b00ff",
-  "Animal Print": "#d2b48c"
+  Violeta: "#8b00ff"
 };
 
 function getColorHex(color: string): string {

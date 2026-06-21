@@ -13,7 +13,7 @@
     .size-filter {
       height: auto;
       min-height: 100px;
-      width: 550px;
+      width: 500px;
       max-width: 100%;
       display: flex;
       flex-direction: column;
@@ -143,6 +143,40 @@
         &:hover {
           background-color: $accent-hover;
         }
+      }
+    }
+  }
+}
+
+// 720p (1280px) and down to ~800px: the desktop fixed widths (500+300+250+400
+// = 1450px) overflow a 1280px viewport, so shrink each filter and let the row
+// wrap + center instead of overflowing or squishing. Stays on one row at
+// 1280px; wraps to two centered rows on narrower screens before the 768px
+// vertical stack takes over.
+@media (max-width: 1280px) {
+  .home-container {
+    .filters-container {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem 1.5rem;
+
+      .size-filter {
+        width: 420px;
+        min-width: 300px;
+      }
+
+      .color-filter {
+        width: 240px;
+      }
+
+      .price-filter {
+        width: 200px;
+        min-width: 180px;
+      }
+
+      .text-filter {
+        width: 300px;
+        min-width: 220px;
       }
     }
   }

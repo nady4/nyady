@@ -101,4 +101,47 @@ model Order {
   updatedAt  DateTime    @updatedAt
 
   userId     String
+
+  // Recipient data captured at checkout — Zipnova's create-shipment
+  // endpoint requires name, document (DNI) and phone, none of which are
+  // stored on User/Address. Per-order snapshot.
+  recipientName     String?
+  recipientDocument String?
+  recipientPhone    String?
+
+  // Snapshot of the chosen quote option + items, used by the webhook to
+  // create the Zipnova shipment once payment is approved. Storing it here
+  // avoids re-deriving the cart (which is cleared on approval) at webhook
+  // time. Shape: { serviceType, logisticType, carrierId, pickupPointId?,
+  //   declaredValue, shippingCost, items: [{weight,height,width,length,description}] }
+  shippingSelection Json?
+
+  // Result of the Zipnova shipment creation, populated by the webhook.
+  shipmentId     String?
+  trackingNumber String?
+  trackingUrl    String?
+  shipmentStatus String?
+
+  // Coupon applied at checkout. couponId is the relation; couponCode and
+  // discountAmount are snapshots so /orders can show the discount even if the
+  // coupon row is later deleted or edited.
+  couponId       String?
+  coupon         Coupon?  @relation(fields: [couponId], references: [id])
+  couponCode     String?
+  discountAmount Float    @default(0)
+}
+
+model Coupon {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  type       String   // "PERCENT" | "FIXED"
+  value      Float    // percent (0-100) or fixed ARS amount
+  active     Boolean  @default(true)
+  expiresAt  DateTime?
+  usageLimit Int?     // null = unlimited (within one-per-user)
+  usedCount  Int      @default(0)
+  onePerUser Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  orders     Order[]
 }

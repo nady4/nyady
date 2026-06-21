@@ -3,23 +3,24 @@ import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
   title: "Medios de Pago - NYADY",
-  description: "Conoce todas las opciones de pago disponibles en NYADY: Mercado Pago, tarjetas, efectivo y más.",
+  description:
+    "Conocé todas las opciones de pago disponibles en NYADY: Mercado Pago, tarjetas, efectivo y más."
 };
 
 export default function MediosDePagoPage() {
   return (
     <InfoPage
       title="Medios de Pago"
-      description="En NYADY aceptamos múltiples formas de pago para tu comodidad. ¡Elige la que mejor te funcione!"
+      description="En NYADY aceptamos múltiples formas de pago para tu comodidad. ¡Elegí la que mejor te funcione!"
     >
       <h2>Métodos de Pago Disponibles</h2>
-      
+
       <h3>Mercado Pago</h3>
       <ul>
         <li>Tarjetas de crédito y débito (Visa, Mastercard, American Express, Cabal)</li>
         <li>Dinero en cuenta Mercado Pago</li>
-        <li>Pago fácil / Rapipago</li>
-        <li>Cuotas sin interés</li>
+        <li>Pago Fácil / Rapipago</li>
+        <li>Cuotas sin interés según promociones vigentes</li>
       </ul>
 
       <h3>Tarjetas de Crédito</h3>
@@ -27,7 +28,7 @@ export default function MediosDePagoPage() {
         <li>Visa - Hasta 12 cuotas</li>
         <li>Mastercard - Hasta 12 cuotas</li>
         <li>American Express - Hasta 12 cuotas</li>
-        <li>Cuotas sin interés disponibles</li>
+        <li>Cuotas sin interés disponibles según promociones vigentes</li>
       </ul>
 
       <h3>Tarjetas de Débito</h3>
@@ -46,12 +47,17 @@ export default function MediosDePagoPage() {
 
       <h2>Seguridad en el Pago</h2>
       <p>
-        Todos tus pagos están protegidos con los más altos estándares de seguridad. 
-        Utilizamos Mercado Pago como procesador de pagos, garantizando la seguridad de tus datos.
+        Todos tus pagos están protegidos con los más altos estándares de
+        seguridad. Utilizamos Mercado Pago como procesador de pagos,
+        garantizando la seguridad de tus datos.
       </p>
 
       <div className="highlight">
-        <p><strong>Promociones:</strong> ¡Consultá las promociones vigentes en la sección de promociones!</p>
+        <p>
+          <strong>Promociones:</strong> ¡Consultá las{" "}
+          <a href="/info/promociones">promociones vigentes</a> para ver cuotas
+          sin interés y descuentos actuales!
+        </p>
       </div>
     </InfoPage>
   );

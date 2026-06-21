@@ -29,8 +29,7 @@ const COLOR_HEX: Record<string, string> = {
   Bordó: "#800020",
   Nevado: "#e8e8e8",
   Camel: "#c19a6b",
-  Violeta: "#8b00ff",
-  "Animal Print": "#d2b48c"
+  Violeta: "#8b00ff"
 };
 
 const products = [
@@ -149,7 +148,7 @@ const products = [
     stock: 50,
     code: "SKU-C-CHINELA-PLUSH",
     sizes: sizes.chinela,
-    colors: ["Negro", "Animal Print", "Beige"],
+    colors: ["Negro", "Beige"],
     description: "Chinela Plush casual"
   }
 ];
@@ -182,6 +181,62 @@ async function main() {
         id,
         ...product
       }
+    });
+  }
+
+  // Example coupon codes. Upserted by `code` so re-seeding is idempotent and
+  // doesn't reset usedCount. PERCENT value is 0-100; FIXED value is ARS.
+  const coupons = [
+    {
+      code: "BIENVENIDA10",
+      type: "PERCENT",
+      value: 10,
+      active: true,
+      onePerUser: true,
+      usageLimit: null,
+      expiresAt: null,
+    },
+    {
+      code: "5000OFF",
+      type: "FIXED",
+      value: 5000,
+      active: true,
+      onePerUser: true,
+      usageLimit: null,
+      expiresAt: null,
+    },
+    {
+      code: "VERANO15",
+      type: "PERCENT",
+      value: 15,
+      active: true,
+      onePerUser: true,
+      usageLimit: 100,
+      expiresAt: new Date("2026-12-31T23:59:59Z"),
+    },
+    {
+      code: "MAYORISTA25",
+      type: "PERCENT",
+      value: 25,
+      active: true,
+      onePerUser: false,
+      usageLimit: null,
+      expiresAt: null,
+    },
+  ];
+
+  for (const coupon of coupons) {
+    await prisma.coupon.upsert({
+      where: { code: coupon.code },
+      update: {
+        type: coupon.type,
+        value: coupon.value,
+        active: coupon.active,
+        onePerUser: coupon.onePerUser,
+        usageLimit: coupon.usageLimit,
+        expiresAt: coupon.expiresAt,
+      },
+      create: coupon,
     });
   }
 

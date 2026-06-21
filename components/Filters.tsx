@@ -7,30 +7,9 @@ import { setMin, setMax } from "@/store/slices/priceSlice";
 import { setSearchTerm } from "@/store/slices/searchTermSlice";
 import { inter } from "@/app/fonts";
 import Image from "next/image";
+import { getColorHex } from "@/lib/colors";
 import "@/styles/PriceFilter.scss";
 import "@/styles/Filters.scss";
-
-const COLOR_HEX: Record<string, string> = {
-  Negro: "#1a1a1a",
-  Marrón: "#8b4513",
-  Gris: "#6b7280",
-  Beige: "#f5f5dc",
-  "Rosa claro": "#ffb6c1",
-  Fucsia: "#ff00ff",
-  Bordó: "#800020",
-  Caspeado: "#c4a35a",
-  Camel: "#c19a6b",
-  Violeta: "#8b00ff",
-  "Animal Print": "#d2b48c"
-};
-
-function getColorHex(color: string): string {
-  if (color.startsWith("#")) return color;
-  const key = Object.keys(COLOR_HEX).find(
-    (k) => k.toLowerCase() === color.toLowerCase()
-  );
-  return COLOR_HEX[key || ""] || "#cccccc";
-}
 
 const SizeFilter = () => {
   const dispatch = useAppDispatch();

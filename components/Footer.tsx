@@ -30,7 +30,6 @@ function FooterLinks() {
         <a href="/info/medios-de-pago">Medios de Pago</a>
         <a href="/info/reembolsos">Reembolsos</a>
         <a href="/info/promociones">Promociones</a>
-        <a href="/info/gift-cards">Gift Cards</a>
         <a href="/info/preguntas-frecuentes">Preguntas Frecuentes</a>
         <a href="/info/contacto">Contacto</a>
         <a href="/info/privacidad">Privacidad</a>

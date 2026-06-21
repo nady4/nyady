@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import OrderTracking from "@/components/OrderTracking";
 import "@/styles/Orders.scss";
 
 export const metadata: Metadata = {
@@ -72,7 +73,8 @@ async function cancelOrder(orderId: string) {
       status: "pending"
     },
     select: {
-      id: true
+      id: true,
+      couponId: true
     }
   });
 
@@ -91,6 +93,20 @@ async function cancelOrder(orderId: string) {
       id: order.id
     }
   });
+
+  // Release the coupon: a cancelled order should not keep counting against
+  // the coupon's usageLimit or the one-per-user check (which keys off past
+  // orders with this couponId — now deleted). Best-effort.
+  if (order.couponId) {
+    try {
+      await prisma.coupon.update({
+        where: { id: order.couponId },
+        data: { usedCount: { decrement: 1 } }
+      });
+    } catch (couponError) {
+      console.error("[cancelOrder] Failed to decrement coupon:", couponError);
+    }
+  }
 
   redirect("/orders");
 }
@@ -141,7 +157,9 @@ export default async function OrdersPage() {
                 Estado:{" "}
                 <strong>
                   {order.status === "approved"
-                    ? "Aprobada"
+                    ? order.shipmentId
+                      ? "En Envío"
+                      : "En Preparación"
                     : order.status === "pending"
                       ? "Pendiente"
                       : order.status === "rejected"
@@ -166,6 +184,19 @@ export default async function OrdersPage() {
                 Total: ${order.total.toLocaleString("es-AR")}
               </span>
             </div>
+
+            {order.trackingNumber && (
+              <div className="order-tracking-number">
+                Seguimiento: {order.trackingNumber}
+              </div>
+            )}
+
+            {order.couponCode && (
+              <div className="order-coupon">
+                Cupón: {order.couponCode} (−$
+                {order.discountAmount.toLocaleString("es-AR")})
+              </div>
+            )}
 
             <div className="order-items">
               {order.orderItems.map((item) => (
@@ -196,6 +227,26 @@ export default async function OrdersPage() {
                     Cancelar pedido
                   </button>
                 </form>
+              </div>
+            )}
+
+            {order.status === "approved" && order.shipmentId && (
+              <OrderTracking
+                orderId={order.id}
+                trackingNumber={order.trackingNumber}
+                trackingUrl={order.trackingUrl}
+                shipmentStatus={order.shipmentStatus}
+              />
+            )}
+
+            {order.status === "approved" && !order.shipmentId && (
+              <div className="order-preparation">
+                <p className="order-preparation-title">En Preparación</p>
+                <p className="order-preparation-text">
+                  Tu pedido está siendo elaborado a mano (3 a 7 días hábiles
+                  desde la confirmación del pago). Cuando esté despachado vas a
+                  poder seguir el envío acá.
+                </p>
               </div>
             )}
           </div>

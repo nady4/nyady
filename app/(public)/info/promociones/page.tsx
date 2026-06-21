@@ -3,52 +3,54 @@ import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
   title: "Promociones y Descuentos - NYADY",
-  description: "Conoce las promociones, descuentos y ofertas especiales de NYADY.",
+  description:
+    "Conocé las promociones, descuentos y ofertas especiales de NYADY."
 };
 
 export default function PromocionesPage() {
   return (
     <InfoPage
       title="Promociones y Descuentos"
-      description="¡Aprovecha nuestras promocioens y descuentos exclusivos! Encontrá las mejores ofertas en NYADY."
+      description="¡Aprovechá nuestras promociones y descuentos exclusivos! Encontrá las mejores ofertas en NYADY."
     >
       <h2>Promociones Vigentes</h2>
-      <p>Consultá regularmente esta página para ver las promocioens actuales.</p>
+      <p>
+        Consultá regularmente esta página para ver las promociones actuales.
+      </p>
 
       <h3>Descuentos por Cantidad</h3>
+      <p>
+        Se aplican automáticamente en el carrito según la cantidad total de
+        unidades:
+      </p>
       <ul>
-        <li>2 productos: 5% de descuento</li>
-        <li>3 productos: 10% de descuento</li>
-        <li>4+ productos: 15% de descuento</li>
+        <li>4 o más productos: 10% de descuento (REVENDEDORA)</li>
+        <li>20 o más productos: 20% de descuento (MAYORISTA)</li>
       </ul>
-
-      <h3>Descuentos por Método de Pago</h3>
-      <ul>
-        <li>Pago efectivo: 10% de descuento</li>
-        <li>Transferencia bancaria: 10% de descuento</li>
-      </ul>
-
-      <h2>Programa de Descuentos</h2>
-
-      <h3>Primera Compra</h3>
-      <p>¡10% de descuento en tu primera compra! Utilizá el código: PRIMERA10</p>
-
-      <h3>Cliente Frecuente</h3>
-      <p>Como cliente frecuente, tendrás acceso a descuentos exclusivos y ventas privadas.</p>
-
-      <h3>Newsletter</h3>
-      <p>Suscribite a nuestro newsletter y recibí primero las ofertas y descuentos.</p>
+      <p>
+        Estos descuentos son acumulables con los cupones de descuento.
+      </p>
 
       <h2>Código de Descuento</h2>
       <p>Para usar un código de descuento:</p>
       <ol>
         <li>Agregá tus productos al carrito</li>
-        <li>En el checkout, ingresá el código en "Código de descuento"</li>
-        <li>El descuento se aplicará automáticamente</li>
+        <li>
+          Ingresá el código de descuento y presioná <em>Aplicar</em>
+        </li>
+        <li>El descuento se sumará al total automáticamente</li>
       </ol>
+      <p>
+        Los cupones pueden ser de porcentaje o de monto fijo, y se validan al
+        generar la orden.
+      </p>
 
       <div className="highlight">
-        <p><strong>Nota:</strong> Los códigos no son acumulables con otras promociones.</p>
+        <p>
+          <strong>Nota:</strong> Algunos cupones son de un solo uso por usuario
+          y pueden tener fecha de vencimiento o límite de usos. No se pueden
+          combinar dos cupones en un mismo pedido.
+        </p>
       </div>
     </InfoPage>
   );

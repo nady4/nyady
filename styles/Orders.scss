@@ -121,6 +121,32 @@
     }
   }
 
+  .order-preparation {
+    margin-top: 0.5rem;
+    padding: 0.75rem 0.9rem;
+    background-color: rgba($accent-color, 0.1);
+    border: 1px solid rgba($accent-color, 0.3);
+    border-radius: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .order-preparation-title {
+      margin: 0;
+      font-family: $title-font;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: $text-color;
+    }
+
+    .order-preparation-text {
+      margin: 0;
+      font-size: 0.85rem;
+      color: $text-muted;
+      line-height: 1.4;
+    }
+  }
+
   .order-meta {
     display: flex;
     justify-content: space-between;
@@ -142,6 +168,17 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  .order-tracking-number {
+    font-size: 0.88rem;
+    color: $text-muted;
+  }
+
+  .order-coupon {
+    font-size: 0.88rem;
+    color: $accent-hover;
+    font-weight: 600;
   }
 
   .order-item {
