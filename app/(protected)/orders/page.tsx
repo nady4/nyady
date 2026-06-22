@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import OrderTracking from "@/components/OrderTracking";
+import { getColorHex } from "@/lib/colors";
 import "@/styles/Orders.scss";
 
 export const metadata: Metadata = {
@@ -201,7 +202,19 @@ export default async function OrdersPage() {
             <div className="order-items">
               {order.orderItems.map((item) => (
                 <div key={item.id} className="order-item">
-                  <span className="order-item-name">{item.product.name}</span>
+                  <span className="order-item-name">
+                    {item.product.name}
+                    {item.selectedColor && (
+                      <span
+                        className="order-item-color"
+                        style={{
+                          backgroundColor: getColorHex(item.selectedColor),
+                        }}
+                        title={item.selectedColor}
+                        aria-label={`Color ${item.selectedColor}`}
+                      />
+                    )}
+                  </span>
                   <span className="order-item-qty">
                     Cantidad: {item.quantity}
                   </span>

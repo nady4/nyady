@@ -1,6 +1,7 @@
 "use client";
 import { memo } from "react";
 import { getColorHex } from "@/lib/colors";
+import "@/styles/ColorSelector.scss";
 
 interface ColorSelectorProps {
   colors: string[];

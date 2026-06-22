@@ -128,6 +128,7 @@ export async function POST(req: Request) {
           create: cartItems.map((item) => ({
             productId: item.id,
             quantity: item.quantity,
+            selectedColor: item.selectedColor || null,
           })),
         },
       },

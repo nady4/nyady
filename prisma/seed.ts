@@ -143,15 +143,39 @@ const products = [
 async function main() {
   console.log("Seeding database...");
 
+  const addressData = {
+    street: "Av. Corrientes 1234",
+    city: "Buenos Aires",
+    state: "CABA",
+    postalCode: "C1043",
+    country: "AR"
+  };
+
+  // Credentials are mirrored into both `create` and `update` so re-seeding
+  // repairs an existing user-1 instead of leaving a stale row behind. The
+  // password is the bcrypt hash of "Nyady-1234" (documented in the README).
+  const userCredentials = {
+    username: "nyady",
+    email: "test@nyady.com",
+    password: "$2b$10$k6aGhApoPFdtdtfVYikfGOWcqu824BJIk5.3zTvQAHbAWEjcc5v5K",
+  };
+
   await prisma.user.upsert({
     where: { id: "user-1" },
-    update: {},
+    update: {
+      ...userCredentials,
+      address: {
+        upsert: {
+          create: addressData,
+          update: addressData
+        }
+      }
+    },
     create: {
       id: "user-1",
-      username: "nyady",
-      email: "test@nyady.com",
-      password: "$2b$10$k6aGhApoPFdtdtfVYikfGOWcqu824BJIk5.3zTvQAHbAWEjcc5v5K",
-    },
+      ...userCredentials,
+      address: { create: addressData }
+    }
   });
 
   await prisma.cart.deleteMany({});
@@ -167,6 +191,84 @@ async function main() {
       data: {
         id,
         ...product
+      }
+    });
+  }
+
+  // Showcase orders for the seeded user. Mirrors the three real states the
+  // /orders UI distinguishes: "En Preparación" (approved, no shipment yet),
+  // "En Envío" (approved, shipment created, in transit) and "Entregado"
+  // (approved, shipment delivered). No Zipnova calls — the data is inserted
+  // directly so the page renders correctly without hitting the API.
+  const day = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+
+  const showcaseOrders = [
+    {
+      id: "order-showcase-1",
+      status: "approved",
+      total: 26900 + 20900,
+      createdAt: new Date(now - 2 * day),
+      recipientName: "Nyady Demo",
+      recipientDocument: "40123456",
+      recipientPhone: "+541112345678",
+      shipmentId: null,
+      trackingNumber: null,
+      trackingUrl: null,
+      shipmentStatus: null,
+      items: [
+        { productId: "pantufla-aurora", quantity: 1, selectedColor: "Bordó" },
+        { productId: "chinela-plush", quantity: 1, selectedColor: "Negro" }
+      ]
+    },
+    {
+      id: "order-showcase-2",
+      status: "approved",
+      total: 28500,
+      createdAt: new Date(now - 5 * day),
+      recipientName: "Nyady Demo",
+      recipientDocument: "40123456",
+      recipientPhone: "+541112345678",
+      shipmentId: "ZN-SHIP-200002",
+      trackingNumber: "TRK200002AR",
+      trackingUrl: "https://www.zipnova.com.ar/track/TRK200002AR",
+      shipmentStatus: "in_transit",
+      items: [
+        { productId: "pantubota-alpina", quantity: 1, selectedColor: "Gris" }
+      ]
+    },
+    {
+      id: "order-showcase-3",
+      status: "approved",
+      total: 25900 + 29500,
+      createdAt: new Date(now - 15 * day),
+      recipientName: "Nyady Demo",
+      recipientDocument: "40123456",
+      recipientPhone: "+541112345678",
+      shipmentId: "ZN-SHIP-200003",
+      trackingNumber: "TRK200003AR",
+      trackingUrl: "https://www.zipnova.com.ar/track/TRK200003AR",
+      shipmentStatus: "delivered",
+      items: [
+        { productId: "pantuflon", quantity: 1, selectedColor: "Camel" },
+        { productId: "pantubota-valkyria", quantity: 1, selectedColor: "Fucsia" }
+      ]
+    }
+  ];
+
+  for (const order of showcaseOrders) {
+    const { items, ...orderData } = order;
+    await prisma.order.create({
+      data: {
+        ...orderData,
+        userId: "user-1",
+        orderItems: {
+          create: items.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedColor: item.selectedColor ?? null,
+          }))
+        }
       }
     });
   }

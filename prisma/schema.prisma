@@ -86,6 +86,11 @@ model OrderItem {
 
   quantity   Int
 
+  // Snapshot of the cart-time selection, so /orders can render the exact
+  // variant that was purchased even if the product's color list is later
+  // edited. Mirrors Cart.selectedColor.
+  selectedColor String?
+
   orderId    String
   productId  String
 }

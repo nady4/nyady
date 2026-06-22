@@ -190,6 +190,20 @@
     .order-item-name {
       font-weight: 500;
       color: $text-color;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .order-item-color {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      border-radius: 50%;
+      border: 1px solid $border-color;
+      outline: 1px solid $border-color;
+      outline-offset: 1px;
     }
 
     .order-item-qty {
