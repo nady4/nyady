@@ -1,8 +1,8 @@
 # NYADY
 
-> Artisanal house-slippers storefront (pantuflas, pantubotas, hornitos, chinelas) built for the Argentine market — Spanish UI (es-AR), ARS pricing, real Mercado Pago checkout and Zipnova shipping.
+👢 A full-stack e-commerce application built with Next.js 16 (App Router), React 19, Prisma, PostgreSQL, NextAuth.js, Redux Toolkit, Mercado Pago, and Zipnova. Includes product catalog, persistent cart, coupons, volume discounts, live shipping quotes, payment + webhook handling, and order tracking.
 
-A full-stack e-commerce application built with Next.js 16 (App Router), React 19, Prisma, PostgreSQL, NextAuth.js, Redux Toolkit, Mercado Pago, and Zipnova. Designed as an end-to-end showcase: product catalog, persistent cart, coupons, volume discounts, live shipping quotes, payment + webhook handling, and order tracking — all behind a proper server/client boundary.
+<br>
 
 ## 📸 Screenshots
 
