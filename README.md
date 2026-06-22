@@ -37,10 +37,8 @@ A full-stack e-commerce application built with Next.js 16 (App Router), React 19
 
 ## 🌐 Live demo
 
-> _Add a link to the deployed app here (e.g. Vercel)._
-
 - **URL:** _<https://nyady.com>_
-- **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` (seeded) — or register a new one.
+- **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` — or register a new one.
 
 <br>
 
