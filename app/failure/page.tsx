@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Pago rechazado - NYADY",
@@ -12,8 +13,8 @@ export default function FailurePage() {
       <p>El pago no pudo ser completado. Podés intentar nuevamente o usar otro medio de pago.</p>
 
       <div className="payment-actions">
-        <a href="/cart">Volver al carrito</a>
-        <a href="/">Ir a inicio</a>
+        <Link href="/cart">Volver al carrito</Link>
+        <Link href="/">Ir a inicio</Link>
       </div>
     </div>
   );

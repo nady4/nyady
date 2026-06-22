@@ -14,7 +14,7 @@ export default async function NewAddressPage() {
     return (
       <div className="form-page">
         <FormContainer title="Dirección de envío">
-          <p>Ya tienes una dirección guardada. Puedes editarla a continuación.</p>
+          <p>Ya tenés una dirección guardada. Podés editarla a continuación.</p>
           <form action={async () => {}}>
             <input
               type="text"

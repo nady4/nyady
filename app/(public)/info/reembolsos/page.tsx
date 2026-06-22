@@ -39,7 +39,7 @@ export default function ReembolsosPage() {
       <h2>Proceso de Devolución</h2>
       <ol>
         <li>Contactános por email a contacto@nyady.com</li>
-        <li>Indicanos si preferís un reembolso o un cambio del producto</li>
+        <li>Indicános si preferís un reembolso o un cambio del producto</li>
         <li>Te indicaremos la dirección de retorno</li>
         <li>Enviá el producto por el medio indicado</li>
         <li>

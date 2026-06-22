@@ -1,4 +1,4 @@
-import { configureStore, createSlice } from "@reduxjs/toolkit";
+import { configureStore } from "@reduxjs/toolkit";
 import categoryReducer from "./slices/categorySlice";
 import { searchTermSlice } from "./slices/searchTermSlice";
 import { priceSlice } from "./slices/priceSlice";

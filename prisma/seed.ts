@@ -19,19 +19,6 @@ const sizes = {
   hornito: generateSizes(21, 46)
 };
 
-const COLOR_HEX: Record<string, string> = {
-  Negro: "#1a1a1a",
-  Marrón: "#8b4513",
-  Gris: "#6b7280",
-  Beige: "#f5f5dc",
-  "Rosa claro": "#ffb6c1",
-  Fucsia: "#ff00ff",
-  Bordó: "#800020",
-  Nevado: "#e8e8e8",
-  Camel: "#c19a6b",
-  Violeta: "#8b00ff"
-};
-
 const products = [
   {
     name: "Pantufla Aurora",
@@ -161,9 +148,9 @@ async function main() {
     update: {},
     create: {
       id: "user-1",
-      username: "testuser",
-      email: "test@test.com",
-      password: "$2a$10$1234567890abcdefghijklmnopqrstuv",
+      username: "nyady",
+      email: "test@nyady.com",
+      password: "$2b$10$k6aGhApoPFdtdtfVYikfGOWcqu824BJIk5.3zTvQAHbAWEjcc5v5K",
     },
   });
 

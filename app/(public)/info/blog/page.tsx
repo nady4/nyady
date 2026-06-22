@@ -30,7 +30,7 @@ export default function BlogPage() {
           <h2>Cuidados del Producto</h2>
           <p>Aprendé cómo cuidar tus productos para que duren más tiempo.</p>
           <ul>
-            <li>Guardalos en un lugar seco</li>
+            <li>Guardálos en un lugar seco</li>
             <li>Limpiá regularmente</li>
             <li>Evitá la exposición directa al sol</li>
           </ul>

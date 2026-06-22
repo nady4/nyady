@@ -11,7 +11,7 @@ function Footer() {
         Hecho con{" "}
         <Image
           src="/assets/icons/heartFilled.svg"
-          alt="Love"
+          alt=""
           width={14}
           height={14}
         />{" "}

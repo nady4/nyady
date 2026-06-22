@@ -1,5 +1,3 @@
-import { useState, useEffect } from "react";
-
 interface UseValidateCuentaParams {
   currentPassword: string;
   newPassword: string;
@@ -17,26 +15,16 @@ export const useValidateCuenta = ({
   isFormValid,
   hasOtherChanges = false,
 }: UseValidateCuentaParams): UseValidateCuentaResult => {
-  const [isSubmitEnabled, setIsSubmitEnabled] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!currentPassword) {
-      setIsSubmitEnabled(false);
-      return;
-    }
-
-    if (newPassword) {
-      setIsSubmitEnabled(isFormValid);
-      return;
-    }
-
-    if (hasOtherChanges) {
-      setIsSubmitEnabled(true);
-      return;
-    }
-
-    setIsSubmitEnabled(false);
-  }, [currentPassword, newPassword, isFormValid, hasOtherChanges]);
+  // Derived (not stored) so we avoid a setState-in-effect. Mirrors the
+  // previous effect's branching exactly: no current password => disabled;
+  // changing the password => enabled only if the new-password form is valid;
+  // otherwise enabled only if there are other profile changes to save.
+  const isSubmitEnabled = (() => {
+    if (!currentPassword) return false;
+    if (newPassword) return isFormValid;
+    if (hasOtherChanges) return true;
+    return false;
+  })();
 
   return { isSubmitEnabled };
 };

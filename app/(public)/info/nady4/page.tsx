@@ -38,11 +38,11 @@ export default function Nady4Page() {
           <Link href="https://github.com/nady4" target="_blank">
             <Image
               src="/assets/icons/github.svg"
-              alt="Github"
+              alt="GitHub"
               width={24}
               height={24}
             />
-            <span>Github</span>
+            <span>GitHub</span>
           </Link>
           <Link href="https://www.linkedin.com/in/nady4" target="_blank">
             <Image
@@ -377,11 +377,11 @@ export default function Nady4Page() {
           <Link href="https://github.com/nady4" target="_blank">
             <Image
               src="/assets/icons/github.svg"
-              alt="Github"
+              alt="GitHub"
               width={24}
               height={24}
             />
-            <span>Github</span>
+            <span>GitHub</span>
           </Link>
           <Link href="https://www.linkedin.com/in/nady4" target="_blank">
             <Image

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Pago exitoso - NYADY",
@@ -16,8 +17,8 @@ export default function SuccessPage() {
       </div>
 
       <div className="payment-actions">
-        <a href="/orders">Ver mis pedidos</a>
-        <a href="/">Volver a la tienda</a>
+        <Link href="/orders">Ver mis pedidos</Link>
+        <Link href="/">Volver a la tienda</Link>
       </div>
     </div>
   );

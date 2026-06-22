@@ -124,11 +124,11 @@ export default function NavBar() {
             <Link href="/signin" className="nav-link">
               <Image
                 src="/assets/icons/signin.svg"
-                alt="Sign in"
+                alt="Iniciar sesión"
                 width={20}
                 height={20}
               />
-              <span>Sign in</span>
+              <span>Iniciar sesión</span>
             </Link>
           ) : (
             <>

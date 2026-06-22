@@ -2,31 +2,10 @@
 import React, { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useToggleWishlist } from "@/hooks/useToggleData";
 import { fraunces, inter } from "@/app/fonts";
+import { getColorHex } from "@/lib/colors";
 import { ProductType } from "@/types";
-
-const COLOR_HEX: Record<string, string> = {
-  Negro: "#1a1a1a",
-  Marrón: "#8b4513",
-  Gris: "#6b7280",
-  Beige: "#f5f5dc",
-  "Rosa claro": "#ffb6c1",
-  Fucsia: "#ff00ff",
-  Bordó: "#800020",
-  Caspeado: "#c4a35a",
-  Camel: "#c19a6b",
-  Violeta: "#8b00ff"
-};
-
-function getColorHex(color: string): string {
-  if (color.startsWith("#")) return color;
-  const key = Object.keys(COLOR_HEX).find(
-    (k) => k.toLowerCase() === color.toLowerCase()
-  );
-  return COLOR_HEX[key || ""] || "#cccccc";
-}
 
 interface ProductCardProps extends ProductType {
   cartIds?: string[];
@@ -38,15 +17,9 @@ const ProductCard = memo(function ProductCard({
   price,
   photo,
   sizes = [],
-  colors = [],
-  cartIds = []
+  colors = []
 }: ProductCardProps) {
-  const { data: session } = useSession();
-  const userId = session?.user?.id ?? null;
-
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
-
-  const inCart = userId ? cartIds.includes(id) : false;
 
   return (
     <Link href={`/products/${id}`} passHref>

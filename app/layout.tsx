@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | NYADY",
   },
   description:
-    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales feitas a mano. Envíos a todo Argentina.",
+    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales hechas a mano. Envíos a todo Argentina.",
   keywords: [
     "pantuflas",
     "pantubotas",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NYADY | Pantuflas y Pantubotas Artesanales",
     description:
-      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales feitas a mano.",
+      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales hechas a mano.",
     url: "https://nyady.com",
     siteName: "NYADY",
     images: [
@@ -68,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`${fraunces.variable} ${inter.variable}`} suppressHydrationWarning>
         <ReduxProvider>
           <NextAuthProvider>

@@ -204,30 +204,9 @@
           color: $text-color;
         }
 
-        .color-selector {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .color-circle {
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          border: 2px solid transparent;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          outline: 2px solid $border-color;
-          outline-offset: 2px;
-
-          &:hover {
-            transform: scale(1.1);
-          }
-
-          &.selected {
-            border-color: $text-color;
-            outline-color: $accent-color;
-          }
-        }
+        // .color-selector / .color-circle styles live in ColorSelector.scss,
+        // imported by the ColorSelector component itself — no need to duplicate
+        // them here.
       }
 
       .product-taco-option {

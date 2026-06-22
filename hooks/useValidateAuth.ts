@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 interface FormValues {
   email: string;
@@ -15,7 +15,9 @@ interface ValidationResult {
 
 export function useValidateAuth(formValues: FormValues): ValidationResult {
   const { email, password, username, confirmPassword } = formValues;
-  const [isFormValid, setIsFormValid] = useState(false);
+  // error is set by validateForm() on submit and cleared reactively when the
+  // inputs that caused it change. Kept as state because it must persist across
+  // renders between the submit action and the next input change.
   const [error, setError] = useState("");
 
   const isRegisterForm = useMemo(() => {
@@ -24,47 +26,39 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
 
   const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
 
-  useEffect(() => {
-    const isEmailValid =
-      email?.trim() !== "" && email ? emailRegex.test(email) : false;
-    const isPasswordValid = password?.length >= 6;
+  const isEmailValid =
+    email?.trim() !== "" && email ? emailRegex.test(email) : false;
+  const isPasswordValid = password?.length >= 6;
 
-    let formValid = isEmailValid && isPasswordValid;
+  let formValid = isEmailValid && isPasswordValid;
 
-    if (isRegisterForm) {
-      const isUsernameValid =
-        username?.trim() !== "" && username
-          ? username.trim().length >= 3
-          : false;
+  if (isRegisterForm) {
+    const isUsernameValid =
+      username?.trim() !== "" && username
+        ? username.trim().length >= 3
+        : false;
 
-      const doPasswordsMatch =
-        confirmPassword !== "" && password === confirmPassword;
+    const doPasswordsMatch =
+      confirmPassword !== "" && password === confirmPassword;
 
-      if (error === "Passwords do not match" && doPasswordsMatch) {
-        setError("");
-      } else if (confirmPassword && password !== confirmPassword) {
-        setError("Passwords do not match");
-      } else if (error && error !== "Passwords do not match") {
-        setError("");
-      }
+    formValid = formValid && isUsernameValid && doPasswordsMatch;
+  }
 
-      formValid = formValid && isUsernameValid && doPasswordsMatch;
-    } else {
-      if (error) {
-        setError("");
-      }
+  // Clear a stale "Passwords do not match" error once the passwords match
+  // again, or any other stale error once the inputs change. This is a
+  // best-effort reactive clear; the authoritative validation runs in
+  // validateForm() on submit.
+  if (error === "Passwords do not match") {
+    const doPasswordsMatch =
+      confirmPassword !== "" && password === confirmPassword;
+    if (doPasswordsMatch) {
+      setError("");
     }
-
-    setIsFormValid(formValid);
-  }, [
-    email,
-    password,
-    username,
-    confirmPassword,
-    error,
-    emailRegex,
-    isRegisterForm,
-  ]);
+  } else if (error) {
+    // For non-mismatch errors (set on submit), clear them as soon as the
+    // user edits any field, so the message doesn't linger.
+    setError("");
+  }
 
   const validateForm = (): boolean => {
     if (!email || !password) {
@@ -107,5 +101,5 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
     return true;
   };
 
-  return { isFormValid, error, validateForm };
+  return { isFormValid: formValid, error, validateForm };
 }

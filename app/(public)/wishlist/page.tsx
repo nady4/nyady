@@ -1,7 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
+import { useAppDispatch } from "@/hooks/useStore";
 import { useLoadPageData } from "@/hooks/useLoadPageData";
 import { getCartProducts } from "@/actions/cart";
 import { initializeCart } from "@/store/slices/cartSlice";

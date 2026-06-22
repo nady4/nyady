@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Pago en revisión - NYADY",
@@ -12,8 +13,8 @@ export default function PendingPage() {
       <p>Tu pago está siendo procesado. Esto puede tomar unos minutos según el medio de pago elegido.</p>
 
       <div className="payment-actions">
-        <a href="/orders">Ver mis pedidos</a>
-        <a href="/">Ir a inicio</a>
+        <Link href="/orders">Ver mis pedidos</Link>
+        <Link href="/">Ir a inicio</Link>
       </div>
     </div>
   );
