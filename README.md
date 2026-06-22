@@ -60,11 +60,11 @@
 
 - Credentials auth (bcrypt + JWT sessions) with register / sign-in flows
 - User account settings and shipping-address management
-- Full set of info / legal pages required for Argentine e-commerce: envíos, medios de pago, promociones, reembolsos, preguntas frecuentes, elaboración, privacidad, términos, contacto, blog, and the **botón de arrepentimiento** (withdrawal form)
+- Full set of info / legal pages required for Argentine e-commerce: envíos, medios de pago, promociones, reembolsos, preguntas frecuentes, elaboración, privacidad, términos, contacto, blog, and the **botón de arrepentimiento**.
 
 ### ⚙️ Operations (seller-side)
 
-- **Artisanal elaboración flow** — after payment, an order enters "En Preparación" (3–7 business days of crafting). The seller marks it ready, which creates the Zipnova shipment and unlocks tracking.
+- **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready, which creates the Zipnova shipment and unlocks tracking.
 - **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN`
 
 <br>
