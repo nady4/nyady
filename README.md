@@ -37,7 +37,7 @@ A full-stack e-commerce application built with Next.js 16 (App Router), React 19
 
 ## 🌐 Live demo
 
-- **URL:** _<https://nyady.com>_
+- **URL:** <b><a href="https://nyady.com">nyady.com</a></b>
 - **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` — or register a new one.
 
 <br>
