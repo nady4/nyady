@@ -1,6 +1,6 @@
 # NYADY
 
-👢 A full-stack e-commerce application built with Next.js 16 (App Router), React 19, Prisma, PostgreSQL, NextAuth.js, Redux Toolkit, Mercado Pago, and Zipnova. Includes product catalog, persistent cart, coupons, volume discounts, live shipping quotes, payment + webhook handling, and order tracking.
+👢 Full-stack e-commerce application built with Next.js 16 (App Router), React 19, Prisma, PostgreSQL, NextAuth.js, Redux Toolkit, Mercado Pago, and Zipnova. Includes product catalog, persistent cart, coupons, volume discounts, live shipping quotes, payment + webhook handling, and order tracking.
 
 <br>
 
