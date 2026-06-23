@@ -8,6 +8,12 @@
 
 <table>
   <tr>
+    <td colspan="2" align="center"><em>Product</em></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><img src="./screenshots/product.png" alt="Orders & tracking" /></td>
+  </tr>
+  <tr>
     <td width="50%" align="center"><em>Home / landing</em></td>
     <td width="50%" align="center"><em>Catalog with filters</em></td>
   </tr>
@@ -16,12 +22,12 @@
     <td><img src="./screenshots/catalog.png" alt="Catalog" /></td>
   </tr>
   <tr>
-    <td align="center"><em>Product detail (size / color / heel)</em></td>
     <td align="center"><em>Cart</em></td>
+    <td align="center"><em>Checkout</em></td>
   </tr>
   <tr>
-    <td><img src="./screenshots/product.png" alt="Product detail" /></td>
-    <td><img src="./screenshots/cart.png" alt="Cart" /></td>
+    <td><img src="./screenshots/cart.png" alt="Product detail" /></td>
+    <td><img src="./screenshots/checkout.png" alt="Cart" /></td>
   </tr>
   <tr>
     <td colspan="2" align="center"><em>Orders + shipment tracking</em></td>
