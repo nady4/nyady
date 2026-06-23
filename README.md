@@ -17,19 +17,17 @@
   </tr>
   <tr>
     <td align="center"><em>Product detail (size / color / heel)</em></td>
-    <td align="center"><em>Cart + shipping quote + coupon</em></td>
+    <td align="center"><em>Cart</em></td>
   </tr>
   <tr>
     <td><img src="./screenshots/product.png" alt="Product detail" /></td>
     <td><img src="./screenshots/cart.png" alt="Cart" /></td>
   </tr>
   <tr>
-    <td align="center"><em>Checkout (Mercado Pago Wallet)</em></td>
-    <td align="center"><em>Orders + shipment tracking</em></td>
+    <td colspan="2" align="center"><em>Orders + shipment tracking</em></td>
   </tr>
   <tr>
-    <td><img src="./screenshots/checkout.png" alt="Checkout" /></td>
-    <td><img src="./screenshots/orders.png" alt="Orders & tracking" /></td>
+    <td colspan="2" align="center"><img src="./screenshots/orders.png" alt="Orders & tracking" /></td>
   </tr>
 </table>
 

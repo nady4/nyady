@@ -11,7 +11,7 @@
   max-height: calc(100vh - 200px);
   width: 100%;
   max-width: 700px;
-  margin: 7rem auto;
+  margin: 2rem auto;
   padding: 2rem;
   overflow-y: auto;
   background-color: $bg-secondary;
@@ -456,7 +456,9 @@
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s, transform 0.2s;
+      transition:
+        background-color 0.2s,
+        transform 0.2s;
 
       &:hover:not(:disabled) {
         background-color: $accent-hover;

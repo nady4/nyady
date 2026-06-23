@@ -28,8 +28,8 @@ export const metadata: Metadata = {
     "pantuflas niño",
   ],
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
   openGraph: {
     title: "NYADY | Pantuflas y Pantubotas Artesanales",

@@ -218,17 +218,19 @@ export default function NavBar() {
             </Link>
           )}
 
-          <Link href="/cart" className="cart-link">
-            <Image
-              src="/assets/icons/cart_dark.svg"
-              alt="Carrito"
-              width={24}
-              height={24}
-            />
-            {status === "authenticated" && hasCartItems && (
-              <span className="cart-badge" aria-hidden="true" />
-            )}
-          </Link>
+          {session && (
+            <Link href="/cart" className="cart-link">
+              <Image
+                src="/assets/icons/cart_dark.svg"
+                alt="Carrito"
+                width={24}
+                height={24}
+              />
+              {hasCartItems && (
+                <span className="cart-badge" aria-hidden="true" />
+              )}
+            </Link>
+          )}
         </div>
       </div>
     </nav>
