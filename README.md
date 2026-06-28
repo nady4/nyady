@@ -41,7 +41,7 @@
 
 ## 🌐 Live demo
 
-- **URL:** <b><a href="https://nyady.com">nyady.com</a></b>
+- **URL:** <b><a href="https://nyady.nady4.com">nyady.nady4.com</a></b>
 - **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` — or register a new one.
 
 <br>
