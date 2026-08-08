@@ -17,6 +17,24 @@ function getZipnovaConfig() {
   return { key, secret, accountId: parseInt(accountId, 10) };
 }
 
+/**
+ * True when the Zipnova credentials look real (set and not the README/.env
+ * placeholders). Lets callers skip API calls that would only 403.
+ */
+export async function hasZipnovaCredentials(): Promise<boolean> {
+  const key = process.env.ZIPNOVA_KEY;
+  const secret = process.env.ZIPNOVA_SECRET;
+  const accountId = process.env.ZIPNOVA_ACCOUNT_ID;
+  return Boolean(
+    key &&
+      secret &&
+      accountId &&
+      !key.startsWith("your") &&
+      !secret.startsWith("your") &&
+      !accountId.startsWith("your")
+  );
+}
+
 export interface ShippingQuoteItem {
   sku?: string;
   weight: number;

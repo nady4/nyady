@@ -58,9 +58,16 @@ export async function markOrderReady(
     !order.user?.address ||
     !order.user?.email
   ) {
+    const missing: string[] = [];
+    if (!order.shippingSelection) missing.push("selección de envío");
+    if (!order.recipientName) missing.push("nombre del destinatario");
+    if (!order.recipientDocument) missing.push("documento del destinatario");
+    if (!order.recipientPhone) missing.push("teléfono del destinatario");
+    if (!order.user?.address) missing.push("dirección del usuario");
+    if (!order.user?.email) missing.push("email del usuario");
     return {
       ok: false,
-      error: "Missing shipping data, recipient data, or address"
+      error: `Faltan datos del pedido: ${missing.join(", ")}`
     };
   }
 

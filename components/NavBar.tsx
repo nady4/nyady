@@ -75,6 +75,8 @@ export default function NavBar() {
   const pathname = usePathname();
   const [hasCartItems, setHasCartItems] = useState(false);
 
+  if (pathname.startsWith("/admin")) return null;
+
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       getUserAddress().then(setAddress).catch(console.error);

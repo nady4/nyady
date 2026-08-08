@@ -5,6 +5,7 @@ export type ProductType = {
   price: number;
   category: string;
   stock: number;
+  available?: boolean;
   description?: string | null;
   code?: string | null;
   sizes?: string[];

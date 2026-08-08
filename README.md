@@ -162,6 +162,10 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=yourSecret
 DATABASE_URL=postgresql://user:password@host:5432/nyady
 
+# Admin dashboard (/admin)
+ADMIN_USERNAME=nyady
+ADMIN_PASSWORD=yourAdminPassword
+
 # Mercado Pago
 MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
 NEXT_PUBLIC_MP_PUBLIC_KEY=TEST-XXXXXXXXXXXXXXXX
