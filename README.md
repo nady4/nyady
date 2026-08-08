@@ -68,8 +68,12 @@
 
 ### ⚙️ Operations (seller-side)
 
-- **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready, which creates the Zipnova shipment and unlocks tracking.
-- **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN`
+- **Admin dashboard** at `/admin` — protected by username/password from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, with a signed httpOnly session cookie:
+  - **Productos** — list, create, edit, and delete products (name, photo, price, category, SKU, sizes, colors, heel options, per-color photo JSON) plus a **Disponible / No disponible** toggle — no stock tracking since everything is made on demand.
+  - **Pedidos** — all orders from every user with status (Pendiente / En Preparación / En Envío / Rechazada / Cancelada), items, totals, and coupons; **"Pasar a envío (Zipnova)"** button that creates the Zipnova shipment and moves the order from "En Preparación" to "En Envío", plus live shipment status and tracking timeline.
+  - **Usuarios** — registered users with email, address, join date, and order count.
+- **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready from the admin dashboard, which creates the Zipnova shipment and unlocks tracking.
+- **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN` (`POST /api/orders/[id]/ship`)
 
 <br>
 
@@ -99,23 +103,25 @@ app/
 ├── (public)/         # Catalog, product detail, cart, wishlist, info/legal pages
 ├── (auth)/           # Sign-in, register
 ├── (protected)/      # Account, orders, address management
+├── admin/            # Admin dashboard: login, products, orders, users
 ├── success|pending|failure/   # Payment return pages
-└── api/              # auth, register, products, orders, coupons, mp-webhook
-actions/              # Server Actions (cart, wishlist, orders, coupons, shipping, …)
-lib/                  # Prisma client, NextAuth config, shared discount math, colors
+└── api/              # auth, register, products, orders, coupons, mp-webhook, admin (login/logout)
+actions/              # Server Actions (cart, wishlist, orders, coupons, shipping, admin, …)
+lib/                  # Prisma client, NextAuth config, shared discount math, colors, admin session
 store/                # Redux store + slices (UI state only)
 hooks/                # Data-loading + validation hooks
-components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking, …
+components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking, admin/*
 types/                # Shared TypeScript types
 prisma/               # Schema + migrations + seed
-styles/               # SCSS stylesheets
+styles/               # SCSS stylesheets (incl. Admin.scss)
+proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
 ```
 
 ### 🖥️ Server / client boundaries
 
-- **Server Actions** for mutations (cart, wishlist, orders, coupons, address, products, shipping)
-- **API routes** for external integrations (Mercado Pago preference creation, payment webhook, Zipnova)
-- **Client components** only where interactivity is required (selectors, filters, checkout wallet)
+- **Server Actions** for mutations (cart, wishlist, orders, coupons, address, products, shipping, admin)
+- **API routes** for external integrations (Mercado Pago preference creation, payment webhook, Zipnova) and the admin login/logout session endpoints
+- **Client components** only where interactivity is required (selectors, filters, checkout wallet, admin forms)
 
 ### 🔍 Notable implementation details
 
@@ -124,6 +130,8 @@ styles/               # SCSS stylesheets
 - **Coupon consumed only after the Mercado Pago preference succeeds** — a failed preference rolls back the orphan order so a one-per-user coupon isn't burned and the user can retry.
 - **Per-order snapshots** of recipient data, the chosen shipping option, and the coupon (code + discount) are stored on the order so tracking and history stay correct even if the cart is cleared or the coupon is later edited/deleted.
 - **Cart persisted in the database** (not Redux) — Redux is reserved for ephemeral UI state like filters and search, per the project's state-management rules.
+- **Stateless admin session** — the dashboard uses a 7-day HMAC-signed httpOnly cookie (`lib/admin-token.ts`, WebCrypto so it works in the edge proxy) instead of a database row; `proxy.ts` guards every `/admin/*` route except the login page, and all admin server actions re-check the session server-side.
+- **Zipnova credentials guard** — while `ZIPNOVA_*` env vars are placeholders, the admin orders view skips live status/tracking calls (they would 403) and falls back to the data persisted on the order; set the real keys and the calls resume automatically.
 
 <br>
 
@@ -132,6 +140,7 @@ styles/               # SCSS stylesheets
 Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`.
 
 - `Cart` rows are unique per `(user, product, selectedSize, selectedColor, selectedTacoOption)`.
+- `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only.
 - `Order` carries a `shippingSelection` JSON snapshot, recipient fields, shipment id/tracking, and coupon snapshots used to create the Zipnova shipment after payment and render order history.
 - `Coupon` supports `PERCENT` / `FIXED` types with `usageLimit`, `usedCount`, `onePerUser`, and `expiresAt`.
 
@@ -163,6 +172,8 @@ NEXTAUTH_SECRET=yourSecret
 DATABASE_URL=postgresql://user:password@host:5432/nyady
 
 # Admin dashboard (/admin)
+# Sign-in is at /admin/login; the session cookie is signed with NEXTAUTH_SECRET
+# (or ADMIN_SECRET if set). Defaults to nyady/nyady if unset — set real values!
 ADMIN_USERNAME=nyady
 ADMIN_PASSWORD=yourAdminPassword
 
@@ -193,6 +204,10 @@ The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Ny
 ```bash
 bun run dev
 ```
+
+### 🧑‍💻 Admin dashboard
+
+Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `ADMIN_USERNAME` / `ADMIN_PASSWORD`. From there you can manage products (create / edit / delete / toggle availability), ship approved orders to Zipnova, and review all users and orders.
 
 <br>
 
