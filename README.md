@@ -1,6 +1,6 @@
 # NYADY
 
-👢 Full-stack e-commerce platform with product catalog, persistent shopping cart, coupons, volume-based discounts, shipping quotations, payment management, and order tracking.
+👢 Full-stack e-commerce platform with product catalog, persistent shopping cart, coupons, volume-based discounts, shipping quotations, payment management and order tracking.
 
 <br>
 
