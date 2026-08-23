@@ -1,6 +1,9 @@
 <h1 align="center">NYADY</h1>
 <p align="center">
-👢 Full-stack e-commerce platform with product catalog, persistent shopping cart, coupons, shipping quotations, payment management and order tracking.
+  👢 Full-stack e-commerce platform with product catalog, persistent shopping cart, coupons, shipping quotations, payment management and order tracking.
+</p>
+<p align="center">
+  Built with Next.js, TypeScript, Redux Toolkit, Prisma + PostgreSQL y NextAuth. Integrated with MercadoPago and Zipnova.
 </p>
 <br>
 
