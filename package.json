@@ -14,32 +14,42 @@
   "prisma": {
     "seed": "bunx tsx prisma/seed.ts"
   },
+  "overrides": {
+    "deepmerge-ts": "^8.0.2"
+  },
   "dependencies": {
+    "@babel/core": "^8.0.7",
     "@mercadopago/sdk-react": "^0.0.19",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
-    "@reduxjs/toolkit": "^2.12.0",
-    "bcrypt": "^5.1.1",
-    "boneyard-js": "^1.9.0",
-    "next": "16.2.4",
+    "@reduxjs/toolkit": "^2.13.0",
+    "baseline-browser-mapping": "^2.11.28",
+    "bcrypt": "^6.0.0",
+    "boneyard-js": "^1.10.0",
+    "brace-expansion": "^5.0.12",
+    "browserslist": "^4.29.3",
+    "immutable": "^5.1.9",
+    "js-yaml": "^5.4.3",
+    "next": "16.4.0",
     "next-auth": "^4.24.15",
-    "pg": "^8.23.0",
+    "pg": "^8.23.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-hook-form": "^7.85.0",
+    "react-hook-form": "^7.89.0",
     "react-redux": "^9.3.0",
-    "sass": "^1.102.0"
+    "sass": "^1.105.1",
+    "source-map-js": "^1.2.2"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.19.43",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "16.4.0",
     "prisma": "^6.19.3",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }
