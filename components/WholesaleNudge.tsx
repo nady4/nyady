@@ -30,7 +30,7 @@ export default function WholesaleNudge({ totalQuantity }: WholesaleNudgeProps) {
               ? ` Te falta${nextTier.unitsNeeded === 1 ? "" : "n"} ${unitsText(
                   nextTier.unitsNeeded
                 )} para el ${nextTier.percent}% (${nextTier.label})`
-              : " - alcanzaste el máximo descuento por cantidad"}
+              : " Alcanzaste el máximo descuento por cantidad"}
           </>
         ) : (
           nextTier && (
