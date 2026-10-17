@@ -4,7 +4,6 @@ import { useAppSelector } from "@/hooks/useStore";
 import { ProductType } from "@/types";
 
 export const useFilterProducts = (products: ProductType[]) => {
-  const searchTerm = useAppSelector((state) => state.searchTerm);
   const { activeCategories } = useAppSelector((state) => state.category);
   const minPrice = useAppSelector((state) => state.price.min);
   const maxPrice = useAppSelector((state) => state.price.max);
@@ -18,12 +17,6 @@ export const useFilterProducts = (products: ProductType[]) => {
     const hasColorFilter = Object.values(activeColors).some(Boolean);
 
     return products.filter((product) => {
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchLower) ||
-        (product.description?.toLowerCase().includes(searchLower) ?? false) ||
-        product.category.toLowerCase().includes(searchLower);
-
       const matchesCategory = !hasActiveCategoryFilter || (activeCategories?.[product.category] ?? true);
       const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
 
@@ -38,17 +31,10 @@ export const useFilterProducts = (products: ProductType[]) => {
         matchesColor = product.colors.some((c) => activeColors[c]);
       }
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesPrice &&
-        matchesSize &&
-        matchesColor
-      );
+      return matchesCategory && matchesPrice && matchesSize && matchesColor;
     });
   }, [
     products,
-    searchTerm,
     activeCategories,
     hasActiveCategoryFilter,
     minPrice,

@@ -14,7 +14,6 @@ export const productsSlice = createSlice({
 export const { setProducts } = productsSlice.actions;
 
 const selectProductsState = (state: { products: ProductType[] }) => state.products;
-const selectSearchTerm = (_: { searchTerm: string }) => _.searchTerm;
 const selectCategory = (_: { category: string }) => _.category;
 
 export const selectAllProducts = createSelector(
@@ -23,23 +22,10 @@ export const selectAllProducts = createSelector(
 );
 
 export const selectFilteredProducts = createSelector(
-  [selectProductsState, selectSearchTerm, selectCategory],
-  (products, searchTerm, category) => {
-    let filtered = products;
-
-    if (category && category !== "all") {
-      filtered = filtered.filter((p) => p.category === category);
-    }
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) => p.name.toLowerCase().includes(term) ||
-              p.description?.toLowerCase().includes(term)
-      );
-    }
-
-    return filtered;
+  [selectProductsState, selectCategory],
+  (products, category) => {
+    if (!category || category === "all") return products;
+    return products.filter((p) => p.category === category);
   }
 );
 

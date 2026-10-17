@@ -2,12 +2,12 @@
 import { useCallback, ChangeEvent } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { useGetFilters } from "@/hooks/useGetFilters";
+import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
 import { toggleSize, toggleColor } from "@/store/slices/filterSlice";
 import { setMin, setMax } from "@/store/slices/priceSlice";
-import { setSearchTerm } from "@/store/slices/searchTermSlice";
 import { inter } from "@/app/fonts";
-import Image from "next/image";
 import { getColorHex } from "@/lib/colors";
+import WholesaleNudge from "@/components/WholesaleNudge";
 import "@/styles/PriceFilter.scss";
 import "@/styles/Filters.scss";
 
@@ -161,59 +161,17 @@ const PriceFilter = () => {
   );
 };
 
-const TextFilter = ({
-  searchTerm,
-  dispatch
-}: {
-  searchTerm: string;
-  dispatch: ReturnType<typeof useAppDispatch>;
-}) => {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      dispatch(setSearchTerm(searchTerm));
-    }
-  };
-
-  return (
-    <div className="text-filter">
-      <input
-        type="text"
-        className={`${inter.className} text-input`}
-        value={searchTerm}
-        onChange={(e) => dispatch(setSearchTerm(e.target.value))}
-        onKeyDown={handleKeyDown}
-        placeholder="Buscar productos..."
-      />
-      <button
-        className="text-button"
-        onClick={() => dispatch(setSearchTerm(searchTerm))}
-      >
-        <Image
-          src="/assets/icons/search.svg"
-          alt="search icon"
-          width={20}
-          height={20}
-        />
-      </button>
-    </div>
-  );
-};
-
 export default function Filters() {
-  const searchTermState = useAppSelector(
-    (state) => state.searchTerm as string | undefined
-  );
-  const searchTerm = searchTermState ?? "";
-  const dispatch = useAppDispatch();
+  const cartTotalQuantity = useCartTotalQuantity();
 
   return (
     <div className="filters-container">
       <SizeFilter />
       <ColorFilter />
       <PriceFilter />
-      <TextFilter searchTerm={searchTerm} dispatch={dispatch} />
+      <WholesaleNudge totalQuantity={cartTotalQuantity} />
     </div>
   );
 }
 
-export { SizeFilter, ColorFilter, TextFilter, PriceFilter };
+export { SizeFilter, ColorFilter, PriceFilter };

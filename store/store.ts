@@ -1,6 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
 import categoryReducer from "./slices/categorySlice";
-import { searchTermSlice } from "./slices/searchTermSlice";
 import { priceSlice } from "./slices/priceSlice";
 import { wishListSlice } from "./slices/wishListSlice";
 import { productsSlice } from "./slices/productsSlice";
@@ -9,7 +8,6 @@ import filterReducer from "./slices/filterSlice";
 
 const rootReducer = {
   category: categoryReducer,
-  searchTerm: searchTermSlice.reducer,
   price: priceSlice.reducer,
   wishList: wishListSlice.reducer,
   products: productsSlice.reducer,
