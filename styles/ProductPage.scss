@@ -541,6 +541,14 @@
           .cart-button {
             width: 100%;
             order: -1;
+            gap: 0;
+
+            img{
+              margin-left: 20px;
+            }
+          .cart-button-text {
+            margin-left: 0;
+          }
           }
         }
       }
