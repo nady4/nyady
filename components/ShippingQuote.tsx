@@ -6,7 +6,11 @@ import {
   ShippingQuoteItem,
   AddressType
 } from "@/actions/shipping";
-import { ALLOWED_CARRIERS, getDeliveryWindow } from "@/lib/shipping";
+import {
+  ALLOWED_CARRIERS,
+  getDeliveryWindow,
+  isExcludedCarrier
+} from "@/lib/shipping";
 import Link from "next/link";
 import "@/styles/ShippingQuote.scss";
 
@@ -166,6 +170,7 @@ const getDeliveryDays = useCallback(
       (q) =>
         ALLOWED_CARRIERS.includes(q.carrier.id) &&
         q.selectable !== false &&
+        !isExcludedCarrier(q) &&
         (q.logistic_type === "carrier_dropoff" || q.logistic_type === "xd_dropoff")
     );
 

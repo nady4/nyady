@@ -5,6 +5,19 @@ import type { ShippingQuoteResult } from "@/types";
 // shows matches what the customer will find in the cart.
 export const ALLOWED_CARRIERS = [233, 208, 323];
 
+// Carriers never offered to customers, matched case-insensitively against
+// carrier and service names (Cabify Logistics has no fixed carrier id).
+export const EXCLUDED_CARRIER_NAMES = ["cabify"];
+
+export function isExcludedCarrier(quote: ShippingQuoteResult): boolean {
+  const names = [quote.carrier?.name, quote.service_type?.name].map((name) =>
+    (name || "").toLowerCase()
+  );
+  return EXCLUDED_CARRIER_NAMES.some((excluded) =>
+    names.some((name) => name.includes(excluded))
+  );
+}
+
 /**
  * Delivery window for a quote: the carrier's estimated delivery date plus the
  * 3-7 business days of elaboration. Single source of truth for the window
@@ -49,6 +62,7 @@ export function getEstimateQuotes(
   const validQuotes = quotes.filter(
     (q) =>
       q.selectable !== false &&
+      !isExcludedCarrier(q) &&
       Boolean(q.delivery_time?.estimated_delivery) &&
       !Number.isNaN(new Date(q.delivery_time.estimated_delivery).getTime())
   );

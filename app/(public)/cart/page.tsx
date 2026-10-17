@@ -302,25 +302,24 @@ export default function CartPage() {
             ×
           </button>
           <div className="price-container">
-            {item.quantity >= 4 && item.quantity < 20 ? (
+            {discounts.wholesalePercent > 0 ? (
               <>
                 <span className="price-original">
                   ${(item.price * item.quantity).toLocaleString("es-AR")}
                 </span>
-                <span className="price-discounted discount-10">
-                  ${(item.price * item.quantity * 0.9).toLocaleString("es-AR")}
+                <span
+                  className={`price-discounted discount-${discounts.wholesalePercent}`}
+                >
+                  $
+                  {(
+                    item.price *
+                    item.quantity *
+                    (1 - discounts.wholesalePercent / 100)
+                  ).toLocaleString("es-AR")}
                 </span>
-                <span className="discount-badge">10% DESCUENTO</span>
-              </>
-            ) : item.quantity >= 20 ? (
-              <>
-                <span className="price-original">
-                  ${(item.price * item.quantity).toLocaleString("es-AR")}
+                <span className="discount-badge">
+                  {discounts.wholesalePercent}% DESCUENTO
                 </span>
-                <span className="price-discounted discount-20">
-                  ${(item.price * item.quantity * 0.8).toLocaleString("es-AR")}
-                </span>
-                <span className="discount-badge">20% DESCUENTO</span>
               </>
             ) : (
               <span className="price">
