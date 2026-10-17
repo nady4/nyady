@@ -1,6 +1,7 @@
 "use server";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getPhotoForColor } from "@/lib/colors";
 import { ProductType } from "@/types";
 
 type CartProductType = ProductType & { quantity: number; cartId: string };
@@ -216,14 +217,20 @@ export async function getCartProducts(
       include: { product: true },
     });
 
-    return cartItems.map((item) => ({
-      ...(item.product as ProductType),
-      quantity: item.quantity,
-      selectedSize: item.selectedSize || undefined,
-      selectedColor: item.selectedColor || undefined,
-      selectedTacoOption: item.selectedTacoOption || undefined,
-      cartId: item.id,
-    }));
+    return cartItems.map((item) => {
+      const product = item.product as ProductType;
+      return {
+        ...product,
+        // Show the photo of the color the customer picked (orders snapshot
+        // this too, so history shows the purchased color).
+        photo: getPhotoForColor(product, item.selectedColor),
+        quantity: item.quantity,
+        selectedSize: item.selectedSize || undefined,
+        selectedColor: item.selectedColor || undefined,
+        selectedTacoOption: item.selectedTacoOption || undefined,
+        cartId: item.id,
+      };
+    });
   } catch (error) {
     console.error("Error fetching cart:", error);
     return [];

@@ -1,3 +1,5 @@
+import type { ProductType } from "@/types";
+
 // Single source of truth for product color → hex mapping. Previously this map
 // was duplicated across ColorSelector, Filters, ProductCard and the seed, which
 // let them drift (Caspeado was #333333 in one place and #c4a35a in others, and
@@ -44,4 +46,28 @@ export function getColorHex(color: string): string {
     (k) => k.toLowerCase() === color.toLowerCase()
   );
   return COLOR_HEX[key || ""] || "#cccccc";
+}
+
+/**
+ * First photo for a specific color of a product (the one shown when that
+ * color is selected on the product page). Falls back to the product's
+ * default photo when no color is given or the color has no photos.
+ * Color lookup is case-insensitive.
+ */
+export function getPhotoForColor(
+  product: Pick<ProductType, "photo" | "photos">,
+  color?: string | null
+): string {
+  if (!color) return product.photo;
+  const { photos } = product;
+  if (!photos || typeof photos !== "object" || Array.isArray(photos)) {
+    return product.photo;
+  }
+  const photoMap = photos as Record<string, string[]>;
+  const key = Object.keys(photoMap).find(
+    (k) => k.trim().toLowerCase() === color.trim().toLowerCase()
+  );
+  const list = key ? photoMap[key] : undefined;
+  if (!Array.isArray(list) || list.length === 0) return product.photo;
+  return list[0];
 }
