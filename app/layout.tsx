@@ -8,11 +8,11 @@ import "@/styles/globals.scss";
 
 export const metadata: Metadata = {
   title: {
-    default: "NYADY | Pantuflas y Pantubotas Artesanales",
+    default: "NYADY | Sandalias Artesanales",
     template: "%s | NYADY",
   },
   description:
-    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales hechas a mano. Envíos a todo Argentina.",
+    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
   keywords: [
     "pantuflas",
     "pantubotas",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     apple: "/favicon.png",
   },
   openGraph: {
-    title: "NYADY | Pantuflas y Pantubotas Artesanales",
+    title: "NYADY | Sandalias Artesanales",
     description:
-      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Pantuflas y pantubotas artesanales hechas a mano.",
+      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Sandalias artesanales hechas a mano.",
     url: "https://nyady.com",
     siteName: "NYADY",
     images: [
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
         url: "https://nyady.com/assets/products/pantuflon.png",
         width: 1200,
         height: 630,
-        alt: "NYADY - Pantuflas y Pantubotas Artesanales",
+        alt: "NYADY - Sandalias Artesanales",
       },
     ],
     locale: "es_AR",

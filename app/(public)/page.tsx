@@ -8,11 +8,14 @@ import { ProductType } from "@/types";
 import styles from "@/styles/Landing.module.scss";
 import "@/styles/Carousel.scss";
 
+const AUTOPLAY_MS = 3000;
+
 export default function LandingPage() {
   const { data: session } = useSession();
   const [products, setProducts] = useState<ProductType[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentTranslate, setCurrentTranslate] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,10 +23,20 @@ export default function LandingPage() {
   useEffect(() => {
     const loadProducts = async () => {
       const allProducts = await getProducts();
-      setProducts(allProducts.slice(0, 5));
+      setProducts(allProducts);
     };
     loadProducts();
   }, []);
+
+  // Autoplay: advance every AUTOPLAY_MS, wrapping around. Pause when the user
+  // is dragging or hovering the carousel so manual navigation feels natural.
+  useEffect(() => {
+    if (products.length <= 1 || isPaused || isDragging) return;
+    const id = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % products.length);
+    }, AUTOPLAY_MS);
+    return () => clearInterval(id);
+  }, [products.length, isPaused, isDragging]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     setIsDragging(true);
@@ -51,10 +64,10 @@ export default function LandingPage() {
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    
+
     container.addEventListener("mouseup", handleTouchEnd);
     container.addEventListener("mouseleave", handleTouchEnd);
-    
+
     return () => {
       container.removeEventListener("mouseup", handleTouchEnd);
       container.removeEventListener("mouseleave", handleTouchEnd);
@@ -97,7 +110,7 @@ export default function LandingPage() {
             )}
           </div>
         </div>
-          <div 
+          <div
             ref={containerRef}
           className="carousel-container"
           onTouchStart={handleTouchStart}
@@ -105,23 +118,14 @@ export default function LandingPage() {
           onTouchEnd={handleTouchEnd}
           onMouseDown={handleTouchStart}
           onMouseMove={handleTouchMove}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => { setIsPaused(false); handleTouchEnd(); }}
         >
-          <div 
+          <div
             className="carousel-track"
             style={{ transform: `translateX(${currentIndex * -100 + (currentTranslate / 20)}%)` }}
           >
-            <div className="carousel-slide">
-              <Link href="/products/pantuflon">
-                <Image
-                  src="/assets/products/pantuflon.png"
-                  alt="Pantuflón NYADY"
-                  fill
-                  className="carousel-image"
-                  priority
-                />
-              </Link>
-            </div>
-            {products.slice(1).map((product) => (
+            {products.map((product, idx) => (
               <div key={product.id} className="carousel-slide">
                 <Link href={`/products/${encodeURIComponent(product.id)}`}>
                   <Image
@@ -129,6 +133,7 @@ export default function LandingPage() {
                     alt={product.name}
                     fill
                     className="carousel-image"
+                    priority={idx < 3}
                   />
                 </Link>
               </div>
