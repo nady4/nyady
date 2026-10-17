@@ -205,6 +205,11 @@ export default function Product({ product, relatedProducts }: ProductProps) {
             </div>
           )}
 
+          <ProductShippingEstimate
+            productName={product.name}
+            price={product.price ?? 0}
+          />
+
           <div className="product-actions">
             <button
               className={`wishlist-button ${isWishlisted ? "active" : ""}`}
@@ -238,11 +243,6 @@ export default function Product({ product, relatedProducts }: ProductProps) {
               <span className="cart-button-text">Agregar al carrito</span>
             </button>
           </div>
-
-          <ProductShippingEstimate
-            productName={product.name}
-            price={product.price ?? 0}
-          />
         </div>
       </div>
       <RelatedProducts products={relatedProducts} />

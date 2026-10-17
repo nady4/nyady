@@ -1,5 +1,4 @@
 "use client";
-import Link from "next/link";
 import {
   getNextWholesaleTier,
   getWholesaleDiscountPercent
@@ -25,13 +24,13 @@ export default function WholesaleNudge({ totalQuantity }: WholesaleNudgeProps) {
           <>
             <span className="nudge-check">✓</span>{" "}
             <strong>
-              {wholesalePercent}% {appliedTierLabel} aplicado
+              Descuento del {wholesalePercent}% por {appliedTierLabel} aplicado<br></br>
             </strong>
             {nextTier
-              ? ` — te falta${nextTier.unitsNeeded === 1 ? "" : "n"} ${unitsText(
+              ? ` Te falta${nextTier.unitsNeeded === 1 ? "" : "n"} ${unitsText(
                   nextTier.unitsNeeded
                 )} para el ${nextTier.percent}% (${nextTier.label})`
-              : " — alcanzaste el máximo descuento por cantidad"}
+              : " - alcanzaste el máximo descuento por cantidad"}
           </>
         ) : (
           nextTier && (
@@ -54,12 +53,6 @@ export default function WholesaleNudge({ totalQuantity }: WholesaleNudgeProps) {
           />
         </div>
       )}
-      <p className="nudge-hint">
-        Combiná modelos, talles y colores.{" "}
-        <Link href="/info/promociones" className="nudge-link">
-          Ver condiciones
-        </Link>
-      </p>
     </div>
   );
 }
