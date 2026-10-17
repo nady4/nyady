@@ -16,7 +16,7 @@
   color: $text-muted;
 }
 
-// Loading skeleton — mirrors the real product-card grid (same 300x400 cards,
+// Loading skeleton — mirrors the real product-card grid (same 300x370 cards,
 // same gap) so the layout doesn't jump when products load in. Shimmer uses the
 // brand palette (accent gold over the card background).
 .product-list-skeleton {
@@ -28,7 +28,7 @@
 }
 
 .skeleton-card {
-  height: 400px;
+  height: 370px;
   width: 300px;
   display: flex;
   flex-direction: column;
