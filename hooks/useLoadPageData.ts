@@ -13,11 +13,23 @@ import { isBlackColor } from "@/lib/colors";
 
 type PageType = "catalog" | "cart" | "wishlist";
 
-// Products that come in a color other than black are shown first in the
-// catalog — they make a better first impression. Stable sort, so DB order is
-// preserved within each group.
+// Catalog order alternates between a product with a non-black color and one
+// that only comes in black — colorful products make a better first
+// impression, but a wall of them hides the black ones. DB order is preserved
+// within each group.
 const hasColorOtherThanBlack = (product: { colors?: string[] }) =>
   (product.colors ?? []).some((color) => !isBlackColor(color));
+
+const interleaveByColor = <T extends { colors?: string[] }>(products: T[]) => {
+  const colorful = products.filter(hasColorOtherThanBlack);
+  const blackOnly = products.filter((p) => !hasColorOtherThanBlack(p));
+  const interleaved: T[] = [];
+  for (let i = 0; i < Math.max(colorful.length, blackOnly.length); i++) {
+    if (i < colorful.length) interleaved.push(colorful[i]);
+    if (i < blackOnly.length) interleaved.push(blackOnly[i]);
+  }
+  return interleaved;
+};
 
 export const useLoadPageData = (pageType: PageType) => {
   const { data: session, status } = useSession();
@@ -32,11 +44,7 @@ export const useLoadPageData = (pageType: PageType) => {
       try {
         if (pageType === "catalog") {
           const products = await getProducts();
-          const sortedProducts = [...products].sort(
-            (a, b) =>
-              Number(hasColorOtherThanBlack(b)) -
-              Number(hasColorOtherThanBlack(a))
-          );
+          const sortedProducts = interleaveByColor(products);
           dispatch(setProducts(sortedProducts));
 
           const categories = [
