@@ -3,7 +3,7 @@ import InfoPage from "@/components/InfoPage";
 import styles from "@/styles/Blog.module.scss";
 
 export const metadata: Metadata = {
-  title: "Blog - NYADY",
+  title: "Blog",
   description: "Blog de NYADY. Noticias, consejos y más."
 };
 

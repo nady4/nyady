@@ -234,7 +234,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
                 width={20}
                 height={20}
               />
-              Agregar al carrito
+              <span className="cart-button-text">Agregar al carrito</span>
             </button>
           </div>
         </div>

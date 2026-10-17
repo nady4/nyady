@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Tiempos de Elaboración - NYADY",
+  title: "Tiempos de Elaboración",
   description:
     "Conocé los tiempos de elaboración de tus productos NYADY. Cada par es hecho a mano con los mejores materiales."
 };

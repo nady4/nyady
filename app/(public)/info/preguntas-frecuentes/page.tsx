@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Preguntas Frecuentes - NYADY",
+  title: "Preguntas Frecuentes",
   description:
     "Preguntas frecuentes sobre NYADY: productos, elaboración, envíos, pagos, cupones y devoluciones.",
 };

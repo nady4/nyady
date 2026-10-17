@@ -340,6 +340,10 @@
           gap: 0.5rem;
           transition: all 0.2s ease;
 
+          .cart-button-text {
+            margin-left: 0.5rem;
+          }
+
           &:hover {
             color: white;
             border: 1px solid $button-color;

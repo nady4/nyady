@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Envíos - NYADY",
+  title: "Envíos",
   description:
     "Información sobre métodos de envío, costos y tiempos de entrega de NYADY."
 };
@@ -26,15 +26,12 @@ export default function EnviosPage() {
         Realizamos envíos a todo el país. Podés elegir entre Correo Argentino y
         OCA al cotizar en el carrito.
       </p>
-
-      <h3>Envío a domicilio</h3>
+      <h3>
+        Entrega en 2 a 5 días hábiles una vez despachado
+      </h3>
       <ul>
-        <li>Entrega en 2 a 5 días hábiles una vez despachado</li>
-      </ul>
-
-      <h3>Retiro en punto de entrega</h3>
-      <ul>
-        <li>Retiro en un punto de entrega cercano a tu ubicación</li>
+        <li>Envío a domicilio</li>
+        <li>Retiro en punto de entrega</li>
       </ul>
 
       <h2>Costos de Envío</h2>

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Promociones y Descuentos - NYADY",
+  title: "Promociones y Descuentos",
   description:
     "Conocé las promociones, descuentos y ofertas especiales de NYADY."
 };
@@ -21,11 +21,11 @@ export default function PromocionesPage() {
       <h3>Descuentos por Cantidad</h3>
       <p>
         Se aplican automáticamente en el carrito según la cantidad total de
-        unidades:
+        unidades (podés combinar talles y colores):
       </p>
       <ul>
-        <li>4 o más productos: 10% de descuento (REVENDEDORA)</li>
-        <li>20 o más productos: 20% de descuento (MAYORISTA)</li>
+        <li><b>4 a 19 productos</b>: 10% de descuento (REVENDEDORA)</li>
+        <li><b>20 o más productos</b>: 20% de descuento (MAYORISTA)</li>
       </ul>
       <p>
         Estos descuentos son acumulables con los cupones de descuento.

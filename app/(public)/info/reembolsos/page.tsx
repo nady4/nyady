@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Reembolsos - NYADY",
+  title: "Reembolsos",
   description:
     "Política de reembolsos y devoluciones de NYADY. Cambio, devolución y restitución de dinero."
 };

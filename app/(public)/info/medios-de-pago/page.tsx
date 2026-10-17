@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Medios de Pago - NYADY",
+  title: "Medios de Pago",
   description:
     "Conocé todas las opciones de pago disponibles en NYADY: Mercado Pago, tarjetas, efectivo y más."
 };

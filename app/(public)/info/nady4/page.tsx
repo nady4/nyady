@@ -5,7 +5,7 @@ import InfoPage from "@/components/InfoPage";
 import styles from "@/styles/Nady4.module.scss";
 
 export const metadata: Metadata = {
-  title: "nady4 - NYADY",
+  title: "nady4",
   description:
     "Soy una desarrolladora web autodidacta buscando hacer algo real y artesanal en tiempos de IA."
 };

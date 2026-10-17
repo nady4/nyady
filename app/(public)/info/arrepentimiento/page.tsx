@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Botón de Arrepentimiento - NYADY",
+  title: "Botón de Arrepentimiento",
   description: "Información sobre el botón de arrepentimiento según Ley 24.240.",
 };
 

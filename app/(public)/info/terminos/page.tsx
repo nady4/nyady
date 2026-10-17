@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones - NYADY",
+  title: "Términos y Condiciones",
   description: "Términos y condiciones de NYADY. Reglas y condiciones de uso."
 };
 

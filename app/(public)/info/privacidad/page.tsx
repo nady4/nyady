@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad - NYADY",
+  title: "Política de Privacidad",
   description: "Política de privacidad de NYADY. Cómo protegemos tus datos."
 };
 

@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
-  title: "Contacto - NYADY",
+  title: "Contacto",
   description: "Contactá a NYADY. Estamos para ayudarte."
 };
 
@@ -19,7 +19,7 @@ export default function ContactoPage() {
 
       <h3>Redes Sociales</h3>
       <ul>
-        <li>Instagram: @nyady</li>
+        <li>Instagram: <a href="https://www.instagram.com/nyady.store">@nyady.store</a></li>
         <li>Facebook: NYADY</li>
       </ul>
 
