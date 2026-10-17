@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo } from "react";
 import { useFilterProducts } from "@/hooks/useFilterProducts";
+import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
 import { useAppSelector, useAppDispatch } from "@/hooks/useStore";
 import { setCategories } from "@/store/slices/categorySlice";
 import { fraunces } from "@/app/fonts";
@@ -12,6 +13,7 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
   const dispatch = useAppDispatch();
   const products = useAppSelector((state) => state.products);
   const cartIds = useAppSelector((state) => state.cart);
+  const cartTotalQuantity = useCartTotalQuantity();
 
   const filteredProducts = useFilterProducts(products);
   const categories = useMemo(
@@ -54,7 +56,12 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
   return (
     <div className="product-list">
       {filteredProducts.map((product) => (
-        <ProductCard key={product.id} {...product} cartIds={cartIds} />
+        <ProductCard
+          key={product.id}
+          {...product}
+          cartIds={cartIds}
+          cartTotalQuantity={cartTotalQuantity}
+        />
       ))}
     </div>
   );

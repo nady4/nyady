@@ -5,10 +5,12 @@ import Link from "next/link";
 import { useToggleWishlist } from "@/hooks/useToggleData";
 import { cormorantGaramond, inter } from "@/app/fonts";
 import { isBlackColor } from "@/lib/colors";
+import { getWholesaleDiscountPercent } from "@/lib/discounts";
 import { ProductType } from "@/types";
 
 interface ProductCardProps extends ProductType {
   cartIds?: string[];
+  cartTotalQuantity?: number;
 }
 
 // The card shows a photo of a non-black color when the product has one, so
@@ -42,10 +44,14 @@ const ProductCard = memo(function ProductCard({
   photo,
   colors = [],
   photos,
-  sizes = []
+  sizes = [],
+  cartTotalQuantity = 0
 }: ProductCardProps) {
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
   const displayPhoto = getCardPhoto(photo, colors, photos);
+  const wholesalePercent = getWholesaleDiscountPercent(cartTotalQuantity);
+  const discountedPrice =
+    (price ?? 0) * (1 - wholesalePercent / 100);
 
   return (
     <Link href={`/products/${id}`} passHref>
@@ -68,7 +74,18 @@ const ProductCard = memo(function ProductCard({
         </button>
         <h2 className={`${cormorantGaramond.className} product-title`}>{name}</h2>
         <p className={`${inter.className} product-price`}>
-          ${(price ?? 0).toLocaleString("es-AR")}
+          {wholesalePercent > 0 ? (
+            <>
+              <span className="price-original">
+                ${(price ?? 0).toLocaleString("es-AR")}
+              </span>
+              <span className={`price-discounted discount-${wholesalePercent}`}>
+                ${discountedPrice.toLocaleString("es-AR")}
+              </span>
+            </>
+          ) : (
+            `$${(price ?? 0).toLocaleString("es-AR")}`
+          )}
         </p>
         {sizes.length > 0 && (
           <div className="product-sizes">

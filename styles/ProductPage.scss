@@ -127,6 +127,14 @@
         align-items: center;
         gap: 0.75rem;
 
+        .price-original {
+          font-size: 1rem;
+          font-weight: 400;
+          color: #2b2827;
+          opacity: 0.55;
+          text-decoration: line-through;
+        }
+
         .price-discounted {
           &.discount-10 {
             color: #4a8a42;

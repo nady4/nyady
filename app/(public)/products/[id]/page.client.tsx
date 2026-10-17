@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToggleWishlist, useToggleCartProduct } from "@/hooks/useToggleData";
+import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
+import { getWholesaleDiscountPercent } from "@/lib/discounts";
 import RelatedProducts from "@/components/RelatedProducts";
 import ColorSelector from "@/components/ColorSelector";
 import SizeSelector from "@/components/SizeSelector";
@@ -26,6 +28,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
   const { onCartClick } = useToggleCartProduct(id);
+  const cartTotalQuantity = useCartTotalQuantity();
 
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState<string>("");
@@ -57,19 +60,15 @@ export default function Product({ product, relatedProducts }: ProductProps) {
     );
   }, [currentColorPhotos, selectedImageIndex, product.photo]);
 
-  const discountInfo = useMemo(() => {
-    if (quantity >= 20) {
-      return { percent: 20, label: "MAYORISTA x20 - 20%", applied: true };
-    } else if (quantity >= 4) {
-      return { percent: 10, label: "REVENDEDORA x4 - 10%", applied: true };
-    }
-    return { percent: 0, label: "", applied: false };
-  }, [quantity]);
+  // The tier preview assumes the selected quantity will be added, so it counts
+  // the whole cart (already fetched) plus what's about to go in.
+  const treatedQuantity = cartTotalQuantity + quantity;
+  const wholesalePercent = getWholesaleDiscountPercent(treatedQuantity);
 
   const finalPrice = useMemo(() => {
     if (!product.price) return 0;
-    return product.price * (1 - discountInfo.percent / 100);
-  }, [product.price, discountInfo.percent]);
+    return product.price * (1 - wholesalePercent / 100);
+  }, [product.price, wholesalePercent]);
 
   const handleColorChange = useCallback((color: string) => {
     setSelectedColor(color);
@@ -142,15 +141,18 @@ export default function Product({ product, relatedProducts }: ProductProps) {
         <div className="product-info">
           <h1 className={`${cormorantGaramond.className} product-name`}>{product.name}</h1>
           <p className="product-price">
-            {discountInfo.percent > 0 ? (
+            {wholesalePercent > 0 ? (
               <>
+                <span className="price-original">
+                  ${(product.price ?? 0).toLocaleString("es-AR")}
+                </span>
                 <span
-                  className={`price-discounted discount-${discountInfo.percent}`}
+                  className={`price-discounted discount-${wholesalePercent}`}
                 >
                   ${finalPrice.toLocaleString("es-AR")}
                 </span>
                 <span className="discount-badge">
-                  {discountInfo.percent}% DESCUENTO APLICADO
+                  {wholesalePercent}% DESCUENTO APLICADO
                 </span>
               </>
             ) : (
@@ -162,7 +164,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
             <p className="product-code">Código: {product.code}</p>
           )}
 
-          <WholesaleNudge totalQuantity={quantity} />
+          <WholesaleNudge totalQuantity={treatedQuantity} />
 
           {sizes.length > 0 && (
             <div className="product-size">
