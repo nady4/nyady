@@ -133,11 +133,10 @@ export default function CartPage() {
     };
   }, [status, userId]);
 
-  const handleIncreaseQuantity = (
-    cartId: string,
-    productId: string,
-    currentQuantity: number
-  ) => {
+  // Quantity is keyed on cartId (the specific size/color/taco row), never on
+  // the product alone: the same product can sit in the cart as several
+  // variants and a product-keyed update would bump whichever row comes first.
+  const handleIncreaseQuantity = (cartId: string, currentQuantity: number) => {
     if (!userId) return;
     const newQuantity = currentQuantity + 1;
 
@@ -152,21 +151,17 @@ export default function CartPage() {
     // re-validation. The server re-validates at checkout regardless.
     if (appliedCoupon) handleRemoveCoupon();
 
-    updateCartQuantity(userId, productId, newQuantity);
+    updateCartQuantity(cartId, newQuantity);
   };
 
-  const handleDecreaseQuantity = (
-    cartId: string,
-    productId: string,
-    currentQuantity: number
-  ) => {
+  const handleDecreaseQuantity = (cartId: string, currentQuantity: number) => {
     if (!userId) return;
     const newQuantity = currentQuantity - 1;
 
     if (newQuantity <= 0) {
       setCart((prev) => prev.filter((item) => item.cartId !== cartId));
       if (appliedCoupon) handleRemoveCoupon();
-      updateCartQuantity(userId, productId, newQuantity);
+      updateCartQuantity(cartId, newQuantity);
       return;
     }
 
@@ -178,7 +173,7 @@ export default function CartPage() {
 
     if (appliedCoupon) handleRemoveCoupon();
 
-    updateCartQuantity(userId, productId, newQuantity);
+    updateCartQuantity(cartId, newQuantity);
   };
 
   const handleRemoveItem = async (cartId: string) => {
@@ -280,7 +275,7 @@ export default function CartPage() {
           <div className="quantity">
             <button
               onClick={() =>
-                handleDecreaseQuantity(item.cartId, item.id, item.quantity)
+                handleDecreaseQuantity(item.cartId, item.quantity)
               }
             >
               -
@@ -288,7 +283,7 @@ export default function CartPage() {
             <span>{item.quantity}</span>
             <button
               onClick={() =>
-                handleIncreaseQuantity(item.cartId, item.id, item.quantity)
+                handleIncreaseQuantity(item.cartId, item.quantity)
               }
             >
               +

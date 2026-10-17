@@ -129,60 +129,19 @@ export async function removeFromCartById(cartId: string) {
   }
 }
 
-export async function updateCartQuantity(
-  userId: string | undefined,
-  productId: string,
-  quantity: number
-) {
-  if (!userId || userId === "undefined") {
-    return;
-  }
-  if (!productId) throw new Error("Missing productId");
+// Updates a single cart row identified by its id. Must key on cartId (not
+// userId+productId): the same product can appear several times with different
+// size/color/taco, and a findFirst by product would bump a sibling variant.
+export async function updateCartQuantity(cartId: string, quantity: number) {
+  if (!cartId) throw new Error("Missing cartId");
 
-  // Same stale-session guard as addToCartWithDetails / toggleCartProduct: the
-  // create branch below would otherwise throw Cart_userId_fkey.
-  try {
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    if (!userExists) {
-      console.error("[updateCartQuantity] User not found:", userId);
-      return;
-    }
-  } catch (error) {
-    console.error("[updateCartQuantity] Error checking user:", error);
-    return;
-  }
-
-  const existingCart = await prisma.cart.findFirst({
-    where: { userId, productId },
-  });
-
-  if (!existingCart) {
-    if (quantity < 1) {
-      revalidatePath("/");
-      return;
-    }
-
-    await prisma.cart.create({
-      data: {
-        userId,
-        productId,
-        quantity,
-      },
-    });
-
-    revalidatePath("/");
-    return;
-  }
-
+  // deleteMany/updateMany are no-ops when the row is already gone (e.g. two
+  // rapid "-" clicks), so they don't throw P2025.
   if (quantity < 1) {
-    await prisma.cart.delete({ where: { id: existingCart.id } });
+    await prisma.cart.deleteMany({ where: { id: cartId } });
   } else {
-    await prisma.cart.update({
-      where: { id: existingCart.id },
+    await prisma.cart.updateMany({
+      where: { id: cartId },
       data: { quantity },
     });
   }
