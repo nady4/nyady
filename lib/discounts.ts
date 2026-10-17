@@ -11,6 +11,21 @@ export interface CouponLike {
   value: number;
 }
 
+export interface WholesaleTier {
+  units: number;
+  percent: number;
+  label: string;
+}
+
+/**
+ * Volume discount tiers, ordered ascending. Single source for both the math
+ * below and the promo copy shown on the product page and cart.
+ */
+export const WHOLESALE_TIERS: WholesaleTier[] = [
+  { units: 4, percent: 10, label: "REVENDEDORA" },
+  { units: 20, percent: 20, label: "MAYORISTA" }
+];
+
 /**
  * Wholesale (volume) discount tier based on total item quantity in the cart.
  * Mirrors the tiers shown on the cart page: ≥20 units → 20%, ≥4 → 10%.
@@ -19,6 +34,21 @@ export function getWholesaleDiscountPercent(totalQuantity: number): number {
   if (totalQuantity >= 20) return 20;
   if (totalQuantity >= 4) return 10;
   return 0;
+}
+
+/**
+ * Next volume tier above the current quantity. Returns the tier plus how many
+ * more units are needed, or null when the top tier is already reached.
+ */
+export function getNextWholesaleTier(
+  totalQuantity: number
+): (WholesaleTier & { unitsNeeded: number }) | null {
+  for (const tier of WHOLESALE_TIERS) {
+    if (totalQuantity < tier.units) {
+      return { ...tier, unitsNeeded: tier.units - totalQuantity };
+    }
+  }
+  return null;
 }
 
 export interface DiscountBreakdown {

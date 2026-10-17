@@ -210,6 +210,62 @@
     }
   }
 
+  .wholesale-nudge {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(74, 138, 66, 0.08);
+    border: 1px solid rgba(74, 138, 66, 0.25);
+    border-radius: 0.5rem;
+
+    &.applied {
+      background-color: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .nudge-text {
+      margin: 0;
+      font-size: 0.9rem;
+      color: $text-color;
+
+      strong {
+        font-weight: 600;
+      }
+
+      .nudge-check {
+        color: #23c45e;
+        font-weight: 700;
+      }
+    }
+
+    .nudge-progress {
+      width: 100%;
+      height: 6px;
+      margin-top: 0.5rem;
+      background-color: rgba(0, 0, 0, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+
+      .nudge-progress-fill {
+        height: 100%;
+        background-color: #4a8a42;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+      }
+    }
+
+    .nudge-hint {
+      margin: 0.5rem 0 0;
+      font-size: 0.8rem;
+      opacity: 0.75;
+
+      .nudge-link {
+        color: inherit;
+        text-decoration: underline;
+      }
+    }
+  }
+
   .cart-total {
     padding-top: 1rem;
     width: 100%;
