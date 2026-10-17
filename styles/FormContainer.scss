@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "./variables" as *;
 
 .form-page {
@@ -101,7 +102,7 @@
           color: white;
 
           &:hover:not(:disabled) {
-            background-color: darken($error-color, 10%);
+            background-color: color.adjust($error-color, $lightness: -10%);
           }
         }
       }

@@ -41,6 +41,15 @@
       },
     },
   },
+  "trustedDependencies": [
+    "bcrypt",
+    "esbuild",
+    "@prisma/engines",
+    "@prisma/client",
+    "unrs-resolver",
+    "prisma",
+    "@parcel/watcher",
+  ],
   "overrides": {
     "deepmerge-ts": "^8.0.2",
   },

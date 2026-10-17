@@ -53,5 +53,14 @@
     "prisma": "^6.19.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
-  }
+  },
+  "trustedDependencies": [
+    "@parcel/watcher",
+    "@prisma/client",
+    "@prisma/engines",
+    "bcrypt",
+    "esbuild",
+    "prisma",
+    "unrs-resolver"
+  ]
 }
