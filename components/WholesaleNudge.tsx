@@ -7,20 +7,29 @@ import "@/styles/WholesaleNudge.scss";
 
 interface WholesaleNudgeProps {
   totalQuantity: number;
+  // The cart and product page hide the "10% REVENDEDORA aplicado" line (the
+  // discount is already visible in their prices); catalog keeps it.
+  showRevendedoraApplied?: boolean;
 }
 
 const unitsText = (n: number) => `${n} ${n === 1 ? "unidad" : "unidades"}`;
 
-export default function WholesaleNudge({ totalQuantity }: WholesaleNudgeProps) {
+export default function WholesaleNudge({
+  totalQuantity,
+  showRevendedoraApplied = false
+}: WholesaleNudgeProps) {
   const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
   const nextTier = getNextWholesaleTier(totalQuantity);
   const appliedTierLabel =
     wholesalePercent === 20 ? "MAYORISTA" : "REVENDEDORA";
+  const showAppliedLine =
+    wholesalePercent === 20 ||
+    (wholesalePercent === 10 && showRevendedoraApplied);
 
   return (
     <div className={`wholesale-nudge${wholesalePercent > 0 ? " applied" : ""}`}>
       <p className="nudge-text">
-        {wholesalePercent > 0 ? (
+        {showAppliedLine ? (
           <>
             <span className="nudge-check">✓</span>{" "}
             <strong>

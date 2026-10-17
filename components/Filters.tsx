@@ -169,7 +169,10 @@ export default function Filters() {
       <SizeFilter />
       <ColorFilter />
       <PriceFilter />
-      <WholesaleNudge totalQuantity={cartTotalQuantity} />
+      <WholesaleNudge
+        totalQuantity={cartTotalQuantity}
+        showRevendedoraApplied
+      />
     </div>
   );
 }
