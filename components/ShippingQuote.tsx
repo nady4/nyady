@@ -6,6 +6,7 @@ import {
   ShippingQuoteItem,
   AddressType
 } from "@/actions/shipping";
+import { ALLOWED_CARRIERS, getDeliveryWindow } from "@/lib/shipping";
 import Link from "next/link";
 import "@/styles/ShippingQuote.scss";
 
@@ -39,8 +40,6 @@ interface ServiceGroup {
   options: ServiceOption[];
 }
 
-const ALLOWED_CARRIERS = [233, 208, 323];
-
 export default function ShippingQuote({
   address,
   items,
@@ -65,29 +64,8 @@ export default function ShippingQuote({
   };
 
 const getDeliveryDays = useCallback(
-    (quote: ShippingQuoteResult): { min: string; max: string } => {
-      const estimated = quote.delivery_time.estimated_delivery;
-      const deliveryDate = new Date(estimated);
-      deliveryDate.setHours(0, 0, 0, 0);
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const diffTime = deliveryDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      const minDate = new Date(today);
-      minDate.setDate(minDate.getDate() + diffDays + 3);
-      const maxDate = new Date(today);
-      maxDate.setDate(maxDate.getDate() + diffDays + 7);
-      
-      const formatDate = (d: Date) => {
-        const day = d.getDate().toString().padStart(2, "0");
-        const month = (d.getMonth() + 1).toString().padStart(2, "0");
-        return `${day}/${month}`;
-      };
-      return { min: formatDate(minDate), max: formatDate(maxDate) };
-    },
+    (quote: ShippingQuoteResult): { min: string; max: string } =>
+      getDeliveryWindow(quote.delivery_time.estimated_delivery),
     []
   );
 

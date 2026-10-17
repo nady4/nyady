@@ -7,6 +7,7 @@ import { useToggleWishlist, useToggleCartProduct } from "@/hooks/useToggleData";
 import RelatedProducts from "@/components/RelatedProducts";
 import ColorSelector from "@/components/ColorSelector";
 import SizeSelector from "@/components/SizeSelector";
+import ProductShippingEstimate from "@/components/ProductShippingEstimate";
 import { cormorantGaramond } from "@/app/fonts";
 import { ProductType } from "@/types";
 import "@/styles/ProductPage.scss";
@@ -232,6 +233,11 @@ export default function Product({ product, relatedProducts }: ProductProps) {
               <span className="cart-button-text">Agregar al carrito</span>
             </button>
           </div>
+
+          <ProductShippingEstimate
+            productName={product.name}
+            price={product.price ?? 0}
+          />
         </div>
       </div>
       <RelatedProducts products={relatedProducts} />
