@@ -20,8 +20,6 @@ export default function WholesaleNudge({
 }: WholesaleNudgeProps) {
   const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
   const nextTier = getNextWholesaleTier(totalQuantity);
-  const appliedTierLabel =
-    wholesalePercent === 20 ? "MAYORISTA" : "REVENDEDORA";
   const showAppliedLine =
     wholesalePercent === 20 ||
     (wholesalePercent === 10 && showRevendedoraApplied);
@@ -33,13 +31,17 @@ export default function WholesaleNudge({
           <>
             <span className="nudge-check">✓</span>{" "}
             <strong>
-              Descuento del {wholesalePercent}% por {appliedTierLabel} aplicado<br></br>
+              Descuento del {wholesalePercent}% aplicado<br></br>
             </strong>
-            {nextTier
-              ? ` Te falta${nextTier.unitsNeeded === 1 ? "" : "n"} ${unitsText(
-                  nextTier.unitsNeeded
-                )} para el ${nextTier.percent}% (${nextTier.label})`
-              : " Alcanzaste el máximo descuento por cantidad"}
+            {nextTier ? (
+              <>
+                Te falta{nextTier.unitsNeeded === 1 ? "" : "n"}{" "}
+                <strong>{unitsText(nextTier.unitsNeeded)}</strong> para el{" "}
+                <strong>{nextTier.percent}%</strong> ({nextTier.label})
+              </>
+            ) : (
+              " Alcanzaste el máximo descuento por cantidad"
+            )}
           </>
         ) : (
           nextTier && (
