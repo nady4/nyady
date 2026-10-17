@@ -4,10 +4,35 @@ import Image from "next/image";
 import Link from "next/link";
 import { useToggleWishlist } from "@/hooks/useToggleData";
 import { cormorantGaramond, inter } from "@/app/fonts";
+import { isBlackColor } from "@/lib/colors";
 import { ProductType } from "@/types";
 
 interface ProductCardProps extends ProductType {
   cartIds?: string[];
+}
+
+// The card shows a photo of a non-black color when the product has one, so
+// colorful products stand out in the catalog. Keeps `photo` when it already
+// belongs to a non-black color.
+function getCardPhoto(
+  photo: string,
+  colors: string[],
+  photos: ProductType["photos"]
+): string {
+  const nonBlackColors = colors.filter((color) => !isBlackColor(color));
+  if (nonBlackColors.length === 0) return photo;
+  if (!photos || typeof photos !== "object" || Array.isArray(photos)) {
+    return photo;
+  }
+  const photoMap = photos as Record<string, string[]>;
+  if (nonBlackColors.some((color) => photoMap[color]?.includes(photo))) {
+    return photo;
+  }
+  for (const color of nonBlackColors) {
+    const list = photoMap[color];
+    if (Array.isArray(list) && list.length > 0) return list[0];
+  }
+  return photo;
 }
 
 const ProductCard = memo(function ProductCard({
@@ -15,15 +40,18 @@ const ProductCard = memo(function ProductCard({
   name,
   price,
   photo,
+  colors = [],
+  photos,
   sizes = []
 }: ProductCardProps) {
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
+  const displayPhoto = getCardPhoto(photo, colors, photos);
 
   return (
     <Link href={`/products/${id}`} passHref>
       <div className={"product-card"}>
         <Image
-          src={photo}
+          src={displayPhoto}
           alt={name}
           width={200}
           height={200}

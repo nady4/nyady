@@ -25,6 +25,14 @@ export const COLOR_HEX: Record<string, string> = {
 };
 
 /**
+ * Whether a color name refers to black ("Negro", "Negro mate", ...).
+ * Case-insensitive.
+ */
+export function isBlackColor(color: string): boolean {
+  return color.trim().toLowerCase().startsWith("negro");
+}
+
+/**
  * Resolve a color name to a hex string. If the input is already a hex value
  * it's returned as-is; unknown names fall back to a neutral gray so the swatch
  * still renders (rather than transparent) and the bug is visually obvious.

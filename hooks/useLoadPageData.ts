@@ -9,8 +9,15 @@ import { getProducts } from "@/actions/products";
 import { getCartProducts } from "@/actions/cart";
 import { getWishListProducts, getWishlistIds } from "@/actions/wishlist";
 import { setCategories } from "@/store/slices/categorySlice";
+import { isBlackColor } from "@/lib/colors";
 
 type PageType = "catalog" | "cart" | "wishlist";
+
+// Products that come in a color other than black are shown first in the
+// catalog — they make a better first impression. Stable sort, so DB order is
+// preserved within each group.
+const hasColorOtherThanBlack = (product: { colors?: string[] }) =>
+  (product.colors ?? []).some((color) => !isBlackColor(color));
 
 export const useLoadPageData = (pageType: PageType) => {
   const { data: session, status } = useSession();
@@ -25,9 +32,16 @@ export const useLoadPageData = (pageType: PageType) => {
       try {
         if (pageType === "catalog") {
           const products = await getProducts();
-          dispatch(setProducts(products));
+          const sortedProducts = [...products].sort(
+            (a, b) =>
+              Number(hasColorOtherThanBlack(b)) -
+              Number(hasColorOtherThanBlack(a))
+          );
+          dispatch(setProducts(sortedProducts));
 
-          const categories = [...new Set(products.map((p) => p.category))];
+          const categories = [
+            ...new Set(sortedProducts.map((p) => p.category)),
+          ];
           dispatch(setCategories(categories));
 
           if (status === "authenticated" && userId) {
