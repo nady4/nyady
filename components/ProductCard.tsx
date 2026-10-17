@@ -3,7 +3,7 @@ import React, { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useToggleWishlist } from "@/hooks/useToggleData";
-import { fraunces, inter } from "@/app/fonts";
+import { cormorantGaramond, inter } from "@/app/fonts";
 import { isBlackColor } from "@/lib/colors";
 import { getWholesaleDiscountPercent } from "@/lib/discounts";
 import { ProductType } from "@/types";
@@ -72,7 +72,7 @@ const ProductCard = memo(function ProductCard({
             className={`product-heart ${isWishlisted ? "active" : ""}`}
           />
         </button>
-        <h2 className={`${fraunces.className} product-title`}>{name}</h2>
+        <h2 className={`${cormorantGaramond.className} product-title`}>{name}</h2>
         <p className={`${inter.className} product-price`}>
           {wholesalePercent > 0 ? (
             <>

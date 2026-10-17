@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { fraunces, inter } from "@/app/fonts";
+import { inter, cormorantGaramond } from "@/app/fonts";
 import { ProductType } from "@/types";
 
 const RelatedProducts = ({ products }: { products: ProductType[] }) => (
@@ -21,7 +21,7 @@ const RelatedProducts = ({ products }: { products: ProductType[] }) => (
             width={100}
             className="related-product-image"
           />
-          <p className={fraunces.className + " name"}>{product.name}</p>
+          <p className={cormorantGaramond.className + " name"}>{product.name}</p>
           <p className={inter.className + " price"}>
             ${product.price.toLocaleString("es-AR")}
           </p>
