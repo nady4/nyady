@@ -109,8 +109,8 @@
       gap: 1.5rem;
 
       .product-name {
-        font-family: "Cormorant Garamond", serif;
-        font-size: 2.5rem;
+        font-family: $title-font;
+        font-size: 2.6rem;
         font-weight: 600;
         letter-spacing: 0.02em;
         color: #1a1a1a;
@@ -503,8 +503,8 @@
         }
 
         .name {
-          font-family: "Cormorant Garamond", serif;
-          font-size: 1.25rem;
+          font-family: $title-font;
+          font-size: 1.3rem;
           font-weight: 600;
           letter-spacing: 0.02em;
           margin-top: 1rem;
@@ -540,7 +540,7 @@
 
       .product-info {
         .product-name {
-          font-size: 1.75rem;
+          font-size: 1.85rem;
         }
 
         .product-price {
