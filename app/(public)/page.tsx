@@ -99,8 +99,8 @@ export default function LandingPage() {
     <main className={styles.landing}>
       <section className={styles.hero}>
         <div className={styles.content}>
-          <h1 className={styles.title}>Elevá tu comodidad, definí tu estilo.</h1>
-          <p className={styles.subtitle}>Encontrá el equilibrio perfecto entre comodidad, diseño y calidad.</p>
+          <h1 className={styles.title}>Sentite cómoda. Sentite vos.</h1>
+          <p className={styles.subtitle}>Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo.</p>
           <div className={styles.ctaContainer}>
               <Link href="/catalog" className={styles.cta}>Abrir Catálogo</Link>
             {session ? (
