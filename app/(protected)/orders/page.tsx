@@ -10,7 +10,7 @@ import "@/styles/Orders.scss";
 
 export const metadata: Metadata = {
   title: "Mis pedidos - NYADY",
-  description: "Ver el historial de tus pedidos de pantuflas y pantubotas artesanales.",
+  description: "Ver el historial de tus pedidos de sandalias artesanales.",
 };
 
 async function retryOrder(orderId: string) {

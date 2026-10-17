@@ -4,7 +4,8 @@ import FormContainer from "@/components/FormContainer";
 
 export const metadata: Metadata = {
   title: "Nueva dirección - NYADY",
-  description: "Agregá una nueva dirección de envío para recibir tus pantuflas y pantubotas.",
+  description:
+    "Agregá una nueva dirección de envío para recibir tus sandalias artesanales.",
 };
 
 export default async function NewAddressPage() {

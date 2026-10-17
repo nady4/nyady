@@ -12,20 +12,19 @@ export const metadata: Metadata = {
     template: "%s | NYADY",
   },
   description:
-    "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
+    "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
   keywords: [
-    "pantuflas",
-    "pantubotas",
-    "zapatillas",
-    "pantuflas artesanales",
-    "pantuflas cómodas",
-    "pantubotas de polar",
+    "sandalias",
+    "sandalias artesanales",
+    "sandalias de mujer",
+    "sandalias cómodas",
+    "sandalias de plataforma",
+    "calzado artesanal",
+    "calzado hecho a mano",
     "NYADY",
     "zapatillas de casa",
     "calzado indoor",
-    "pantuflas mujer",
-    "pantuflas hombre",
-    "pantuflas niño",
+    "comprar sandalias argentina",
   ],
   icons: {
     icon: "/favicon.png",
@@ -34,19 +33,29 @@ export const metadata: Metadata = {
   openGraph: {
     title: "NYADY | Sandalias Artesanales",
     description:
-      "Encontrá el equilibrio perfecto entre comodidad, diseño y calidad. Sandalias artesanales hechas a mano.",
+      "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano.",
     url: "https://nyady.com",
     siteName: "NYADY",
     images: [
       {
-        url: "https://nyady.com/assets/products/pantuflon.png",
+        url: "https://nyady.com/assets/products/Abril/1_negro.png",
         width: 1200,
-        height: 630,
+        height: 1200,
         alt: "NYADY - Sandalias Artesanales",
       },
     ],
     locale: "es_AR",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NYADY | Sandalias Artesanales",
+    description:
+      "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano.",
+    images: ["https://nyady.com/assets/products/Abril/1_negro.png"],
+  },
+  alternates: {
+    canonical: "https://nyady.com",
   },
   metadataBase: new URL("https://nyady.com"),
   robots: {

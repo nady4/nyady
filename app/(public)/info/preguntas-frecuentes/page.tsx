@@ -17,9 +17,8 @@ export default function PreguntasFrecuentesPage() {
 
       <h3>¿Qué productos venden?</h3>
       <p>
-        Vendemos calzados artesanales (pantuflas, pantubotas, pantuflones,
-        chinelas y hornitos) diseñados y elaborados a mano especialmente para
-        vos.
+        Vendemos sandalias artesanales diseñadas y elaboradas a mano
+        especialmente para vos, con foco en comodidad, diseño y calidad.
       </p>
 
       <h3>¿Los productos son personalizados?</h3>

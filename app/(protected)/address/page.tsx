@@ -4,7 +4,8 @@ import FormContainer from "@/components/FormContainer";
 
 export const metadata: Metadata = {
   title: "Dirección de envío - NYADY",
-  description: "Gestioná tu dirección de envío para recibir tus pantuflas y pantubotas artesanales en casa.",
+  description:
+    "Gestioná tu dirección de envío para recibir tus sandalias artesanales en casa.",
 };
 
 export default async function AddressPage() {
