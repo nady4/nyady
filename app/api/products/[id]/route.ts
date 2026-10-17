@@ -8,7 +8,9 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const product = await prisma.product.findUnique({ where: { id } });
+    const product = await prisma.product.findFirst({
+      where: { id, available: true },
+    });
 
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });

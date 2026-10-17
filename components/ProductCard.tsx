@@ -3,8 +3,7 @@ import React, { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useToggleWishlist } from "@/hooks/useToggleData";
-import { fraunces, inter } from "@/app/fonts";
-import { getColorHex } from "@/lib/colors";
+import { cormorantGaramond, inter } from "@/app/fonts";
 import { ProductType } from "@/types";
 
 interface ProductCardProps extends ProductType {
@@ -16,8 +15,7 @@ const ProductCard = memo(function ProductCard({
   name,
   price,
   photo,
-  sizes = [],
-  colors = []
+  sizes = []
 }: ProductCardProps) {
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
 
@@ -40,22 +38,10 @@ const ProductCard = memo(function ProductCard({
             className={`product-heart ${isWishlisted ? "active" : ""}`}
           />
         </button>
-        <h2 className={`${inter.className} product-title`}>{name}</h2>
-        <p className={`${fraunces.className} product-price`}>
+        <h2 className={`${cormorantGaramond.className} product-title`}>{name}</h2>
+        <p className={`${inter.className} product-price`}>
           ${(price ?? 0).toLocaleString("es-AR")}
         </p>
-        {colors.length > 0 && (
-          <div className="product-colors">
-            {colors.map((color, idx) => (
-              <span
-                key={idx}
-                className="color-dot"
-                style={{ backgroundColor: getColorHex(color) }}
-                title={color}
-              />
-            ))}
-          </div>
-        )}
         {sizes.length > 0 && (
           <div className="product-sizes">
             {sizes.map((size, idx) => (

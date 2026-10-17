@@ -57,6 +57,7 @@ export async function createProductAction(
       category,
       stock: 0, // hecho a pedido, sin stock
       code: String(formData.get("code") || "").trim() || null,
+      purchaseName: String(formData.get("purchaseName") || "").trim() || null,
       description:
         String(formData.get("description") || "").trim() || null,
       sizes: parseList(String(formData.get("sizes") || "")),
@@ -98,6 +99,7 @@ export async function updateProductAction(
       price,
       category,
       code: String(formData.get("code") || "").trim() || null,
+      purchaseName: String(formData.get("purchaseName") || "").trim() || null,
       description:
         String(formData.get("description") || "").trim() || null,
       sizes: parseList(String(formData.get("sizes") || "")),

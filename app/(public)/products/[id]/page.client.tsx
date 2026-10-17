@@ -7,6 +7,7 @@ import { useToggleWishlist, useToggleCartProduct } from "@/hooks/useToggleData";
 import RelatedProducts from "@/components/RelatedProducts";
 import ColorSelector from "@/components/ColorSelector";
 import SizeSelector from "@/components/SizeSelector";
+import { cormorantGaramond } from "@/app/fonts";
 import { ProductType } from "@/types";
 import "@/styles/ProductPage.scss";
 
@@ -137,7 +138,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
           )}
         </div>
         <div className="product-info">
-          <h1 className="product-name">{product.name}</h1>
+          <h1 className={`${cormorantGaramond.className} product-name`}>{product.name}</h1>
           <p className="product-price">
             {discountInfo.percent > 0 ? (
               <>

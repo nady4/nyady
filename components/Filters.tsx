@@ -71,12 +71,13 @@ const ColorFilter = () => {
           key={color}
           className={`color-button ${activeColors[color] ? "active" : ""}`}
           onClick={() => handleClick(color)}
+          title={color}
+          aria-label={`Color ${color}`}
         >
           <span
             className="color-circle"
             style={{ backgroundColor: getColorHex(color) }}
           />
-          <span className="color-label">{color}</span>
         </button>
       ))}
     </div>

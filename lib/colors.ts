@@ -17,7 +17,11 @@ export const COLOR_HEX: Record<string, string> = {
   Caspeado: "#c4a35a",
   Camel: "#c19a6b",
   Violeta: "#8b00ff",
-  Nevado: "#e8e8e8"
+  Nevado: "#e8e8e8",
+  Nude: "#d4a373",
+  Blanco: "#f5f5f5",
+  "Animal Print": "#8b6f3a",
+  Plata: "#c0c0c0"
 };
 
 /**

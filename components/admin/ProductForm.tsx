@@ -100,6 +100,16 @@ export default function ProductForm({
         </label>
 
         <label className="admin-field admin-field-wide">
+          <span>Nombre interno (uso admin, no visible al cliente)</span>
+          <input
+            type="text"
+            name="purchaseName"
+            defaultValue={product?.purchaseName || ""}
+            placeholder="Nombre de compra / interno"
+          />
+        </label>
+
+        <label className="admin-field admin-field-wide">
           <span>Descripción</span>
           <textarea
             name="description"

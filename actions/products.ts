@@ -8,7 +8,9 @@ export async function getProduct(id: string): Promise<ProductType | null> {
       console.error("Error fetching product: Missing id");
       return null;
     }
-    const product = await prisma.product.findUnique({ where: { id } });
+    const product = await prisma.product.findFirst({
+      where: { id, available: true },
+    });
     return product;
   } catch (error) {
     console.error("Error fetching product:", error);
@@ -24,6 +26,7 @@ export async function searchProducts(query: string): Promise<ProductType[]> {
 
     const products = await prisma.product.findMany({
       where: {
+        available: true,
         OR: [
           { name: { contains: query, mode: "insensitive" } },
           { description: { contains: query, mode: "insensitive" } },
@@ -41,19 +44,11 @@ export async function searchProducts(query: string): Promise<ProductType[]> {
 
 export async function getProducts(): Promise<ProductType[]> {
   try {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      where: { available: true },
+    });
 
-    const customOrder = [
-      "pantubota-valkyria",
-      "pantuflón",
-      "pantubota-alpina",
-      "chinela-plush",
-      "pantubota-studs",
-      "pantufla-aurora",
-      "pantufla-fogata",
-      "pantufla-lena",
-      "pantubota-freya"
-    ];
+    const customOrder: string[] = [];
 
     return products.sort((a, b) => {
       const indexA = customOrder.indexOf(a.id);
@@ -64,6 +59,15 @@ export async function getProducts(): Promise<ProductType[]> {
     });
   } catch (error) {
     console.error("Error fetching products:", error);
+    return [];
+  }
+}
+
+export async function getAllProducts(): Promise<ProductType[]> {
+  try {
+    return await prisma.product.findMany();
+  } catch (error) {
+    console.error("Error fetching all products:", error);
     return [];
   }
 }

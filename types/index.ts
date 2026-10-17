@@ -8,6 +8,7 @@ export type ProductType = {
   available?: boolean;
   description?: string | null;
   code?: string | null;
+  purchaseName?: string | null;
   sizes?: string[];
   colors?: string[];
   photos?: Record<string, string[]> | null | unknown;

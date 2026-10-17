@@ -9,7 +9,9 @@
     "lint": "bunx eslint",
     "db:migrate": "bunx prisma migrate dev",
     "db:seed": "bunx prisma db seed",
-    "db:generate": "bunx prisma generate"
+    "db:generate": "bunx prisma generate",
+    "db:import": "bunx tsx prisma/import-products.ts",
+    "photos:normalize": "bunx tsx scripts/normalize-photos.ts"
   },
   "prisma": {
     "seed": "bunx tsx prisma/seed.ts"

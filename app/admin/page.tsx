@@ -1,4 +1,4 @@
-import { getProducts } from "@/actions/products";
+import { getAllProducts } from "@/actions/products";
 import AdminProducts from "@/components/admin/AdminProducts";
 
 export const metadata = {
@@ -6,7 +6,7 @@ export const metadata = {
 };
 
 export default async function AdminPage() {
-  const products = await getProducts();
+  const products = await getAllProducts();
 
   return (
     <main className="admin-page">
