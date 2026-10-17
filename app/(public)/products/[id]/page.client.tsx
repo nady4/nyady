@@ -199,11 +199,6 @@ export default function Product({ product, relatedProducts }: ProductProps) {
             </div>
           )}
 
-          <p className="product-description">
-            {product.description ||
-              "A delightful selection of anime-inspired merchandise, carefully curated for collectors and fans alike."}
-          </p>
-
           <div className="product-actions">
             <button
               className={`wishlist-button ${isWishlisted ? "active" : ""}`}

@@ -12,15 +12,13 @@ export const metadata: Metadata = {
 
 export default function Nady4Page() {
   return (
-    <InfoPage title="Nadya Jerochim" description="Full Stack Developer">
+    <InfoPage title="Nadya Jerochim" description="Full Stack Engineer">
       <div className={`${styles.intro} ${styles.highlight}`}>
         <p>
           Soy una desarrolladora web autodidacta buscando hacer algo real y artesanal en tiempos de IA.
         </p>
         <p>
-          Me propuse diseñar y vibecodear este e-commerce con Next.js,
-          PostgreSQL y Prisma, para que los
-          calzados artesanales que fabrico con mi familia se vendan online.
+          Me propuse diseñar y desarrollar este e-commerce para llevar mis conocimientos al mundo real.
         </p>
         <p>
           Integré la API de Mercado Pago para procesar todos los medios de pago
@@ -142,8 +140,41 @@ export default function Nady4Page() {
 
         <div className={styles.job}>
           <div className={styles.jobHeader}>
+            <h3>Tech Lead</h3>
+            <span className={styles.company}><a href="https://transistemas.org">Transistemas</a></span>
+            <span className={styles.period}>(Jul 2025 - Actual)</span>
+          </div>
+          <ul>
+            <li>
+              Gestión de proyectos y coordinación de equipos, implementando
+              marcos ágiles y seguimiento de tareas a través de GitHub y Notion.
+            </li>
+            <li>
+              Adquisición de clientes y alianzas con ONGs para proyectos de
+              desarrollo que incluyen Generación de leads, negociación, análisis
+              funcional, capacitación de stakeholders y soporte a largo plazo.
+            </li>
+            <li>
+              Adquisición de talento para el equipo de desarrollo, incluyendo
+              entrevistas técnicas, selección de candidatos y onboarding
+              estructurado.
+            </li>
+            <li>
+              Coordinación entre equipos de Desarrollo, Diseño, Educación y
+              Comunicaciones para evaluar necesidades organizacionales y
+              proponer soluciones de software.
+            </li>
+            <li>
+              Liderazgo de iniciativas de ciberseguridad y modernización de la
+              infraestructura digital de la organización.
+            </li>
+          </ul>
+        </div>
+
+        <div className={styles.job}>
+          <div className={styles.jobHeader}>
             <h3>Desarrolladora Full Stack</h3>
-            <span className={styles.company}>Transistemas</span>
+            <span className={styles.company}><a href="https://transistemas.org">Transistemas</a></span>
             <span className={styles.period}>(Dic 2024 - Actual)</span>
           </div>
           <ul>
@@ -183,38 +214,6 @@ export default function Nady4Page() {
           </ul>
         </div>
 
-        <div className={styles.job}>
-          <div className={styles.jobHeader}>
-            <h3>Coordinadora de Desarrollo</h3>
-            <span className={styles.company}>Transistemas</span>
-            <span className={styles.period}>(Jul 2025 - Actual)</span>
-          </div>
-          <ul>
-            <li>
-              Gestión de proyectos y coordinación de equipos, implementando
-              marcos ágiles y seguimiento de tareas a través de GitHub y Notion.
-            </li>
-            <li>
-              Adquisición de clientes y alianzas con ONGs para proyectos de
-              desarrollo que incluyen Generación de leads, negociación, análisis
-              funcional, capacitación de stakeholders y soporte a largo plazo.
-            </li>
-            <li>
-              Adquisición de talento para el equipo de desarrollo, incluyendo
-              entrevistas técnicas, selección de candidatos y onboarding
-              estructurado.
-            </li>
-            <li>
-              Coordinación entre equipos de Desarrollo, Diseño, Educación y
-              Comunicaciones para evaluar necesidades organizacionales y
-              proponer soluciones de software.
-            </li>
-            <li>
-              Liderazgo de iniciativas de ciberseguridad y modernización de la
-              infraestructura digital de la organización.
-            </li>
-          </ul>
-        </div>
       </section>
 
       <section className={styles.section}>
