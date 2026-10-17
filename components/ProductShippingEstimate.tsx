@@ -123,8 +123,7 @@ export default function ProductShippingEstimate({
 
   if (phase === "no-address") {
     return (
-      <div className="product-shipping-estimate no-address">
-        <p>Agregá una dirección de envío</p>
+      <div className="product-shipping-estimate">
         <Link href="/address" className="estimate-action">
           Agregar dirección de envío
         </Link>
