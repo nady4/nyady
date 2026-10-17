@@ -6,6 +6,7 @@
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 8px;
+  background-color: $bg-secondary;
   cursor: grab;
   user-select: none;
 
@@ -30,6 +31,7 @@
   min-width: 100%;
   position: relative;
   aspect-ratio: 1;
+  background-color: $bg-secondary;
 
   a {
     display: block;
@@ -40,4 +42,18 @@
 
 .carousel-image {
   object-fit: cover;
+  mix-blend-mode: multiply;
+  filter: brightness(1.05) saturate(0.95);
+  mask-image: radial-gradient(
+    ellipse at center,
+    black 45%,
+    rgba(0, 0, 0, 0.75) 75%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    black 45%,
+    rgba(0, 0, 0, 0.75) 75%,
+    transparent 100%
+  );
 }
