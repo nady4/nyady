@@ -154,23 +154,8 @@
         margin: 0;
       }
 
-      .wholesale-note {
-        font-family: $body-font;
-        font-size: 0.85rem;
-        color: $text-color;
-        background-color: rgba(74, 138, 66, 0.08);
-        border: 1px solid rgba(74, 138, 66, 0.25);
-        border-radius: 0.5rem;
-        padding: 0.5rem 0.75rem;
-        margin: 0;
-        line-height: 1.45;
+      .wholesale-nudge {
         max-width: 520px;
-
-        .wholesale-note-link {
-          color: #4a8a42;
-          text-decoration: underline;
-          white-space: nowrap;
-        }
       }
 
       .product-size {

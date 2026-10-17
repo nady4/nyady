@@ -8,10 +8,9 @@ import RelatedProducts from "@/components/RelatedProducts";
 import ColorSelector from "@/components/ColorSelector";
 import SizeSelector from "@/components/SizeSelector";
 import ProductShippingEstimate from "@/components/ProductShippingEstimate";
-import Link from "next/link";
+import WholesaleNudge from "@/components/WholesaleNudge";
 import { cormorantGaramond } from "@/app/fonts";
 import { ProductType } from "@/types";
-import { WHOLESALE_TIERS } from "@/lib/discounts";
 import "@/styles/ProductPage.scss";
 
 interface ProductProps {
@@ -71,14 +70,6 @@ export default function Product({ product, relatedProducts }: ProductProps) {
     if (!product.price) return 0;
     return product.price * (1 - discountInfo.percent / 100);
   }, [product.price, discountInfo.percent]);
-
-  const wholesaleNote = useMemo(
-    () =>
-      WHOLESALE_TIERS.map(
-        (tier) => `${tier.units}+ unidades: ${tier.percent}% off (${tier.label})`
-      ).join(" · "),
-    []
-  );
 
   const handleColorChange = useCallback((color: string) => {
     setSelectedColor(color);
@@ -171,12 +162,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
             <p className="product-code">Código: {product.code}</p>
           )}
 
-          <p className="wholesale-note">
-            Llevá {wholesaleNote} — combiná talles y colores.{" "}
-            <Link href="/info/promociones" className="wholesale-note-link">
-              Ver condiciones
-            </Link>
-          </p>
+          <WholesaleNudge totalQuantity={quantity} />
 
           {sizes.length > 0 && (
             <div className="product-size">

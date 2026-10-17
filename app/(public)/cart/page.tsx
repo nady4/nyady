@@ -10,12 +10,12 @@ import {
 import { getUserAddress } from "@/actions/address";
 import CheckoutButton from "@/components/CheckoutButton";
 import ShippingQuote from "@/components/ShippingQuote";
+import WholesaleNudge from "@/components/WholesaleNudge";
 import { AddressType, ShippingQuoteItem } from "@/actions/shipping";
 import { ProductType, ShippingQuoteResult } from "@/types";
 import {
   computeDiscounts,
   getWholesaleDiscountPercent,
-  getNextWholesaleTier,
   CouponLike
 } from "@/lib/discounts";
 import { getColorHex } from "@/lib/colors";
@@ -30,8 +30,6 @@ interface CartItem extends ProductType {
   selectedTacoOption?: string;
   cartId: string;
 }
-
-const unitsText = (n: number) => `${n} ${n === 1 ? "unidad" : "unidades"}`;
 
 export default function CartPage() {
   const { data: session, status } = useSession();
@@ -200,10 +198,6 @@ export default function CartPage() {
     applied: wholesalePercent > 0
   };
 
-  const nextTier = getNextWholesaleTier(totalQuantity);
-  const appliedTierLabel =
-    wholesalePercent === 20 ? "MAYORISTA" : "REVENDEDORA";
-
   const subtotalBeforeDiscount = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
@@ -332,53 +326,7 @@ export default function CartPage() {
         </div>
       ))}
 
-      <div
-        className={`wholesale-nudge${discountInfo.percent > 0 ? " applied" : ""}`}
-      >
-        <p className="nudge-text">
-          {discountInfo.percent > 0 ? (
-            <>
-              <span className="nudge-check">✓</span>{" "}
-              <strong>
-                {discountInfo.percent}% {appliedTierLabel} aplicado
-              </strong>
-              {nextTier
-                ? ` — te falta${nextTier.unitsNeeded === 1 ? "" : "n"} ${unitsText(
-                    nextTier.unitsNeeded
-                  )} para el ${nextTier.percent}% (${nextTier.label})`
-                : " — alcanzaste el máximo descuento por cantidad"}
-            </>
-          ) : (
-            nextTier && (
-              <>
-                Te falta{nextTier.unitsNeeded === 1 ? "" : "n"}{" "}
-                <strong>{unitsText(nextTier.unitsNeeded)}</strong> para el{" "}
-                <strong>{nextTier.percent}%</strong> de descuento (
-                {nextTier.label})
-              </>
-            )
-          )}
-        </p>
-        {nextTier && (
-          <div className="nudge-progress">
-            <div
-              className="nudge-progress-fill"
-              style={{
-                width: `${Math.min(
-                  100,
-                  (totalQuantity / nextTier.units) * 100
-                )}%`
-              }}
-            />
-          </div>
-        )}
-        <p className="nudge-hint">
-          Combiná modelos, talles y colores.{" "}
-          <Link href="/info/promociones" className="nudge-link">
-            Ver condiciones
-          </Link>
-        </p>
-      </div>
+      <WholesaleNudge totalQuantity={totalQuantity} />
 
       {status === "authenticated" && (
         <div className="cart-shipping">
