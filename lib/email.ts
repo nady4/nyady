@@ -128,7 +128,7 @@ export async function sendVerificationEmail({
             <tr>
               <td style="padding:20px 40px;background-color:#f9f2e7;border-top:1px solid #e5ddd0;">
                 <p style="margin:0;font-family:'Inter',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#6b5d4d;text-align:center;">
-                  nyady
+                  <a href="https://nyady.com" style="color:#6b5d4d;text-decoration:none;">nyady.com</a>
                 </p>
               </td>
             </tr>
