@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useToggleWishlist, useToggleCartProduct } from "@/hooks/useToggleData";
 import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
 import { getWholesaleDiscountPercent } from "@/lib/discounts";
+import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import RelatedProducts from "@/components/RelatedProducts";
 import ColorSelector from "@/components/ColorSelector";
 import SizeSelector from "@/components/SizeSelector";
@@ -62,8 +63,9 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
   // The tier preview assumes the selected quantity will be added, so it counts
   // the whole cart (already fetched) plus what's about to go in.
+  const tiers = useWholesaleTiers();
   const treatedQuantity = cartTotalQuantity + quantity;
-  const wholesalePercent = getWholesaleDiscountPercent(treatedQuantity);
+  const wholesalePercent = getWholesaleDiscountPercent(treatedQuantity, tiers);
 
   const finalPrice = useMemo(() => {
     if (!product.price) return 0;

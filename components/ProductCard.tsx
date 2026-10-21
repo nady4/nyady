@@ -6,6 +6,7 @@ import { useToggleWishlist } from "@/hooks/useToggleData";
 import { cormorantGaramond, inter } from "@/app/fonts";
 import { isBlackColor } from "@/lib/colors";
 import { getWholesaleDiscountPercent } from "@/lib/discounts";
+import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import { ProductType } from "@/types";
 
 interface ProductCardProps extends ProductType {
@@ -48,8 +49,9 @@ const ProductCard = memo(function ProductCard({
   cartTotalQuantity = 0
 }: ProductCardProps) {
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
+  const tiers = useWholesaleTiers();
   const displayPhoto = getCardPhoto(photo, colors, photos);
-  const wholesalePercent = getWholesaleDiscountPercent(cartTotalQuantity);
+  const wholesalePercent = getWholesaleDiscountPercent(cartTotalQuantity, tiers);
   const discountedPrice =
     (price ?? 0) * (1 - wholesalePercent / 100);
 

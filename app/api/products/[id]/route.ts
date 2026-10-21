@@ -9,7 +9,7 @@ export async function GET(
 
   try {
     const product = await prisma.product.findFirst({
-      where: { id, available: true },
+      where: { id, available: true, archivedAt: null },
     });
 
     if (!product) {

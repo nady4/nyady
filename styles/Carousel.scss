@@ -9,6 +9,16 @@
   background-color: $bg-secondary;
   cursor: grab;
   user-select: none;
+  /* Horizontal gestures belong to the JS drag (no page pan); vertical page
+   * scroll keeps working over the carousel on touch devices. */
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
+  -webkit-user-drag: none;
+
+  img {
+    -webkit-user-drag: none;
+    pointer-events: none;
+  }
 
   &:active {
     cursor: grabbing;
@@ -16,7 +26,6 @@
 
   @media (max-width: 900px) {
     aspect-ratio: 4/3;
-    max-width: 120%;
     order: -1;
   }
 }

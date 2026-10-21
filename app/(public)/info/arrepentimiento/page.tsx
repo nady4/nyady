@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default function ArrepentimientoPage() {
         <p>
           <strong>Importante:</strong> El reembolso se realizará por el mismo
           medio de pago usado en la compra. Para más detalle, ver la política de{" "}
-          <a href="/info/reembolsos">reembolsos y devoluciones</a>.
+          <Link href="/info/reembolsos">reembolsos y devoluciones</Link>.
         </p>
       </div>
     </InfoPage>

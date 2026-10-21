@@ -160,6 +160,16 @@
         }
       }
     }
+
+    .auth-hint {
+      margin: 0 0 0.75rem;
+      width: 100%;
+      font-family: $body-font;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: $text-muted;
+      text-align: center;
+    }
   }
 
   .link {

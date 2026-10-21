@@ -13,6 +13,7 @@ function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(true);
   const [serverError, setServerError] = useState<string | null>(null);
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resendState, setResendState] = useState<
@@ -49,7 +50,7 @@ function RegisterPage() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ email, username, password, acceptTerms })
+        body: JSON.stringify({ email, username, password, acceptTerms, marketingOptIn })
       });
 
       if (res.ok) {
@@ -149,6 +150,17 @@ function RegisterPage() {
             >
               Política de Privacidad
             </Link>
+          </span>
+        </label>
+        <label className="terms-check">
+          <input
+            type="checkbox"
+            checked={marketingOptIn}
+            onChange={(e) => setMarketingOptIn(e.target.checked)}
+          />
+          <span>
+            Quiero recibir <strong>emails promocionales</strong> de NYADY
+            (novedades y descuentos)
           </span>
         </label>
         {(error || serverError) && (

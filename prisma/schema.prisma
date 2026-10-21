@@ -28,10 +28,30 @@ model User {
   termsAcceptedAt DateTime?
   termsVersion    String?
 
+  // Promotional emails consent, captured at registration (checkbox defaults
+  // to checked).
+  marketingOptIn Boolean @default(true)
+
+  // Soft delete. Archived users are blocked from signing in (checked in
+  // lib/auth.ts) but their orders and history are preserved.
+  archivedAt DateTime?
+
   addressId  String?     @unique
 }
 
 model VerificationToken {
+  id         String   @id @default(uuid())
+  identifier String   // user email
+  token      String   @unique // sha256 hash of the token sent by email
+  expires    DateTime
+
+  @@index([identifier])
+}
+
+// Single-use password reset tokens. Same pattern as VerificationToken: the
+// DB stores the sha256 hash of the emailed token, so a leaked database can't
+// be replayed. Shorter TTL than email confirmation (credential change).
+model PasswordResetToken {
   id         String   @id @default(uuid())
   identifier String   // user email
   token      String   @unique // sha256 hash of the token sent by email
@@ -96,6 +116,12 @@ model Product {
   photos    Json?
   description String?
   tacoOptions String[]
+
+  // Soft delete: archived products are hidden from the storefront and from
+  // the default admin list. Kept so past orders still resolve the product.
+  archivedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model OrderItem {
@@ -107,8 +133,17 @@ model OrderItem {
 
   // Snapshot of the cart-time selection, so /orders can render the exact
   // variant that was purchased even if the product's color list is later
-  // edited. Mirrors Cart.selectedColor.
+  // edited. Mirrors Cart.selectedColor / selectedSize / selectedTacoOption.
   selectedColor String?
+  selectedSize String?
+  selectedTacoOption String?
+
+  // Snapshots of the product at purchase time, so order history and admin
+  // reports stay correct even if the product is later renamed, repriced or
+  // deleted. Null for pre-snapshot rows; UIs fall back to the product relation.
+  unitPrice    Float?
+  productName  String?
+  productPhoto String?
 
   orderId    String
   productId  String
@@ -123,6 +158,23 @@ model Order {
   total      Float
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  // "web" = checkout through Mercado Pago; "manual" = created from the admin
+  // dashboard (phone/WhatsApp sales). Manual orders never touch the MP webhook.
+  source     String      @default("web")
+
+  // Set by the admin when the order leaves "En Preparación" and is handed
+  // over / dispatched WITHOUT a Zipnova shipment yet (e.g. entrega a
+  // convenir). Orders with shipmentId bypass this — they are already "En
+  // Envío".
+  dispatchedAt DateTime?
+
+  // Internal notes visible only in the admin dashboard.
+  notes      String?
+
+  // Soft delete: archived orders disappear from the default admin list but
+  // remain in the buyer's /orders history and in reports.
+  archivedAt DateTime?
 
   userId     String
 
@@ -168,4 +220,58 @@ model Coupon {
   createdAt  DateTime @default(now())
 
   orders     Order[]
+}
+
+// Admin-managed promotional imagery shown on the storefront. placement picks
+// the slot; sortOrder breaks ties inside the same slot. startsAt/endsAt allow
+// scheduling campaigns without redeploying.
+model Banner {
+  id        String    @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  href      String?
+  placement String    @default("home_promo") // "home_hero" | "home_promo" | "catalog_top"
+  active    Boolean   @default(true)
+  sortOrder Int       @default(0)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Singleton row (id = "default") with editable storefront copy and contact
+// data. Nullable fields fall back to the hardcoded values that existed
+// before the admin dashboard. wholesaleTiers holds the editable volume
+// discount tiers (units/percent/label) consumed by lib/discounts math.
+model StoreSettings {
+  id             String   @id @default("default")
+  storeName      String   @default("NYADY")
+  contactEmail   String?
+  whatsapp       String?
+  instagram      String?
+  tiktok         String?
+  announcement   String?
+  wholesaleTiers Json?
+
+  // Hero copy for the landing page.
+  heroTitle    String?
+  heroSubtitle String?
+  heroCtaLabel String?
+  heroCtaHref  String?
+
+  updatedAt    DateTime @updatedAt
+}
+
+// Admin-editable info/landing pages (e.g. /info/elaboracion). Content is
+// markdown rendered server-side; when no row exists for a slug the page
+// falls back to its original hardcoded JSX copy.
+model InfoPage {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  /// Markdown body (headings, lists, bold, links supported).
+  content     String
+  updatedAt   DateTime @updatedAt
 }

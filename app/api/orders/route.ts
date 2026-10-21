@@ -5,6 +5,7 @@ import { getCartProducts } from "@/actions/cart";
 import { ShippingSelection } from "@/actions/shipping";
 import { validateCouponForUser } from "@/actions/coupons";
 import { computeDiscounts, roundCurrency } from "@/lib/discounts";
+import { getStoreWholesaleTiers } from "@/lib/store-settings";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
@@ -93,6 +94,8 @@ export async function POST(req: Request) {
       validatedCouponId = validation.coupon.id;
     }
 
+    // Tiers are admin-editable; storefront price must match the charged total.
+    const wholesaleTiers = await getStoreWholesaleTiers();
     const discounts = computeDiscounts({
       productsTotal,
       totalQuantity,
@@ -102,7 +105,8 @@ export async function POST(req: Request) {
             type: validatedCoupon.type,
             value: validatedCoupon.value
           }
-        : null
+        : null,
+      tiers: wholesaleTiers
     });
 
     const shippingCost = shippingSelection?.shippingCost ?? 0;
@@ -129,6 +133,13 @@ export async function POST(req: Request) {
             productId: item.id,
             quantity: item.quantity,
             selectedColor: item.selectedColor || null,
+            selectedSize: item.selectedSize || null,
+            selectedTacoOption: item.selectedTacoOption || null,
+            // Purchase-time snapshots so history keeps the real product the
+            // buyer paid for even if it is later renamed/repriced/archived.
+            unitPrice: item.price,
+            productName: item.name,
+            productPhoto: item.photo,
           })),
         },
       },

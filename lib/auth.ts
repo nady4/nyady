@@ -20,6 +20,11 @@ export const authOptions: AuthOptions = {
 
         if (!user) return null;
 
+        // Archived (soft-deleted) accounts must not sign in. The check comes
+        // before the password comparison so bcrypt isn't leaked as a timing
+        // signal for a disabled-but-real account.
+        if (user.archivedAt) return null;
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password

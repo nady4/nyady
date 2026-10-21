@@ -67,16 +67,24 @@
 
 - Credentials auth (bcrypt + JWT sessions) with register / sign-in flows
 - **Email confirmation on registration** — accounts are created unverified and must confirm via a single-use, 24h-expiry link (Resend); sign-in is blocked until confirmed, with a resend option on the sign-in page
+- **Password recovery** — "¿Olvidaste tu contraseña?" flow: `/forgot-password` emails a single-use, 1-hour, sha256-hashed token link (`PasswordResetToken`; the raw token only travels in the email so a leaked database can't reset accounts) and must never leak which emails exist (the API answers the same generic message for unknown accounts). `/reset-password` validates, consumes the token and stores a fresh bcrypt hash. Existing JWT sessions stay valid after a password change (NextAuth JWTs don't record the password).
 - **Terms & Privacy consent** — registration requires accepting the Términos y Condiciones and the Política de Privacidad; the acceptance timestamp and terms version are stored on the user
 - User account settings and shipping-address management
 - Full set of info / legal pages required for Argentine e-commerce: envíos, medios de pago, promociones, reembolsos, preguntas frecuentes, elaboración, privacidad, términos, contacto, blog, and the **botón de arrepentimiento**.
 
 ### ⚙️ Operations (seller-side)
 
-- **Admin dashboard** at `/admin` — protected by username/password from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, with a signed httpOnly session cookie:
-  - **Productos** — list, create, edit, and delete products (name, photo, price, category, SKU, sizes, colors, heel options, per-color photo JSON) plus a **Disponible / No disponible** toggle — no stock tracking since everything is made on demand.
-  - **Pedidos** — all orders from every user with status (Pendiente / En Preparación / En Envío / Rechazada / Cancelada), items, totals, and coupons; **"Pasar a envío (Zipnova)"** button that creates the Zipnova shipment and moves the order from "En Preparación" to "En Envío", plus live shipment status and tracking timeline.
-  - **Usuarios** — registered users with email, address, join date, and order count.
+- **Admin dashboard** at `/admin` — protected by username/password from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, with a signed httpOnly session cookie (7 days, `proxy.ts` guards every `/admin/*` route and every admin server action / `/api/admin/*` route re-checks the session):
+  - **Resumen** — KPIs (monthly/weekly/today revenue, orders, average ticket, new users), a 30-day sales chart, orders-by-status breakdown, actionable alerts (approved orders without shipment, unverified users, archived products) and latest orders.
+  - **Productos** — searchable, filterable, paginated table with bulk actions, **full CRUD** (name, price, stock, category, SKU, internal purchase name, description, sizes/colors/heel options, availability) and a **per-color image manager** powered by Vercel Blob (client uploads, cover selection, drag reorder, per-color buckets). Archive (soft delete) keeps order history while hiding the product from the store and clearing carts/wishlists; permanent delete is offered only for products without orders, with orphan-blob cleanup.
+  - **Categorías** — rename/merge categories across all products in one transaction (categories live on `Product.category` in v1).
+  - **Pedidos** — filterable table by status/date/customer with **CSV export**, a rich detail per order (items with purchase-time snapshots, totals/discounts breakdown, recipient, Zipnova shipment + live tracking timeline, internal notes), admin status transitions (approve/reject/cancel with guard rails), editable recipient + manual tracking fields, and item editing for pending orders only (totals recompute with the same discount math as checkout). **Manual order creation** for phone/WhatsApp sales (existing user + catalog items + optional coupon + shipping cost, `source: "manual"`).
+  - **Envíos** — shipments table with persisted Zipnova status, per-row refresh, carrier option, tracking links, and destination.
+  - **Usuarios** — filterable table (verified/unverified, with/without orders, archived), profile editing (username, email, address), verification toggle with confirmation-email resend via Resend, password reset, and archived-account blocking (sign-in rejects archived users).
+
+  - **Reportes** — date-range analytics with previous-period deltas: revenue/orders/ticket, sales-per-day and per-category charts, top products by revenue (snapshot-based), best customers, coupon usage, plus CSV exports of orders (`from`/`to`) and the full product catalog.
+  - **Contenido** — homepage promo banners (Vercel Blob upload, ordering, scheduling via start/end dates, active toggle) rendered below the hero by the server-rendered landing.
+  - **Configuración** — store profile + hero copy persisted on `StoreSettings` (landing falls back to the hardcoded copy), integration health board (DB, Mercado Pago, Zipnova, Resend, Vercel Blob, auth — env presence only, never values), admin credential info, read-only wholesale tiers, and a manual storefront revalidation button.
 - **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready from the admin dashboard, which creates the Zipnova shipment and unlocks tracking.
 - **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN` (`POST /api/orders/[id]/ship`)
 
@@ -94,6 +102,7 @@
 | State                     | Redux Toolkit (UI state only — filters/search)         |
 | Payments                  | Mercado Pago SDK (`@mercadopago/sdk-react`) + REST API |
 | Shipping                  | Zipnova REST API (quote, create, track)                |
+| Images                    | Vercel Blob (admin uploads with client `upload()`)     |
 | Forms                     | React Hook Form                                        |
 | Runtime / package manager | Bun                                                    |
 
@@ -105,18 +114,18 @@ Route groups keep public, auth, and protected surfaces cleanly separated:
 
 ```
 app/
-├── (public)/         # Catalog, product detail, cart, wishlist, info/legal pages
+├── (public)/         # Catalog, product detail, cart, wishlist, info/legal pages, landing (banners + hero copy)
 ├── (auth)/           # Sign-in, register
 ├── (protected)/      # Account, orders, address management
-├── admin/            # Admin dashboard: login, products, orders, users
+├── admin/            # Admin dashboard: (dashboard) shell + resumen/productos/pedidos/cupones/usuarios/categorías/envíos/reportes/contenido/configuración, and login
 ├── success|pending|failure/   # Payment return pages
-└── api/              # auth, register, products, orders, coupons, mp-webhook, admin (login/logout)
-actions/              # Server Actions (cart, wishlist, orders, coupons, shipping, admin, …)
-lib/                  # Prisma client, NextAuth config, shared discount math, colors, admin session
+└── api/              # auth, register, products, orders, coupons, mp-webhook, admin (login/logout/upload/export/revalidate)
+actions/              # Server Actions: cart, wishlist, orders, coupons, shipping, address + actions/admin/* (products, users, orders, categories, content)
+lib/                  # Prisma client, NextAuth config, shared discount math, colors, admin session/token, order-status, admin blob cleanup
 store/                # Redux store + slices (UI state only)
 hooks/                # Data-loading + validation hooks
-components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking, admin/*
-types/                # Shared TypeScript types
+components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking + admin/* (layout shell, products, orders, users, shipments, content, settings, ui)
+types/                # Shared TypeScript types (storefront + admin)
 prisma/               # Schema + migrations + seed
 styles/               # SCSS stylesheets (incl. Admin.scss)
 proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
@@ -133,20 +142,27 @@ proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
 - **Single source of truth for discounts** — `lib/discounts.ts` is pure (no `"use server"`, no Prisma) so the wholesale + coupon math is imported by both the cart UI and the orders API, guaranteeing the charged total matches what the customer sees.
 - **Idempotent payment webhook** — looks up the order before updating, clears only the buyer's cart, and treats forged/stale notifications safely. The Zipnova shipment is deliberately _not_ created on payment; it's deferred until elaboración is complete.
 - **Coupon consumed only after the Mercado Pago preference succeeds** — a failed preference rolls back the orphan order so a one-per-user coupon isn't burned and the user can retry.
-- **Per-order snapshots** of recipient data, the chosen shipping option, and the coupon (code + discount) are stored on the order so tracking and history stay correct even if the cart is cleared or the coupon is later edited/deleted.
+- **Per-order snapshots** of recipient data, the chosen shipping option, and the coupon (code + discount) are stored on the order so tracking and history stay correct even if the cart is cleared or the coupon is later edited/deleted. Since the admin-dashboard migration, `OrderItem` also snapshots `unitPrice`, `productName`, `productPhoto`, `selectedSize` and `selectedTacoOption` at purchase time (with a one-time backfill), so order history and reports stay accurate even if products are later renamed, repriced or archived.
+- **Soft delete everywhere it matters** — `Product`, `User` and `Order` carry an `archivedAt` column. Archiving hides from the storefront and the default admin lists without breaking order history; archiving a product clears its carts/wishlists, and archived users are rejected at sign-in before the password check. Permanent delete is only available for entities without references.
+- **Admin manual orders** — created with `source: "manual"` and never touched by the Mercado Pago webhook; items are validated and priced server-side against the current catalog (snapshotting price/name/variant photo), and totals always recompute through `lib/discounts.ts`. Item editing is locked once an order leaves `pending`.
 - **Cart persisted in the database** (not Redux) — Redux is reserved for ephemeral UI state like filters and search, per the project's state-management rules.
-- **Stateless admin session** — the dashboard uses a 7-day HMAC-signed httpOnly cookie (`lib/admin-token.ts`, WebCrypto so it works in the edge proxy) instead of a database row; `proxy.ts` guards every `/admin/*` route except the login page, and all admin server actions re-check the session server-side.
-- **Zipnova credentials guard** — while `ZIPNOVA_*` env vars are placeholders, the admin orders view skips live status/tracking calls (they would 403) and falls back to the data persisted on the order; set the real keys and the calls resume automatically.
+- **Stateless admin session** — the dashboard uses a 7-day HMAC-signed httpOnly cookie (`lib/admin-token.ts`, WebCrypto so it works in the edge proxy) instead of a database row; `proxy.ts` guards every `/admin/*` route except the login page, and all admin server actions — plus the `/api/admin/*` routes (upload, exports, revalidate) that the proxy doesn't cover — re-check the session server-side.
+- **Image uploads via Vercel Blob** — the browser asks `/api/admin/upload` (admin-guarded token endpoint with content-type/size/path-prefix validation) and PUTs files directly to Blob, avoiding serverless body-size limits. Removed/replaced images are best-effort cleaned with a reference check against other products and banners.
+- **Zipnova credentials guard** — while `ZIPNOVA_*` env vars are placeholders, the admin orders view skips live status/tracking calls (they would 403) and falls back to the data persisted on the order; set the real keys and the calls resume automatically. Live Zipnova calls run only on the order detail and Envíos refresh, keeping the orders list fast.
 
 <br>
 
 ## 🗄️ Data model
 
-Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`.
+Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`, `Banner`, `StoreSettings`, `VerificationToken`, `PasswordResetToken`.
 
 - `Cart` rows are unique per `(user, product, selectedSize, selectedColor, selectedTacoOption)`.
-- `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only.
-- `Order` carries a `shippingSelection` JSON snapshot, recipient fields, shipment id/tracking, and coupon snapshots used to create the Zipnova shipment after payment and render order history.
+- `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only. `archivedAt` implements the soft delete; `createdAt`/`updatedAt` power admin sorting and reports.
+- `Order` carries a `shippingSelection` JSON snapshot, recipient fields, shipment id/tracking, and coupon snapshots used to create the Zipnova shipment after payment and render order history. `source` distinguishes web checkouts from admin-created manual orders, `notes` holds internal-only remarks, and `archivedAt` hides an order from the admin without touching the buyer's history.
+- `OrderItem` snapshots the purchase-time product (`unitPrice`, `productName`, `productPhoto`) and the selected variants (`selectedColor`, `selectedSize`, `selectedTacoOption`), backfilled from existing data by the `admin_dashboard` migration.
+- `User.archivedAt` implements soft-deleted accounts (blocked from sign-in, history preserved).
+- `Banner` stores admin-managed homepage promos (image, copy, destination, ordering, active flag, start/end scheduling).
+- `StoreSettings` is a singleton row (`id = "default"`) with editable store profile and landing hero copy; empty fields fall back to the hardcoded landing strings.
 - `Coupon` supports `PERCENT` / `FIXED` types with `usageLimit`, `usedCount`, `onePerUser`, and `expiresAt`.
 
 See [prisma/schema.prisma](prisma/schema.prisma) for the full schema.
@@ -194,6 +210,13 @@ ZIPNOVA_ACCOUNT_ID=yourAccountId
 # Seller-only ship endpoint
 ADMIN_TOKEN=yourStrongRandomToken
 
+# Vercel Blob — product & banner image uploads from the admin dashboard.
+# Create the store in Vercel (Project → Storage → Blob) — on Vercel deployments
+# the token is injected automatically; locally run `vercel env pull` or upload
+# it by hand to .env. Without it, admin image uploads show a friendly error.
+# `**.public.blob.vercel-storage.com` is already allowlisted in next.config.ts.
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxx
+
 # Email (Resend) — registration confirmation emails
 # Get a key at https://resend.com/api-keys. Without RESEND_API_KEY, dev builds
 # log the confirmation link to the console instead of sending. EMAIL_FROM must
@@ -210,7 +233,7 @@ bun run db:migrate
 bun run db:seed
 ```
 
-The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Nyady-1234`, pre-verified so it skips the email confirmation), a set of sample products, and example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`).
+The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Nyady-1234`, pre-verified so it skips the email confirmation), a set of sample products, example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`), and the `StoreSettings` singleton with defaults.
 
 ### 💻 Run the dev server
 
@@ -220,7 +243,20 @@ bun run dev
 
 ### 🧑‍💻 Admin dashboard
 
-Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `ADMIN_USERNAME` / `ADMIN_PASSWORD`. From there you can manage products (create / edit / delete / toggle availability), ship approved orders to Zipnova, and review all users and orders.
+Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `ADMIN_USERNAME` / `ADMIN_PASSWORD`. The sidebar gives you access to:
+
+| Section | What you can do |
+| --- | --- |
+| **Resumen** | KPIs, 30-day sales chart, order statuses, actionable alerts |
+| **Productos** | Full CRUD with per-color images (Vercel Blob), filters, bulk actions, duplicate, pause/archive |
+| **Categorías** | Rename and merge categories across every product |
+| **Pedidos** | Filters + CSV export, per-order detail (status, recipient, tracking, items), manual orders |
+| **Cupones** | Full CRUD for coupon codes with value rules, usage limits, expiry, one-per-user toggle and a usage-protection guard (used coupons can be paused but not deleted) |
+| **Envíos** | Zipnova shipments with refresh and tracking links |
+| **Usuarios** | Profiles, verification, password resets, archive |
+| **Reportes** | Date-range analytics, top products/customers, coupons, CSV exports |
+| **Contenido** | Homepage promo banners (upload, schedule, order) |
+| **Configuración** | Store profile & hero copy, integration health, storefront cache flush |
 
 <br>
 
@@ -242,7 +278,8 @@ Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `
 
 - The UI is in Spanish (es-AR) and prices are in Argentine pesos (ARS), matching the Mercado Pago and Zipnova integrations.
 - Mercado Pago `auto_return` is enabled only for HTTPS `NEXTAUTH_URL`s (the API rejects HTTP return URLs), so use an HTTPS deployment or tunnel for full checkout redirects.
-- Product images in the seed reference remote hosts allowlisted in [next.config.ts](next.config.ts).
+- Product images in the seed reference remote hosts allowlisted in [next.config.ts](next.config.ts); admin-uploaded images live on Vercel Blob (`**.public.blob.vercel-storage.com`, also allowlisted).
+- Deleting (not archiving) a product is only possible when it has no orders — order history is never broken. Products with sales get archived instead.
 
 <br>
 

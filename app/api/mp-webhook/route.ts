@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { notifyOrderConfirmed } from "@/lib/order-emails";
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
           // would throw RecordNotFound; findUnique + updateMany is safe.
           const existing = await prisma.order.findUnique({
             where: { id: externalReference },
-            select: { userId: true },
+            select: { userId: true, status: true, source: true },
           });
 
           if (!existing) {
@@ -52,6 +53,20 @@ export async function POST(req: Request) {
             // "approved" (paid) and "pending" (offline methods like RapiPago
             // that settle later) so the cart is emptied once the order is in
             // flight, not only after it's paid.
+            // Best-effort customer email on the pending→approved transition
+            // (payment confirmed). Retries with an already-approved order
+            // don't re-send.
+            if (
+              status === "approved" &&
+              existing.status !== "approved"
+            ) {
+              try {
+                await notifyOrderConfirmed(externalReference);
+              } catch (emailError) {
+                console.error("[mp-webhook] confirmation email failed:", emailError);
+              }
+            }
+
             if (
               (status === "approved" || status === "pending") &&
               existing.userId

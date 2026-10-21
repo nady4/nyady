@@ -14,6 +14,18 @@ export async function isAdmin(): Promise<boolean> {
   return verifyAdminToken(token);
 }
 
+/**
+ * Guard for admin server actions: standard unauthorized result when the
+ * session cookie is missing/invalid. Every mutation must call this.
+ */
+export async function ensureAdmin(): Promise<{
+  ok: boolean;
+  error?: string;
+}> {
+  if (await isAdmin()) return { ok: true };
+  return { ok: false, error: "No autorizado" };
+}
+
 export async function signInAdmin(
   username: string,
   password: string

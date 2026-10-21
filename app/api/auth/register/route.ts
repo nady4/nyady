@@ -71,7 +71,9 @@ export async function POST(request: Request) {
         email: data.email,
         password: hashedPassword,
         termsAcceptedAt: new Date(),
-        termsVersion: CURRENT_TERMS_VERSION
+        termsVersion: CURRENT_TERMS_VERSION,
+        // Opt-out checkbox: the UI defaults it to checked.
+        marketingOptIn: data.marketingOptIn !== false
       }
     });
 

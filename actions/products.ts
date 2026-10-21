@@ -9,7 +9,7 @@ export async function getProduct(id: string): Promise<ProductType | null> {
       return null;
     }
     const product = await prisma.product.findFirst({
-      where: { id, available: true },
+      where: { id, available: true, archivedAt: null },
     });
     return product;
   } catch (error) {
@@ -27,6 +27,7 @@ export async function searchProducts(query: string): Promise<ProductType[]> {
     const products = await prisma.product.findMany({
       where: {
         available: true,
+        archivedAt: null,
         OR: [
           { name: { contains: query, mode: "insensitive" } },
           { description: { contains: query, mode: "insensitive" } },
@@ -45,7 +46,7 @@ export async function searchProducts(query: string): Promise<ProductType[]> {
 export async function getProducts(): Promise<ProductType[]> {
   try {
     const products = await prisma.product.findMany({
-      where: { available: true },
+      where: { available: true, archivedAt: null },
     });
 
     const customOrder: string[] = [];

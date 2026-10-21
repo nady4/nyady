@@ -16,8 +16,9 @@ import { ProductType, ShippingQuoteResult } from "@/types";
 import {
   computeDiscounts,
   getWholesaleDiscountPercent,
-  CouponLike
+  type CouponLike
 } from "@/lib/discounts";
+import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import { getColorHex } from "@/lib/colors";
 import { getDeliveryWindow } from "@/lib/shipping";
 import Link from "next/link";
@@ -186,15 +187,14 @@ export default function CartPage() {
 
   const totalQuantity = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
+  const tiers = useWholesaleTiers();
+  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity, tiers);
+  const appliedTier = tiers.find((tier) => tier.percent === wholesalePercent);
   const discountInfo = {
     percent: wholesalePercent,
-    label:
-      wholesalePercent === 20
-        ? "MAYORISTA x20 - 20%"
-        : wholesalePercent === 10
-          ? "REVENDEDORA x4 - 10%"
-          : "",
+    label: appliedTier
+      ? `${appliedTier.label} x${appliedTier.units} - ${appliedTier.percent}%`
+      : "",
     applied: wholesalePercent > 0
   };
 
@@ -210,9 +210,10 @@ export default function CartPage() {
       computeDiscounts({
         productsTotal: subtotalBeforeDiscount,
         totalQuantity,
-        coupon: appliedCoupon
+        coupon: appliedCoupon,
+        tiers
       }),
-    [subtotalBeforeDiscount, totalQuantity, appliedCoupon]
+    [subtotalBeforeDiscount, totalQuantity, appliedCoupon, tiers]
   );
 
   const discountAmount = discounts.wholesaleAmount;

@@ -332,6 +332,14 @@ async function main() {
     });
   }
 
+  // Singleton row with editable storefront copy/contact data. Nullable
+  // fields stay null so the storefront falls back to its hardcoded copy.
+  await prisma.storeSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: { id: "default" }
+  });
+
   console.log("Database seeded successfully!");
 }
 

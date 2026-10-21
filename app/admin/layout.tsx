@@ -1,4 +1,3 @@
-import AdminNavBar from "@/components/admin/AdminNavBar";
 import "@/styles/Admin.scss";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +15,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="admin-shell">
-      <AdminNavBar />
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }

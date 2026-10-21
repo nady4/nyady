@@ -30,17 +30,17 @@ function FooterLinks() {
   return (
     <footer className="footer-links">
       <div className="links">
-        <a href="/info/elaboracion">Elaboración</a>
-        <a href="/info/envios">Envíos</a>
-        <a href="/info/medios-de-pago">Medios de Pago</a>
-        <a href="/info/reembolsos">Reembolsos</a>
-        <a href="/info/promociones">Promociones</a>
-        <a href="/info/preguntas-frecuentes">Preguntas Frecuentes</a>
-        <a href="/info/contacto">Contacto</a>
-        <a href="/info/privacidad">Privacidad</a>
-        <a href="/info/terminos">Términos</a>
-        <a href="/info/arrepentimiento">Arrepentimiento</a>
-        <a href="/info/nady4">nady4</a>
+        <Link href="/info/elaboracion">Elaboración</Link>
+        <Link href="/info/envios">Envíos</Link>
+        <Link href="/info/medios-de-pago">Medios de Pago</Link>
+        <Link href="/info/reembolsos">Reembolsos</Link>
+        <Link href="/info/promociones">Promociones</Link>
+        <Link href="/info/preguntas-frecuentes">Preguntas Frecuentes</Link>
+        <Link href="/info/contacto">Contacto</Link>
+        <Link href="/info/privacidad">Privacidad</Link>
+        <Link href="/info/terminos">Términos</Link>
+        <Link href="/info/arrepentimiento">Arrepentimiento</Link>
+        <Link href="/info/nady4">nady4</Link>
       </div>
       <div className="socials">
         <a

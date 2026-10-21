@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import InfoPage from "@/components/InfoPage";
 
 export const metadata: Metadata = {
@@ -97,8 +98,8 @@ export default function TerminosPage() {
         </li>
         <li>
           Ver las políticas detalladas en{" "}
-          <a href="/info/arrepentimiento">arrepentimiento</a> y{" "}
-          <a href="/info/reembolsos">reembolsos</a>
+          <Link href="/info/arrepentimiento">arrepentimiento</Link> y{" "}
+          <Link href="/info/reembolsos">reembolsos</Link>
         </li>
       </ul>
 

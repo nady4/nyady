@@ -3,6 +3,7 @@ import {
   getNextWholesaleTier,
   getWholesaleDiscountPercent
 } from "@/lib/discounts";
+import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import "@/styles/WholesaleNudge.scss";
 
 interface WholesaleNudgeProps {
@@ -18,11 +19,13 @@ export default function WholesaleNudge({
   totalQuantity,
   showRevendedoraApplied = false
 }: WholesaleNudgeProps) {
-  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
-  const nextTier = getNextWholesaleTier(totalQuantity);
+  const tiers = useWholesaleTiers();
+  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity, tiers);
+  const nextTier = getNextWholesaleTier(totalQuantity, tiers);
+  const topPercent = tiers[tiers.length - 1]?.percent ?? 0;
   const showAppliedLine =
-    wholesalePercent === 20 ||
-    (wholesalePercent === 10 && showRevendedoraApplied);
+    wholesalePercent === topPercent ||
+    (wholesalePercent > 0 && showRevendedoraApplied);
 
   return (
     <div className={`wholesale-nudge${wholesalePercent > 0 ? " applied" : ""}`}>

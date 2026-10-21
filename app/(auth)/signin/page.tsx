@@ -153,6 +153,9 @@ function SignInForm() {
           Iniciar sesión
         </button>
       </form>
+      <Link href="/forgot-password" className="link">
+        ¿Olvidaste tu contraseña?
+      </Link>
       <Link href="/register" className="link">
         Registrarse
       </Link>

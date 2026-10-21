@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
-      where: { available: true },
+      where: { available: true, archivedAt: null },
     });
     return NextResponse.json(products);
   } catch (error) {

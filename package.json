@@ -12,6 +12,7 @@
     "db:seed": "bunx prisma db seed",
     "db:generate": "bunx prisma generate",
     "db:import": "bunx tsx prisma/import-products.ts",
+    "blob:check": "bunx tsx scripts/blob-check.ts",
     "photos:normalize": "bunx tsx scripts/normalize-photos.ts"
   },
   "prisma": {
@@ -27,6 +28,7 @@
     "@prisma/adapter-pg": "^6.19.3",
     "@prisma/client": "^6.19.3",
     "@reduxjs/toolkit": "^2.13.0",
+    "@vercel/blob": "^2.8.2",
     "baseline-browser-mapping": "^2.11.28",
     "bcrypt": "^6.0.0",
     "boneyard-js": "^1.10.0",

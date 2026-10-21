@@ -28,9 +28,9 @@ export default function Nady4Page() {
         <p>Espero que encuentres algo que te guste.</p>
 
         <p>
-          Si tenés alguna duda, me podés <a href="/info/contacto">contactar</a>{" "}
+          Si tenés alguna duda, me podés <Link href="/info/contacto">contactar</Link>{" "}
           o consultar las{" "}
-          <a href="/info/preguntas-frecuentes">preguntas frecuentes</a>.
+          <Link href="/info/preguntas-frecuentes">preguntas frecuentes</Link>.
         </p>
         <div className={styles.socials}>
           <Link href="https://github.com/nady4" target="_blank">

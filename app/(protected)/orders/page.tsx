@@ -158,7 +158,7 @@ export default async function OrdersPage() {
                 Estado:{" "}
                 <strong>
                   {order.status === "approved"
-                    ? order.shipmentId
+                    ? order.shipmentId || order.dispatchedAt
                       ? "En Envío"
                       : "En Preparación"
                     : order.status === "pending"

@@ -18,22 +18,33 @@ export interface WholesaleTier {
 }
 
 /**
- * Volume discount tiers, ordered ascending. Single source for both the math
- * below and the promo copy shown on the product page and cart.
+ * Default volume discount tiers, ordered ascending. Used as the fallback
+ * when StoreSettings has no (or invalid) saved tiers — the admin dashboard
+ * can edit units, label and percent per tier.
  */
-export const WHOLESALE_TIERS: WholesaleTier[] = [
+export const DEFAULT_WHOLESALE_TIERS: WholesaleTier[] = [
   { units: 4, percent: 10, label: "REVENDEDORA" },
   { units: 20, percent: 20, label: "MAYORISTA" }
 ];
+
+/** Kept for backwards compatibility; prefer DEFAULT_WHOLESALE_TIERS. */
+export const WHOLESALE_TIERS = DEFAULT_WHOLESALE_TIERS;
 
 /**
  * Wholesale (volume) discount tier based on total item quantity in the cart.
  * Mirrors the tiers shown on the cart page: ≥20 units → 20%, ≥4 → 10%.
  */
-export function getWholesaleDiscountPercent(totalQuantity: number): number {
-  if (totalQuantity >= 20) return 20;
-  if (totalQuantity >= 4) return 10;
-  return 0;
+export function getWholesaleDiscountPercent(
+  totalQuantity: number,
+  tiers: WholesaleTier[] = DEFAULT_WHOLESALE_TIERS
+): number {
+  let percent = 0;
+  for (const tier of tiers) {
+    if (totalQuantity >= tier.units) {
+      percent = tier.percent;
+    }
+  }
+  return percent;
 }
 
 /**
@@ -41,9 +52,10 @@ export function getWholesaleDiscountPercent(totalQuantity: number): number {
  * more units are needed, or null when the top tier is already reached.
  */
 export function getNextWholesaleTier(
-  totalQuantity: number
+  totalQuantity: number,
+  tiers: WholesaleTier[] = DEFAULT_WHOLESALE_TIERS
 ): (WholesaleTier & { unitsNeeded: number }) | null {
-  for (const tier of WHOLESALE_TIERS) {
+  for (const tier of tiers) {
     if (totalQuantity < tier.units) {
       return { ...tier, unitsNeeded: tier.units - totalQuantity };
     }
@@ -81,6 +93,8 @@ export interface ComputeDiscountsInput {
   totalQuantity: number;
   /** The coupon to apply, or null. Assumed already validated. */
   coupon: CouponLike | null;
+  /** Volume discount tiers (defaults to DEFAULT_WHOLESALE_TIERS). */
+  tiers?: WholesaleTier[];
 }
 
 /**
@@ -91,9 +105,10 @@ export interface ComputeDiscountsInput {
 export function computeDiscounts({
   productsTotal,
   totalQuantity,
-  coupon
+  coupon,
+  tiers
 }: ComputeDiscountsInput): DiscountBreakdown {
-  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity);
+  const wholesalePercent = getWholesaleDiscountPercent(totalQuantity, tiers);
   const wholesaleAmount = productsTotal * (wholesalePercent / 100);
   const subtotalAfterWholesale = productsTotal - wholesaleAmount;
 
