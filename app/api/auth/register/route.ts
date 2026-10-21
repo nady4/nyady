@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { createVerificationToken } from "@/lib/verification";
+import { sendVerificationEmail, getAppUrl } from "@/lib/email";
+import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
 export async function POST(request: Request) {
   try {
@@ -8,29 +11,54 @@ export async function POST(request: Request) {
 
     if (!data.email || !data.username || !data.password) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Faltan campos obligatorios", code: "MISSING_FIELDS" },
+        { status: 400 }
+      );
+    }
+
+    if (data.acceptTerms !== true) {
+      return NextResponse.json(
+        {
+          error:
+            "Tenés que aceptar los Términos y Condiciones y la Política de Privacidad",
+          code: "TERMS_NOT_ACCEPTED"
+        },
         { status: 400 }
       );
     }
 
     const existingEmail = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email: data.email }
     });
 
     if (existingEmail) {
+      if (!existingEmail.emailVerified) {
+        return NextResponse.json(
+          {
+            error:
+              "Ya existe una cuenta con este email sin confirmar. Revisá tu bandeja de entrada (y el spam); si no te llegó, reenviá la confirmación acá abajo.",
+            code: "EMAIL_EXISTS_UNVERIFIED"
+          },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Email already exists" },
+        { error: "Ya existe una cuenta con este email", code: "EMAIL_EXISTS" },
         { status: 400 }
       );
     }
 
     const existingUsername = await prisma.user.findFirst({
-      where: { username: data.username },
+      where: { username: data.username }
     });
 
     if (existingUsername) {
       return NextResponse.json(
-        { error: "Username already exists" },
+        {
+          error: "Ese nombre de usuario ya está en uso",
+          code: "USERNAME_EXISTS"
+        },
         { status: 400 }
       );
     }
@@ -42,11 +70,36 @@ export async function POST(request: Request) {
         username: data.username,
         email: data.email,
         password: hashedPassword,
-      },
+        termsAcceptedAt: new Date(),
+        termsVersion: CURRENT_TERMS_VERSION
+      }
     });
 
-    const { ...userWithoutPassword } = newUser;
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    // The account exists either way; if the email fails to go out, the user
+    // can trigger a resend from the sign-in page.
+    let emailSent = true;
+    try {
+      const token = await createVerificationToken(newUser.email);
+      await sendVerificationEmail({
+        to: newUser.email,
+        username: newUser.username,
+        url: `${getAppUrl(new URL(request.url).origin)}/api/auth/verify-email?token=${token}`
+      });
+    } catch (error) {
+      emailSent = false;
+      console.error("Error sending verification email:", error);
+    }
+
+    return NextResponse.json(
+      {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        createdAt: newUser.createdAt,
+        emailSent
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creating user:", error);
     const message = error instanceof Error ? error.message : "Unknown error";

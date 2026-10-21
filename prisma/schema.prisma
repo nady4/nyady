@@ -20,7 +20,24 @@ model User {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
+  // Null until the user confirms their email via the verification link.
+  emailVerified DateTime?
+
+  // Consent snapshot captured at registration. termsVersion lets us tell
+  // which revision of the terms was accepted if they change later.
+  termsAcceptedAt DateTime?
+  termsVersion    String?
+
   addressId  String?     @unique
+}
+
+model VerificationToken {
+  id         String   @id @default(uuid())
+  identifier String   // user email
+  token      String   @unique // sha256 hash of the token sent by email
+  expires    DateTime
+
+  @@index([identifier])
 }
 
 model Address {

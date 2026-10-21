@@ -5,6 +5,7 @@ interface FormValues {
   password: string;
   username?: string;
   confirmPassword?: string;
+  acceptTerms?: boolean;
 }
 
 interface ValidationResult {
@@ -14,15 +15,20 @@ interface ValidationResult {
 }
 
 export function useValidateAuth(formValues: FormValues): ValidationResult {
-  const { email, password, username, confirmPassword } = formValues;
+  const { email, password, username, confirmPassword, acceptTerms } =
+    formValues;
   // error is set by validateForm() on submit and cleared reactively when the
   // inputs that caused it change. Kept as state because it must persist across
   // renders between the submit action and the next input change.
   const [error, setError] = useState("");
 
   const isRegisterForm = useMemo(() => {
-    return Boolean(username !== undefined || confirmPassword !== undefined);
-  }, [username, confirmPassword]);
+    return Boolean(
+      username !== undefined ||
+        confirmPassword !== undefined ||
+        acceptTerms !== undefined
+    );
+  }, [username, confirmPassword, acceptTerms]);
 
   const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
 
@@ -41,14 +47,15 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
     const doPasswordsMatch =
       confirmPassword !== "" && password === confirmPassword;
 
-    formValid = formValid && isUsernameValid && doPasswordsMatch;
+    formValid =
+      formValid && isUsernameValid && doPasswordsMatch && acceptTerms === true;
   }
 
-  // Clear a stale "Passwords do not match" error once the passwords match
-  // again, or any other stale error once the inputs change. This is a
+  // Clear a stale "Las contraseñas no coinciden" error once the passwords
+  // match again, or any other stale error once the inputs change. This is a
   // best-effort reactive clear; the authoritative validation runs in
   // validateForm() on submit.
-  if (error === "Passwords do not match") {
+  if (error === "Las contraseñas no coinciden") {
     const doPasswordsMatch =
       confirmPassword !== "" && password === confirmPassword;
     if (doPasswordsMatch) {
@@ -62,38 +69,45 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
 
   const validateForm = (): boolean => {
     if (!email || !password) {
-      setError("All fields are required");
+      setError("Completá todos los campos");
       return false;
     }
 
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
+      setError("Ingresá un email válido");
       return false;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("La contraseña debe tener al menos 6 caracteres");
       return false;
     }
 
     if (isRegisterForm) {
       if (!username) {
-        setError("Username is required");
+        setError("El nombre de usuario es obligatorio");
         return false;
       }
 
       if (username.trim().length < 3) {
-        setError("Username must be at least 3 characters");
+        setError("El nombre de usuario debe tener al menos 3 caracteres");
         return false;
       }
 
       if (!confirmPassword) {
-        setError("Please confirm your password");
+        setError("Confirmá tu contraseña");
         return false;
       }
 
       if (password !== confirmPassword) {
-        setError("Passwords do not match");
+        setError("Las contraseñas no coinciden");
+        return false;
+      }
+
+      if (!acceptTerms) {
+        setError(
+          "Tenés que aceptar los Términos y Condiciones y la Política de Privacidad"
+        );
         return false;
       }
     }

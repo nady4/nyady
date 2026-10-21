@@ -154,10 +154,13 @@ async function main() {
   // Credentials are mirrored into both `create` and `update` so re-seeding
   // repairs an existing user-1 instead of leaving a stale row behind. The
   // password is the bcrypt hash of "Nyady-1234" (documented in the README).
+  // The demo user is pre-verified so it can sign in without going through
+  // the confirmation email.
   const userCredentials = {
     username: "nyady",
     email: "test@nyady.com",
     password: "$2b$10$k6aGhApoPFdtdtfVYikfGOWcqu824BJIk5.3zTvQAHbAWEjcc5v5K",
+    emailVerified: new Date(),
   };
 
   await prisma.user.upsert({

@@ -27,8 +27,17 @@ export const authOptions: AuthOptions = {
 
         if (!isPasswordValid) return null;
 
-        const { ...userWithoutPassword } = user;
-        return userWithoutPassword;
+        // Thrown errors surface to the client as `res.error` when signIn is
+        // called with `redirect: false` (see /signin).
+        if (!user.emailVerified) {
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          username: user.username
+        };
       },
     }),
   ],

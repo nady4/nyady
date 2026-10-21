@@ -66,6 +66,8 @@
 ### 🔐 Account & compliance
 
 - Credentials auth (bcrypt + JWT sessions) with register / sign-in flows
+- **Email confirmation on registration** — accounts are created unverified and must confirm via a single-use, 24h-expiry link (Resend); sign-in is blocked until confirmed, with a resend option on the sign-in page
+- **Terms & Privacy consent** — registration requires accepting the Términos y Condiciones and the Política de Privacidad; the acceptance timestamp and terms version are stored on the user
 - User account settings and shipping-address management
 - Full set of info / legal pages required for Argentine e-commerce: envíos, medios de pago, promociones, reembolsos, preguntas frecuentes, elaboración, privacidad, términos, contacto, blog, and the **botón de arrepentimiento**.
 
@@ -191,6 +193,14 @@ ZIPNOVA_ACCOUNT_ID=yourAccountId
 
 # Seller-only ship endpoint
 ADMIN_TOKEN=yourStrongRandomToken
+
+# Email (Resend) — registration confirmation emails
+# Get a key at https://resend.com/api-keys. Without RESEND_API_KEY, dev builds
+# log the confirmation link to the console instead of sending. EMAIL_FROM must
+# use a domain verified in Resend; onboarding@resend.dev only delivers to the
+# Resend account owner's address.
+RESEND_API_KEY=re_xxxxxxxx
+EMAIL_FROM=NYADY <no-reply@yourdomain.com>
 ```
 
 ### 🛢️ Database setup
@@ -200,7 +210,7 @@ bun run db:migrate
 bun run db:seed
 ```
 
-The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Nyady-1234`), a set of sample products, and example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`).
+The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Nyady-1234`, pre-verified so it skips the email confirmation), a set of sample products, and example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`).
 
 ### 💻 Run the dev server
 
