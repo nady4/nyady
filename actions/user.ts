@@ -1,5 +1,6 @@
 "use server";
 import prisma from "@/lib/prisma";
+import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -21,18 +22,26 @@ export async function updateUser(formData: FormData) {
 
   if (!user) throw new Error("User not found");
 
-  if (user.password !== currentPassword)
-    throw new Error("Invalid current password");
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
+  if (!isPasswordValid) throw new Error("Invalid current password");
 
   const updatedUser = await prisma.user.update({
     where: { id: user.id },
     data: {
       email,
       username,
-      ...(newPassword && { password: newPassword }),
+      ...(newPassword && { password: await bcrypt.hash(newPassword, 10) }),
     },
   });
 
   revalidatePath("/catalog");
-  return { success: true, updatedUser };
+  return {
+    success: true,
+    updatedUser: {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      username: updatedUser.username,
+    },
+  };
 }
