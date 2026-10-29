@@ -17,6 +17,19 @@ function envStatus(...keys: string[]): boolean {
   });
 }
 
+// Blob v2 authentica con OIDC (VERCEL_OIDC_TOKEN + BLOB_STORE_ID; el token
+// de deployment lo inyecta Vercel y el local viene de `vercel env pull`) —
+// el read-write token queda como fallback clásico.
+function blobConfigured(): boolean {
+  return (
+    envStatus("BLOB_READ_WRITE_TOKEN") ||
+    Boolean(
+      process.env.BLOB_STORE_ID &&
+        (process.env.VERCEL === "1" || envStatus("VERCEL_OIDC_TOKEN"))
+    )
+  );
+}
+
 export default async function AdminSettingsPage() {
   const [settings, zipnovaOk] = await Promise.all([
     prisma.storeSettings.findUnique({ where: { id: "default" } }),
@@ -50,8 +63,8 @@ export default async function AdminSettingsPage() {
     },
     {
       name: "Vercel Blob (imágenes)",
-      ok: envStatus("BLOB_READ_WRITE_TOKEN"),
-      hint: "BLOB_READ_WRITE_TOKEN",
+      ok: blobConfigured(),
+      hint: "BLOB_READ_WRITE_TOKEN o BLOB_STORE_ID (OIDC)",
     },
     {
       name: "URL pública (auth)",
