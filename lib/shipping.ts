@@ -9,6 +9,19 @@ export const ALLOWED_CARRIERS = [233, 208, 323];
 // carrier and service names (Cabify Logistics has no fixed carrier id).
 export const EXCLUDED_CARRIER_NAMES = ["cabify"];
 
+/**
+ * Standard package of one pair (its box). The cart quotes every unit with
+ * these values and Zipnova's `type_packaging: "dynamic"` decides how the
+ * units get packed, so this is the representative starting package, not a
+ * promise of the final parcel.
+ */
+export const PACKAGE_ONE_PAIR = {
+  weight: 500,
+  height: 30,
+  width: 24,
+  length: 14,
+} as const;
+
 export function isExcludedCarrier(quote: ShippingQuoteResult): boolean {
   const names = [quote.carrier?.name, quote.service_type?.name].map((name) =>
     (name || "").toLowerCase()

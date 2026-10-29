@@ -18,9 +18,12 @@ import {
   getWholesaleDiscountPercent,
   type CouponLike
 } from "@/lib/discounts";
+import {
+  getDeliveryWindow,
+  PACKAGE_ONE_PAIR
+} from "@/lib/shipping";
 import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import { getColorHex } from "@/lib/colors";
-import { getDeliveryWindow } from "@/lib/shipping";
 import { formatARS } from "@/lib/money";
 import Link from "next/link";
 import "@/styles/Cart.scss";
@@ -224,10 +227,7 @@ export default function CartPage() {
   const total = discounts.discountedSubtotal + shippingCost;
 
   const shippingItems: ShippingQuoteItem[] = cart.map((item) => ({
-    weight: 200,
-    height: 10,
-    width: 10,
-    length: 10,
+    ...PACKAGE_ONE_PAIR,
     description: item.name
   }));
 

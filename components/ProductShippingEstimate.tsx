@@ -12,7 +12,8 @@ import {
 import {
   getDeliveryWindow,
   getEstimateQuotes,
-  getFastestQuote
+  getFastestQuote,
+  PACKAGE_ONE_PAIR
 } from "@/lib/shipping";
 import "@/styles/ProductShippingEstimate.scss";
 
@@ -60,15 +61,12 @@ export default function ProductShippingEstimate({
           postalCode: addr.postalCode
         };
 
-        // Same hardcoded package dims the cart uses for its quote, so the
-        // estimate matches checkout. A single item is representative enough
-        // for a delivery-time window.
+        // Same standard package (one pair, its box) the cart quotes with, so
+        // the estimate matches checkout. A single item is representative
+        // enough for a delivery-time window.
         const items: ShippingQuoteItem[] = [
           {
-            weight: 200,
-            height: 10,
-            width: 10,
-            length: 10,
+            ...PACKAGE_ONE_PAIR,
             description: productName
           }
         ];
