@@ -72,7 +72,7 @@ export default function ProductsFilterBar({
           value={filters.availability}
           onChange={(e) => push({ availability: e.target.value })}
         >
-          <option value="">Todas</option>
+          <option value="all">Todas</option>
           <option value="available">Disponibles</option>
           <option value="unavailable">Pausados</option>
         </select>

@@ -30,7 +30,11 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const q = first(params.q).trim();
   const category = first(params.category);
-  const availability = first(params.availability);
+  // The list shows available products by default; "?availability=all" opts
+  // out of the filter ("" would be indistinguishable from the default).
+  const availabilityParam = first(params.availability) || "available";
+  const availability =
+    availabilityParam === "all" ? "" : availabilityParam;
   const archived = first(params.archived) === "1";
   const sort = first(params.sort) || "recent";
   const perPage = 20;
@@ -91,7 +95,9 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
     const search = new URLSearchParams();
     if (q) search.set("q", q);
     if (category) search.set("category", category);
-    if (availability) search.set("availability", availability);
+    if (availabilityParam !== "available") {
+      search.set("availability", availabilityParam);
+    }
     if (archived) search.set("archived", "1");
     if (sort !== "recent") search.set("sort", sort);
     if (target > 1) search.set("page", String(target));
@@ -112,7 +118,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
         filters={{
           q,
           category,
-          availability,
+          availability: availabilityParam,
           archived,
           sort,
           page,

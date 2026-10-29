@@ -61,6 +61,7 @@ export interface AdminCategoryRow {
 export interface AdminProductsFilters {
   q: string;
   category: string;
+  /** "available" | "unavailable" | "all" — defaults to "available". */
   availability: string;
   archived: boolean;
   sort: string;
