@@ -116,7 +116,7 @@ export default function SettingsForm({ settings }: StoreSettingsFormProps) {
               type="text"
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
-              placeholder="@nyady.store"
+                placeholder="@nyady.arg"
             />
           </label>
           <label className="admin-field">

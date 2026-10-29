@@ -48,7 +48,7 @@ export default function SiteFooter() {
             />
           </a>
           <a
-            href="https://www.instagram.com/nyady.store"
+            href="https://www.instagram.com/nyady.arg"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram (se abre en una nueva pestaña)"

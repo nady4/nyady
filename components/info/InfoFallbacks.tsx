@@ -173,7 +173,7 @@ Lo cambiamos sin costo. Escribinos al WhatsApp [+54 9 11 7812-0252](https://wa.m
 ## Contacto
 
 ### ¿Cómo los contacto?
-Podés escribirnos por WhatsApp al +54 9 11 7812-0252 ([link directo](https://wa.me/5491178120252)), por email a contacto@nyady.com o por nuestras redes sociales (Instagram: @nyady, Facebook: NYADY). Respondemos en menos de 24 horas en horario laboral.`,
+Podés escribirnos por WhatsApp al +54 9 11 7812-0252 ([link directo](https://wa.me/5491178120252)), por email a contacto@nyady.com o por nuestras redes sociales (Instagram: @nyady.arg, Facebook: NYADY). Respondemos en menos de 24 horas en horario laboral.`,
   },
   reembolsos: {
     title: "Reembolsos",
@@ -209,7 +209,7 @@ Si recibiste un producto defectuoso, contactános inmediatamente y lo cambiaremo
 contacto@nyady.com
 
 ### Redes Sociales
-- Instagram: [@nyady.store](https://www.instagram.com/nyady.store)
+- Instagram: [@nyady.arg](https://www.instagram.com/nyady.arg)
 - Facebook: [@nyady.arg](https://facebook.com/nyady.arg)
 
 ## Respondemos Rápido
