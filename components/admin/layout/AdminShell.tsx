@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fraunces } from "@/app/fonts";
 
 interface NavItem {
@@ -88,6 +88,18 @@ export default function AdminShell({
     isActive(pathname, item)
   );
 
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
+
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
@@ -103,6 +115,7 @@ export default function AdminShell({
       key={item.href}
       href={item.href}
       className={`admin-nav-item ${isActive(pathname, item) ? "active" : ""}`}
+      aria-current={isActive(pathname, item) ? "page" : undefined}
       onClick={() => setMenuOpen(false)}
     >
       <Image src={item.icon} alt="" width={18} height={18} />
@@ -112,7 +125,10 @@ export default function AdminShell({
 
   return (
     <div className="admin-shell">
-      <aside className={`admin-sidebar ${menuOpen ? "open" : ""}`}>
+      <aside
+        className={`admin-sidebar ${menuOpen ? "open" : ""}`}
+        inert={!menuOpen}
+      >
         <div className="admin-sidebar-brand">
           <Link
             href="/admin"
@@ -165,9 +181,11 @@ export default function AdminShell({
         <header className="admin-topbar">
           <button
             type="button"
+            ref={menuButtonRef}
             className="admin-topbar-menu"
             onClick={() => setMenuOpen(true)}
             aria-label="Abrir menú"
+            aria-expanded={menuOpen}
           >
             <Image src="/assets/icons/menu.svg" alt="" width={22} height={22} />
           </button>

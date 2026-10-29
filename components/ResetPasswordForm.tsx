@@ -61,7 +61,7 @@ export default function ResetPasswordForm() {
       <form onSubmit={handleSubmit}>
         {missingToken && (
           <>
-            <p className="error">
+            <p className="error" role="alert">
               El enlace no incluye el token de recuperación. Pedí uno nuevo.
             </p>
             <Link href="/forgot-password" className="link">
@@ -84,9 +84,13 @@ export default function ResetPasswordForm() {
 
         {!missingToken && !done && (
           <>
+            <label htmlFor="reset-password" className="sr-only">
+              Nueva contraseña (mínimo 8 caracteres)
+            </label>
             <input
+              id="reset-password"
               type="password"
-              placeholder="Nueva contraseña"
+              placeholder="Nueva contraseña (mínimo 8 caracteres)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               minLength={PASSWORD_MIN}
@@ -94,7 +98,11 @@ export default function ResetPasswordForm() {
               autoComplete="new-password"
               required
             />
+            <label htmlFor="reset-confirm" className="sr-only">
+              Confirmar nueva contraseña
+            </label>
             <input
+              id="reset-confirm"
               type="password"
               placeholder="Confirmar nueva contraseña"
               value={confirm}
@@ -102,7 +110,7 @@ export default function ResetPasswordForm() {
               autoComplete="new-password"
               required
             />
-            {error && <p className="error">{error}</p>}
+            {error && <p className="error" role="alert">{error}</p>}
             <button type="submit" disabled={pending}>
               {pending ? "Guardando..." : "Cambiar contraseña"}
             </button>

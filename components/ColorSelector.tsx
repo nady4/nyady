@@ -15,14 +15,21 @@ const ColorSelector = memo(function ColorSelector({
   onColorChange,
 }: ColorSelectorProps) {
   return (
-    <div className="color-selector">
+    <div
+      role="radiogroup"
+      aria-label="Color"
+      className="color-selector"
+    >
       {colors.map((color) => (
         <button
           key={color}
+          type="button"
+          role="radio"
+          aria-checked={selectedColor === color}
           className={`color-circle ${selectedColor === color ? "selected" : ""}`}
           style={{ backgroundColor: getColorHex(color) }}
           onClick={() => onColorChange(color)}
-          aria-label={`Select color ${color}`}
+          aria-label={`Color ${color}`}
         />
       ))}
     </div>

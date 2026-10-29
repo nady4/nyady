@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useAppSelector } from "@/hooks/useStore";
-import { getCartProducts } from "@/actions/cart";
+import { getCartTotalQuantity } from "@/actions/cart";
 
 // The Redux cart slice only tracks product ids, so this hook fetches the real
 // quantities from the server and shares the total across components (catalog
@@ -21,8 +21,7 @@ function publish(total: number, userId: string) {
 function fetchTotal(userId: string): Promise<number> {
   if (inFlight) return inFlight;
 
-  inFlight = getCartProducts(userId)
-    .then((items) => items.reduce((acc, item) => acc + item.quantity, 0))
+  inFlight = getCartTotalQuantity(userId)
     .then((total) => {
       publish(total, userId);
       return total;
@@ -45,11 +44,13 @@ export function useCartTotalQuantity(): number {
 
   useEffect(() => {
     if (!userId) {
-      setTotal(0);
+      queueMicrotask(() => setTotal(0));
       return;
     }
 
-    if (cachedUserId === userId) setTotal(cachedTotal);
+    if (cachedUserId === userId) {
+      queueMicrotask(() => setTotal(cachedTotal));
+    }
 
     listeners.add(setTotal);
     fetchTotal(userId).catch(() => {});

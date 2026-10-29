@@ -86,7 +86,7 @@ export default function OrderStatusEditor({
         >
           {busy ? "Procesando..." : "Restaurar"}
         </button>
-        {error && <p className="admin-error">{error}</p>}
+        {error && <p className="admin-error" role="alert">{error}</p>}
       </div>
     );
   }
@@ -198,7 +198,7 @@ export default function OrderStatusEditor({
         </>
       )}
 
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error" role="alert">{error}</p>}
     </div>
   );
 }

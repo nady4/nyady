@@ -126,7 +126,7 @@ export default function CouponsAdmin({
   return (
     <div className="admin-coupons">
       {message && (
-        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"}>
+        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"} role={message.kind === "ok" ? "status" : "alert"}>
           {message.text}
         </p>
       )}
@@ -256,13 +256,15 @@ export default function CouponsAdmin({
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Cupón</th>
-                <th>Descuento</th>
-                <th className="admin-col-number">Usos</th>
-                <th className="admin-col-center">Uno por usuario</th>
-                <th>Vence</th>
-                <th className="admin-col-center">Estado</th>
-                <th className="admin-col-actions" aria-label="Acciones" />
+                <th scope="col">Cupón</th>
+                <th scope="col">Descuento</th>
+                <th scope="col" className="admin-col-number">Usos</th>
+                <th scope="col" className="admin-col-center">Uno por usuario</th>
+                <th scope="col">Vence</th>
+                <th scope="col" className="admin-col-center">Estado</th>
+                <th scope="col" className="admin-col-actions">
+                  <span className="admin-sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>

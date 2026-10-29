@@ -19,9 +19,12 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  // Space for the fixed "Hecho con ❤" footer bar so the last content of
+  // every page (buttons, CTAs) is never covered.
+  padding-bottom: 3.5rem;
   color: var(--foreground);
   background: var(--background);
-  font-family: $body-font, var(--font-inter);
+  font-family: $body-font;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,4 +38,65 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Visually hidden but exposed to screen readers (shared utility). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip-to-content link: first focusable element of every page. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.5rem;
+  z-index: 100;
+  background: #2c2416;
+  color: #f9f2e7;
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  font-family: $body-font;
+  font-size: 0.9rem;
+
+  &:focus {
+    left: 0.5rem;
+  }
+}
+
+/* Single visible-focus contract for the whole storefront. */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid $accent-focus;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Text inputs keep the border treatment too (color alone is not enough). */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid $accent-focus;
+  outline-offset: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

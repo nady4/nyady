@@ -193,6 +193,7 @@ async function main() {
     await prisma.product.create({
       data: {
         id,
+        slug: id,
         ...product
       }
     });

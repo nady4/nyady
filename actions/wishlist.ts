@@ -9,35 +9,27 @@ export async function toggleWishlistProduct(userId: string, productId: string) {
   if (!productId) throw new Error("Missing productId");
 
   try {
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true }
+    const existingWish = await prisma.wishList.findFirst({
+      where: { userId, productId },
     });
-    if (!userExists) {
-      console.error("[toggleWishlistProduct] User not found:", userId);
-      return;
+
+    if (existingWish) {
+      await prisma.wishList.delete({ where: { id: existingWish.id } });
+    } else {
+      await prisma.wishList.create({
+        data: {
+          userId,
+          productId,
+        },
+      });
     }
   } catch (error) {
-    console.error("[toggleWishlistProduct] Error checking user:", error);
-    return;
-  }
-
-  const existingWish = await prisma.wishList.findFirst({
-    where: { userId, productId },
-  });
-
-  if (existingWish) {
-    await prisma.wishList.delete({ where: { id: existingWish.id } });
-  } else {
-    await prisma.wishList.create({
-      data: {
-        userId,
-        productId,
-      },
-    });
+    console.error("[toggleWishlistProduct] failed:", error);
+    return { ok: false };
   }
 
   revalidatePath("/");
+  return { ok: true };
 }
 
 export async function getWishlistIds(userId: string) {

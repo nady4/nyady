@@ -1,15 +1,29 @@
 import type { MetadataRoute } from "next";
-import { getAppUrl } from "@/lib/email";
+import { getSiteUrl } from "@/lib/site-url";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = getAppUrl().replace(/\/$/, "");
+  const base = getSiteUrl().replace(/\/$/, "");
   return {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin", "/api/", "/signin", "/register", "/orders", "/cart"]
+      disallow: [
+        "/admin",
+        "/api/",
+        "/signin",
+        "/register",
+        "/orders",
+        "/cart",
+        "/wishlist",
+        "/cuenta",
+        "/address",
+        "/success",
+        "/pending",
+        "/failure",
+        "/forgot-password",
+        "/reset-password",
+      ]
     },
-    sitemap: `${base}/sitemap.xml`,
-    host: base
+    sitemap: `${base}/sitemap.xml`
   };
 }

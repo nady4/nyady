@@ -51,7 +51,7 @@ export default function ShipmentsAdmin({ rows }: { rows: AdminShipmentRow[] }) {
   return (
     <div className="admin-shipments">
       {error && (
-        <div className="admin-banner error">
+        <div className="admin-banner error" role="alert">
           <span>{error.error}</span>
           <button type="button" onClick={() => setError(null)} aria-label="Cerrar">
             ×
@@ -63,15 +63,17 @@ export default function ShipmentsAdmin({ rows }: { rows: AdminShipmentRow[] }) {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Pedido</th>
-              <th>Estado pedido</th>
-              <th>Envío</th>
-              <th>Opción</th>
-              <th>Destino</th>
-              <th>Cliente</th>
-              <th className="admin-col-number">Costo</th>
-              <th>Tracking</th>
-              <th className="admin-col-actions" aria-label="Acciones" />
+              <th scope="col">Pedido</th>
+              <th scope="col">Estado pedido</th>
+              <th scope="col">Envío</th>
+              <th scope="col">Opción</th>
+              <th scope="col">Destino</th>
+              <th scope="col">Cliente</th>
+              <th scope="col" className="admin-col-number">Costo</th>
+              <th scope="col">Tracking</th>
+              <th scope="col" className="admin-col-actions">
+                  <span className="admin-sr-only">Acciones</span>
+                </th>
             </tr>
           </thead>
           <tbody>

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pago rechazado - NYADY",
+  title: "Pago rechazado",
+  robots: { index: false, follow: true },
   description: "El pago no pudo ser completado. Podés intentar nuevamente o usar otro medio de pago.",
 };
 
@@ -13,6 +14,7 @@ export default function FailurePage() {
       <p>El pago no pudo ser completado. Podés intentar nuevamente o usar otro medio de pago.</p>
 
       <div className="payment-actions">
+        <Link href="/orders">Reintentá el pago desde tus pedidos</Link>
         <Link href="/cart">Volver al carrito</Link>
         <Link href="/">Ir a inicio</Link>
       </div>

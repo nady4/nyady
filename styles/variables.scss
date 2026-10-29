@@ -1,21 +1,37 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@300;400;500;600&display=swap");
-
+// Fonts are self-hosted via next/font (app/fonts.ts); consume the generated
+// CSS variables instead of a render-blocking remote @import. Font family
+// names still fall back sensibly if the variables are missing.
 $bg-color: #f9f2e7;
 $bg-secondary: #fcfcf9;
+
+// Accent: use $accent-color only as a BACKGROUND (with dark text on top);
+// textual accents / links must use $accent-text, which clears 4.5:1 on both
+// cream backgrounds.
 $accent-color: #ecbc3b;
 $accent-hover: #d4a632;
+$accent-text: #8a6a14;
+$accent-focus: #8a6a14;
+
 $border-color: #e5ddd0;
 $text-color: #2c2416;
 $text-muted: #6b5d4d;
 $error-color: #c0392b;
-$success-color: #27ae60;
-$warning-color: #f39c12;
+$danger-text: #b3261e; // error text AA on light backgrounds
+$success-color: #27ae60; // backgrounds / accents
+$success-text: #166534; // textual success/discounts (≥4.5:1 on light)
+$warning-color: #f39c12; // backgrounds / accents
+$warning-text: #8a5a00; // textual warnings ≥4.5:1 on light backgrounds
+// Brand logotype gold: decorative (WCAG exempts logotypes). Textual golds
+// must use $accent-text instead, which passes 4.5:1 on cream.
 $logo-color: #D4AF37;
 $button-color: #2c2416;
 $button-hover: #4a4130;
 
-$title-font: "Fraunces", serif;
-$body-font: "Inter", sans-serif;
+// Rating above the AA threshold on every light background used by the app.
+$price-green: #166534;
+
+$title-font: var(--font-fraunces, "Fraunces", serif);
+$body-font: var(--font-inter, "Inter", sans-serif);
 
 @keyframes pulse {
   0% {

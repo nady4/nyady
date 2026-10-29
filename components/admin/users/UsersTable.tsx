@@ -15,13 +15,13 @@ export default function UsersTable({ rows }: { rows: AdminUserRow[] }) {
       <table className="admin-table">
         <thead>
           <tr>
-            <th>Usuario</th>
-            <th>Email</th>
-            <th className="admin-col-number">Pedidos</th>
-            <th>Dirección</th>
-            <th>Desde</th>
-            <th className="admin-col-center">Estado</th>
-            <th className="admin-col-center">Ver</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Email</th>
+            <th scope="col" className="admin-col-number">Pedidos</th>
+            <th scope="col">Dirección</th>
+            <th scope="col">Desde</th>
+            <th scope="col" className="admin-col-center">Estado</th>
+            <th scope="col" className="admin-col-center">Ver</th>
           </tr>
         </thead>
         <tbody>

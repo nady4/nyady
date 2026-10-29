@@ -13,21 +13,6 @@ export async function toggleCartProduct(userId: string | undefined, productId: s
   }
 
   try {
-    const userExists = await prisma.user.findUnique({ 
-      where: { id: userId },
-      select: { id: true }
-    });
-    
-    if (!userExists) {
-      console.error("[toggleCartProduct] User not found:", userId);
-      return;
-    }
-  } catch (error) {
-    console.error("[toggleCartProduct] Error checking user:", error);
-    return;
-  }
-
-  try {
     const existingCart = await prisma.cart.findFirst({
       where: { userId, productId },
     });
@@ -60,61 +45,53 @@ export async function addToCartWithDetails(
   selectedColor?: string,
   selectedTacoOption?: string,
   quantity: number = 1
-) {
+): Promise<{ ok: boolean; error?: string }> {
   if (!userId || userId === "undefined" || !productId) {
-    return;
+    return { ok: false, error: "Iniciá sesión para comprar" };
   }
 
-  // Guard against stale sessions: if the JWT references a user that no longer
-  // exists in the DB (e.g. after a migrate reset / re-seed during dev), the
-  // create below would throw a Cart_userId_fkey violation. Match the guard in
-  // toggleCartProduct and no-op instead of crashing.
+  // No user pre-check: a stale JWT id fails fast at FK creation (P2003) and
+  // the caller can prompt a fresh sign-in without an extra query per click.
   try {
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    if (!userExists) {
-      console.error("[addToCartWithDetails] User not found:", userId);
-      return;
-    }
-  } catch (error) {
-    console.error("[addToCartWithDetails] Error checking user:", error);
-    return;
-  }
-
-  const existingCart = await prisma.cart.findFirst({
-    where: { 
-      userId, 
-      productId,
-      selectedSize: selectedSize || null,
-      selectedColor: selectedColor || null,
-      selectedTacoOption: selectedTacoOption || null,
-    },
-  });
-
-  if (existingCart) {
-    await prisma.cart.update({
-      where: { id: existingCart.id },
-      data: {
-        quantity: existingCart.quantity + quantity,
-      },
-    });
-  } else {
-    await prisma.cart.create({
-      data: {
+    const existingCart = await prisma.cart.findFirst({
+      where: {
         userId,
         productId,
-        quantity,
         selectedSize: selectedSize || null,
         selectedColor: selectedColor || null,
         selectedTacoOption: selectedTacoOption || null,
       },
     });
+
+    if (existingCart) {
+      await prisma.cart.update({
+        where: { id: existingCart.id },
+        data: {
+          quantity: existingCart.quantity + quantity,
+        },
+      });
+    } else {
+      await prisma.cart.create({
+        data: {
+          userId,
+          productId,
+          quantity,
+          selectedSize: selectedSize || null,
+          selectedColor: selectedColor || null,
+          selectedTacoOption: selectedTacoOption || null,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("[addToCartWithDetails] failed:", error);
+    return {
+      ok: false,
+      error: "No pudimos agregar el producto al carrito. Intentá de nuevo.",
+    };
   }
 
   revalidatePath("/");
+  return { ok: true };
 }
 
 export async function removeFromCartById(cartId: string) {
@@ -163,6 +140,24 @@ export async function getCartIds(userId: string | undefined) {
   } catch (error) {
     console.error("Error fetching cart:", error);
     return [];
+  }
+}
+
+/** Lightweight total for wholesale previews (no product payload needed). */
+export async function getCartTotalQuantity(
+  userId: string | undefined
+): Promise<number> {
+  if (!userId || userId === "undefined") return 0;
+
+  try {
+    const result = await prisma.cart.aggregate({
+      where: { userId },
+      _sum: { quantity: true },
+    });
+    return result._sum.quantity ?? 0;
+  } catch (error) {
+    console.error("Error fetching cart total:", error);
+    return 0;
   }
 }
 

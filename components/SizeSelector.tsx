@@ -13,10 +13,17 @@ const SizeSelector = memo(function SizeSelector({
   onSizeChange,
 }: SizeSelectorProps) {
   return (
-    <div className="size-selector">
+    <div
+      role="radiogroup"
+      aria-label="Talle"
+      className="size-selector"
+    >
       {sizes.map((size) => (
         <button
           key={size}
+          type="button"
+          role="radio"
+          aria-checked={selectedSize === size}
           className={`size-option ${selectedSize === size ? "selected" : ""}`}
           onClick={() => onSizeChange(size)}
         >

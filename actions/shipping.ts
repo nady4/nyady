@@ -149,7 +149,24 @@ export async function quoteShippingToAddress(
   items: ShippingQuoteItem[],
   declaredValue: number
 ): Promise<ShippingQuoteResponse | null> {
-  return getShippingQuote(
+  // Zipnova quotes don't change minute-to-minute: the estimate surfaces on
+  // the product page and cart are cached for a quarter hour, keyed on
+  // destination+package count+value band so different carts still quote
+  // freshly while a revisiting user doesn't re-hit the external API.
+  const cacheKey = [
+    address.postalCode,
+    address.city,
+    items.length,
+    Math.round(declaredValue / 5000),
+  ].join("|");
+
+  const now = Date.now();
+  const cached = quoteCache.get(cacheKey);
+  if (cached && now - cached.at < QUOTE_CACHE_TTL_MS) {
+    return cached.value;
+  }
+
+  const value = await getShippingQuote(
     {
       city: address.city,
       state: address.state,
@@ -159,7 +176,20 @@ export async function quoteShippingToAddress(
     items,
     declaredValue
   );
+
+  if (value) {
+    quoteCache.set(cacheKey, { value, at: now });
+    if (quoteCache.size > 500) {
+      const oldest = quoteCache.keys().next().value;
+      if (oldest) quoteCache.delete(oldest);
+    }
+  }
+
+  return value;
 }
+
+const QUOTE_CACHE_TTL_MS = 15 * 60 * 1000;
+const quoteCache = new Map<string, { value: ShippingQuoteResponse; at: number }>();
 
 // --- Shipment creation + tracking -------------------------------------------
 

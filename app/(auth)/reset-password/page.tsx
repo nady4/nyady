@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import ResetPasswordForm from "@/components/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Nueva contraseña - NYADY",
+  robots: { index: false, follow: true },
+  title: "Nueva contraseña",
 };
 
 function Page() {

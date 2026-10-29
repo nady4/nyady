@@ -127,7 +127,7 @@ export default function ImagePicker({
         </label>
       )}
 
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error" role="alert">{error}</p>}
     </div>
   );
 }

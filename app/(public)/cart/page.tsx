@@ -21,6 +21,7 @@ import {
 import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import { getColorHex } from "@/lib/colors";
 import { getDeliveryWindow } from "@/lib/shipping";
+import { formatARS } from "@/lib/money";
 import Link from "next/link";
 import "@/styles/Cart.scss";
 
@@ -233,20 +234,35 @@ export default function CartPage() {
   if (loading || status === "loading")
     return (
       <div className="cart">
-        <p className="empty">Cargando...</p>
+        <div className="cart-skeleton" aria-busy="true" aria-live="polite">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skeleton-cart-item">
+              <div className="skeleton-image" />
+              <div className="skeleton-line skeleton-title" />
+              <div className="skeleton-line skeleton-price" />
+            </div>
+          ))}
+          <span className="sr-only">Cargando tu carrito...</span>
+        </div>
       </div>
     );
 
   if (cart.length === 0)
     return (
       <div className="cart">
-        <p className="empty">Tu carrito está vacío</p>
+        <h1>Carrito</h1>
+        <div className="empty">
+          <p>Tu carrito está vacío</p>
+          <Link href="/catalog" className="empty-cta">
+            Ver catálogo
+          </Link>
+        </div>
       </div>
     );
 
   return (
     <div className="cart">
-      <h2>Carrito</h2>
+      <h1>Carrito</h1>
       {cart.map((item) => (
         <div key={item.cartId} className="cart-item">
           <Image
@@ -254,6 +270,7 @@ export default function CartPage() {
             alt={item.name}
             width={100}
             height={100}
+            sizes="100px"
             style={{ borderRadius: "8px" }}
           />
           <div className="item-details">
@@ -267,6 +284,8 @@ export default function CartPage() {
                 <span
                   className="color-dot"
                   style={{ backgroundColor: getColorHex(item.selectedColor) }}
+                  role="img"
+                  aria-label={`Color ${item.selectedColor}`}
                 />
               </span>
             )}
@@ -276,25 +295,31 @@ export default function CartPage() {
           </div>
           <div className="quantity">
             <button
+              type="button"
               onClick={() =>
                 handleDecreaseQuantity(item.cartId, item.quantity)
               }
+              aria-label={`Restar una unidad de ${item.name}`}
             >
-              -
+              −<span className="sr-only">Restar cantidad</span>
             </button>
-            <span>{item.quantity}</span>
+            <span aria-live="polite">{item.quantity}</span>
             <button
+              type="button"
               onClick={() =>
                 handleIncreaseQuantity(item.cartId, item.quantity)
               }
+              aria-label={`Sumar una unidad de ${item.name}`}
             >
-              +
+              +<span className="sr-only">Sumar cantidad</span>
             </button>
           </div>
           <button
+            type="button"
             className="remove-item"
             onClick={() => handleRemoveItem(item.cartId)}
             title="Eliminar"
+            aria-label={`Eliminar ${item.name} del carrito`}
           >
             ×
           </button>
@@ -338,7 +363,10 @@ export default function CartPage() {
                   <strong>Enviar a:</strong> {address.street}, {address.city},{" "}
                   {address.state} {address.postalCode}
                 </p>
-                <Link href="/address" className="edit-address-link">
+                <Link
+                  href="/address?next=/cart"
+                  className="edit-address-link"
+                >
                   Editar dirección de envío
                 </Link>
               </div>
@@ -388,7 +416,11 @@ export default function CartPage() {
             </div>
           ) : (
             <div className="coupon-input-row">
+              <label htmlFor="coupon-code" className="sr-only">
+                Código de cupón
+              </label>
               <input
+                id="coupon-code"
                 type="text"
                 className="coupon-input"
                 placeholder="Código de cupón"
@@ -406,13 +438,22 @@ export default function CartPage() {
               </button>
             </div>
           )}
-          {couponError && <p className="coupon-error">{couponError}</p>}
+          {couponError && (
+            <p className="coupon-error" role="alert">
+              {couponError}
+            </p>
+          )}
+          {appliedCoupon && (
+            <p className="sr-only" role="status">
+              {`Cupón ${appliedCoupon.code} aplicado`}
+            </p>
+          )}
         </div>
       )}
 
       <div className="cart-total">
         <div className="subtotal-line">
-          Subtotal: ${subtotalBeforeDiscount.toLocaleString("es-AR")}
+          Subtotal: {formatARS(subtotalBeforeDiscount)}
         </div>
         {discountInfo.percent > 0 && (
           <div className="discount-amount">
@@ -422,13 +463,13 @@ export default function CartPage() {
             <span
               className={`discount-value price-discounted discount-${discountInfo.percent}`}
             >
-              -${discountAmount.toLocaleString("es-AR")}
+              -{formatARS(discountAmount)}
             </span>
           </div>
         )}
         {discountInfo.percent > 0 && (
           <div className="subtotal-after-discount">
-            Subtotal: ${subtotal.toLocaleString("es-AR")}
+            Subtotal: {formatARS(subtotal)}
           </div>
         )}
         {appliedCoupon && couponDiscount > 0 && (
@@ -437,17 +478,16 @@ export default function CartPage() {
               Cupón {appliedCoupon.code}
             </span>
             <span className="coupon-discount-value">
-              -${couponDiscount.toLocaleString("es-AR")}
+              -{formatARS(couponDiscount)}
             </span>
           </div>
         )}
         {selectedShipping && (
           <div className="shipping-cost">
-            {selectedShipping.service_type.name}: $
-            {shippingCost.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}
+            {selectedShipping.service_type.name}: {formatARS(shippingCost)}
           </div>
         )}
-        <div className="total">Total: ${total.toLocaleString("es-AR")}</div>
+        <div className="total">Total: {formatARS(total)}</div>
         {selectedShipping &&
           (() => {
             const window = getDeliveryWindow(

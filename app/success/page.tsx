@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pago exitoso - NYADY",
-  description: "Tu pago fue procesado correctamente. Gracias por tu compra de pantuflas artesanales.",
+  title: "Pago exitoso",
+  description:
+    "Tu pago fue procesado correctamente. Gracias por tu compra de sandalias artesanales.",
+  robots: { index: false, follow: true },
 };
 
 export default function SuccessPage() {
@@ -13,7 +15,10 @@ export default function SuccessPage() {
       <p>Tu pago fue procesado correctamente.</p>
 
       <div className="payment-info">
-        <p>Serás redirigido a tus pedidos.</p>
+        <p>
+          Ya está en elaboración: te avisamos por email cuando salga hacia el
+          envío (las sandalias artesanales necesitan 3 a 7 días hábiles).
+        </p>
       </div>
 
       <div className="payment-actions">

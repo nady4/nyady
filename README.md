@@ -44,7 +44,7 @@
 
 ## 🌐 Live demo
 
-- **URL:** <b><a href="https://nyady.nady4.com">nyady.nady4.com</a></b>
+- **URL:** <b><a href="https://nyady.com">nyady.com</a></b>
 - **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` — or register a new one.
 
 <br>
@@ -188,7 +188,8 @@ Create a `.env` file (see `.gitignore` — `.env*` is ignored) with:
 
 ```env
 # App / auth
-NEXTAUTH_URL=http://localhost:3000
+# App / auth (canonical public origin: used by metadataBase, robots, sitemap)
+NEXTAUTH_URL=https://nyady.com
 NEXTAUTH_SECRET=yourSecret
 DATABASE_URL=postgresql://user:password@host:5432/nyady
 

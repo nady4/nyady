@@ -65,7 +65,7 @@ export default function CategoriesAdmin({
   return (
     <div className="admin-categories">
       {message && (
-        <div className="admin-banner error">
+        <div className="admin-banner error" role="alert">
           <span>{message.error}</span>
           <button type="button" onClick={() => setMessage(null)} aria-label="Cerrar">
             ×
@@ -77,10 +77,12 @@ export default function CategoriesAdmin({
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Categoría</th>
-              <th className="admin-col-number">Activos</th>
-              <th className="admin-col-number">Archivados</th>
-              <th className="admin-col-actions" aria-label="Acciones" />
+              <th scope="col">Categoría</th>
+              <th scope="col" className="admin-col-number">Activos</th>
+              <th scope="col" className="admin-col-number">Archivados</th>
+              <th scope="col" className="admin-col-actions">
+                  <span className="admin-sr-only">Acciones</span>
+                </th>
             </tr>
           </thead>
           <tbody>
@@ -97,6 +99,11 @@ export default function CategoriesAdmin({
                         className="admin-inline-input"
                         value={draft.target}
                         list="admin-category-targets"
+                        aria-label={
+                          draft.mode === "rename"
+                            ? `Nombre nuevo para la categoría ${row.category}`
+                            : `Fusión categorías: categoria destino para ${row.category}`
+                        }
                         placeholder={
                           draft.mode === "rename"
                             ? "Nombre nuevo"

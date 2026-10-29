@@ -168,12 +168,12 @@ Sí. Tenés **10 días corridos** desde la compra para ejercer el botón de arre
 Sí, dentro de los **10 días** desde la recepción, siempre que esté sin uso y en su empaque original. Ver [reembolsos](/info/reembolsos).
 
 ### ¿Qué pasa si llega defectuoso?
-Lo cambiamos sin costo. Contactános inmediatamente a contacto@nyady.com.
+Lo cambiamos sin costo. Escribinos al WhatsApp [+54 9 11 7812-0252](https://wa.me/5491178120252) o a contacto@nyady.com.
 
 ## Contacto
 
 ### ¿Cómo los contacto?
-Podés escribirnos por email a contacto@nyady.com o por nuestras redes sociales (Instagram: @nyady, Facebook: NYADY). Respondemos en menos de 24 horas en horario laboral.`,
+Podés escribirnos por WhatsApp al +54 9 11 7812-0252 ([link directo](https://wa.me/5491178120252)), por email a contacto@nyady.com o por nuestras redes sociales (Instagram: @nyady, Facebook: NYADY). Respondemos en menos de 24 horas en horario laboral.`,
   },
   reembolsos: {
     title: "Reembolsos",
@@ -186,7 +186,7 @@ Aceptamos devoluciones dentro de los **10 días** desde que recibís tu pedido, 
 Tenés **10 días corridos** desde tu compra para arrepentirte según la Ley 24.240, sin necesidad de justificarlo. Ingresá al [botón de arrepentimiento](/info/arrepentimiento).
 
 ## Proceso de Devolución
-1. Contactános por email a contacto@nyady.com
+1. Contactános por WhatsApp al [54 9 11 7812-0252 (link directo)](https://wa.me/5491178120252) o por email a contacto@nyady.com
 2. Indicános si preferís un reembolso o un cambio del producto
 3. Te indicaremos la dirección de retorno
 4. Enviá el producto por el medio indicado
@@ -201,6 +201,9 @@ Si recibiste un producto defectuoso, contactános inmediatamente y lo cambiaremo
     title: "Contacto",
     description: "Encontrá todas las formas de contactar al equipo de NYADY.",
     content: `## Canales de Contacto
+
+### WhatsApp
+[+54 9 11 7812-0252](https://wa.me/5491178120252)
 
 ### Email
 contacto@nyady.com

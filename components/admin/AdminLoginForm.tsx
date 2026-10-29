@@ -51,21 +51,27 @@ export default function AdminLoginForm() {
         Acceso administrador
       </h1>
       <form onSubmit={handleSubmit} className="admin-login-form">
-        <input
-          type="text"
-          name="username"
-          placeholder="Usuario"
-          autoComplete="username"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          autoComplete="current-password"
-          required
-        />
-        {error && <p className="admin-error">{error}</p>}
+        <label className="admin-login-field">
+          Usuario
+          <input
+            type="text"
+            name="username"
+            placeholder="Usuario"
+            autoComplete="username"
+            required
+          />
+        </label>
+        <label className="admin-login-field">
+          Contraseña
+          <input
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            autoComplete="current-password"
+            required
+          />
+        </label>
+        {error && <p className="admin-error" role="alert">{error}</p>}
         <button type="submit" disabled={pending}>
           {pending ? "Ingresando..." : "Ingresar"}
         </button>

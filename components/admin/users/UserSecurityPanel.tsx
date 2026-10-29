@@ -57,7 +57,7 @@ export default function UserSecurityPanel({ user }: { user: AdminUserDetailView 
           </button>
         </div>
         {message && (
-          <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"}>
+          <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"} role={message.kind === "ok" ? "status" : "alert"}>
             {message.text}
           </p>
         )}
@@ -124,9 +124,10 @@ export default function UserSecurityPanel({ user }: { user: AdminUserDetailView 
       </div>
 
       <div className="admin-user-security-row">
-        <span>Nueva contraseña</span>
+        <label htmlFor="admin-user-new-password">Nueva contraseña</label>
         <div className="admin-user-security-actions">
           <input
+            id="admin-user-new-password"
             type={showPassword ? "text" : "password"}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
@@ -137,7 +138,8 @@ export default function UserSecurityPanel({ user }: { user: AdminUserDetailView 
             type="button"
             className="admin-button small"
             onClick={() => setShowPassword((v) => !v)}
-            aria-label="Mostrar/ocultar contraseña"
+            aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-pressed={showPassword}
           >
             {showPassword ? "Ocultar" : "Ver"}
           </button>
@@ -205,7 +207,7 @@ export default function UserSecurityPanel({ user }: { user: AdminUserDetailView 
       </div>
 
       {message && (
-        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"}>
+        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"} role={message.kind === "ok" ? "status" : "alert"}>
           {message.text}
         </p>
       )}

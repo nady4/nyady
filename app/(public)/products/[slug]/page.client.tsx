@@ -1,9 +1,8 @@
 "use client";
 import { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useToggleWishlist, useToggleCartProduct } from "@/hooks/useToggleData";
+import { useAddToCart, useToggleWishlist } from "@/hooks/useToggleData";
 import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
 import { getWholesaleDiscountPercent } from "@/lib/discounts";
 import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
@@ -23,12 +22,11 @@ interface ProductProps {
 
 export default function Product({ product, relatedProducts }: ProductProps) {
   const id = product.id;
-  const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ?? null;
 
   const { isWishlisted, onHeartClick } = useToggleWishlist(id);
-  const { onCartClick } = useToggleCartProduct(id);
+  const { onAddToCart } = useAddToCart(id);
   const cartTotalQuantity = useCartTotalQuantity();
 
   const [quantity, setQuantity] = useState(1);
@@ -77,39 +75,39 @@ export default function Product({ product, relatedProducts }: ProductProps) {
     setSelectedImageIndex(0);
   }, []);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!userId) {
-      router.push("/signin");
-      return;
-    }
-
+  const handleAddToCart = () => {
     const size = selectedSize || sizes[0] || undefined;
     const color = selectedColor || colors[0] || undefined;
     const tacoOption = selectedTacoOption || tacoOptions[0] || undefined;
 
-    onCartClick(e, size, color, tacoOption, quantity);
+    onAddToCart(size, color, tacoOption, quantity);
   };
+
+  const photoCount = currentColorPhotos.length || 1;
+  const effectiveIndex =
+    currentColorPhotos.length > 0 ? selectedImageIndex : 0;
 
   return (
     <div className="product-page">
       <div className="product-detail">
-        <div className="product-image-container">
+        <figure className="product-image-container">
           <Image
             src={currentImage}
-            alt={product.name}
+            alt={`${product.name}${selectedColor ? ` color ${selectedColor}` : ""} — sandalias artesanales`}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
             className="product-image"
             priority
-            loading="eager"
           />
+          <span className="sr-only" aria-live="polite">
+            {`Foto ${Math.min(effectiveIndex + 1, photoCount)} de ${photoCount}`}
+          </span>
           {currentColorPhotos.length > 1 && (
             <div className="image-navigation">
               <button
+                type="button"
                 className="nav-button prev"
+                aria-label="Foto anterior"
                 onClick={() =>
                   setSelectedImageIndex((i) =>
                     i > 0 ? i - 1 : currentColorPhotos.length - 1
@@ -117,29 +115,42 @@ export default function Product({ product, relatedProducts }: ProductProps) {
                 }
               >
                 ‹
+                <span className="sr-only">Foto anterior</span>
               </button>
-              <div className="image-dots">
+              <div
+                className="image-dots"
+                role="tablist"
+                aria-label="Fotos del producto"
+              >
                 {currentColorPhotos.map((_, idx) => (
                   <button
                     key={idx}
+                    type="button"
+                    role="tab"
+                    aria-selected={idx === selectedImageIndex}
+                    aria-current={idx === selectedImageIndex}
                     className={`dot ${idx === selectedImageIndex ? "active" : ""}`}
                     onClick={() => setSelectedImageIndex(idx)}
-                  />
+                  >
+                    <span className="sr-only">{`Foto ${idx + 1}`}</span>
+                  </button>
                 ))}
               </div>
               <button
+                type="button"
                 className="nav-button next"
+                aria-label="Foto siguiente"
                 onClick={() =>
                   setSelectedImageIndex((i) =>
                     i < currentColorPhotos.length - 1 ? i + 1 : 0
                   )
                 }
               >
-                ›
+                ›<span className="sr-only">Foto siguiente</span>
               </button>
             </div>
           )}
-        </div>
+        </figure>
         <div className="product-info">
           <h1 className={`${cormorantGaramond.className} product-name`}>{product.name}</h1>
           <p className="product-price">
@@ -170,7 +181,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
           {sizes.length > 0 && (
             <div className="product-size">
-              <span className="size-label">Talle:</span>
+              <span id="size-label" className="size-label">Talle:</span>
               <SizeSelector
                 sizes={sizes}
                 selectedSize={selectedSize || sizes[0]}
@@ -181,7 +192,7 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
           {colors.length > 0 && (
             <div className="product-color">
-              <span className="color-label">Color:</span>
+              <span id="color-label" className="color-label">Color:</span>
               <ColorSelector
                 colors={colors}
                 selectedColor={selectedColor || colors[0]}
@@ -193,10 +204,17 @@ export default function Product({ product, relatedProducts }: ProductProps) {
           {tacoOptions.length > 0 && (
             <div className="product-taco-option">
               <span className="taco-option-label">Tipo:</span>
-              <div className="taco-options">
+              <div
+                role="radiogroup"
+                aria-label="Tipo de taco"
+                className="taco-options"
+              >
                 {tacoOptions.map((option: string) => (
                   <button
                     key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedTacoOption === option}
                     className={`taco-option ${selectedTacoOption === option ? "selected" : ""}`}
                     onClick={() => setSelectedTacoOption(option)}
                   >
@@ -214,8 +232,15 @@ export default function Product({ product, relatedProducts }: ProductProps) {
 
           <div className="product-actions">
             <button
+              type="button"
               className={`wishlist-button ${isWishlisted ? "active" : ""}`}
-              onClick={onHeartClick}
+              onClick={() => onHeartClick()}
+              aria-pressed={isWishlisted}
+              aria-label={
+                isWishlisted
+                  ? "Quitar de favoritos"
+                  : "Agregar a favoritos"
+              }
             >
               <Image
                 src={
@@ -223,27 +248,55 @@ export default function Product({ product, relatedProducts }: ProductProps) {
                     ? "/assets/icons/heartFilled.svg"
                     : "/assets/icons/heart.svg"
                 }
-                alt="heart"
+                alt=""
+                aria-hidden="true"
                 width={24}
                 height={24}
               />
+              <span className="sr-only">
+                {isWishlisted ? "Quitar de favoritos" : "Agregar a favoritos"}
+              </span>
             </button>
             <div className="quantity-controls">
-              <button onClick={() => setQuantity((q) => Math.max(1, q - 1))}>
-                -
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                aria-label="Restar cantidad"
+                disabled={quantity <= 1}
+              >
+                −
+                <span className="sr-only">Restar cantidad</span>
               </button>
-              <span>{quantity}</span>
-              <button onClick={() => setQuantity((q) => q + 1)}>+</button>
+              <span aria-live="polite">{quantity}</span>
+              <button
+                type="button"
+                onClick={() => setQuantity((q) => q + 1)}
+                aria-label="Sumar cantidad"
+              >
+                +<span className="sr-only">Sumar cantidad</span>
+              </button>
             </div>
-            <button className="cart-button" onClick={handleAddToCart}>
+            <button
+              type="button"
+              className="cart-button"
+              onClick={handleAddToCart}
+            >
               <Image
                 src="/assets/icons/cart_light.svg"
-                alt="cart"
+                alt=""
+                aria-hidden="true"
                 width={20}
                 height={20}
               />
-              <span className="cart-button-text">Agregar al carrito</span>
+              <span className="cart-button-text">
+                {!userId ? "Iniciar sesión para comprar" : "Agregar al carrito"}
+              </span>
             </button>
+            {!userId && (
+              <p className="product-signin-hint">
+                Iniciá sesión con tu cuenta para completar la compra
+              </p>
+            )}
           </div>
         </div>
       </div>

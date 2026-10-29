@@ -322,7 +322,11 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
           <h2 className={`admin-card-title ${fraunces.className}`}>
             Ventas por día ({fromISO} → {toISO})
           </h2>
-          <div className="admin-chart-bars">
+          <div
+            className="admin-chart-bars"
+            role="img"
+            aria-label={`Ventas por día desde ${fromISO} hasta ${toISO}; máximo ${formatARS(maxRevenue)}`}
+          >
             {series.map((point) => (
               <div
                 key={dayKey(point.date)}
@@ -373,10 +377,10 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th className="admin-col-number">Un.</th>
-                    <th className="admin-col-number">Ingresos</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Categoría</th>
+                    <th scope="col" className="admin-col-number">Un.</th>
+                    <th scope="col" className="admin-col-number">Ingresos</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -432,9 +436,9 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Cupón</th>
-                  <th className="admin-col-number">Pedidos</th>
-                  <th className="admin-col-number">Descuento total</th>
+                  <th scope="col">Cupón</th>
+                  <th scope="col" className="admin-col-number">Pedidos</th>
+                  <th scope="col" className="admin-col-number">Descuento total</th>
                 </tr>
               </thead>
               <tbody>

@@ -93,6 +93,20 @@ function productIdForRow(row: CsvRow): string {
   return slugify(`${row.codigo}-${row.nombreVenta}`);
 }
 
+const usedSlugs = new Set<string>();
+
+function uniqueSlugFrom(name: string, used: Set<string>): string {
+  const base = slugify(name) || "sandalia";
+  let candidate = base;
+  let n = 2;
+  while (used.has(candidate)) {
+    candidate = `${base}-${n}`;
+    n += 1;
+  }
+  used.add(candidate);
+  return candidate;
+}
+
 function normalizeForMatch(s: string): string {
   return s
     .normalize("NFD")
@@ -259,6 +273,7 @@ async function executeImport(rows: CsvRow[]): Promise<void> {
       await prisma.product.create({
         data: {
           id,
+          slug: uniqueSlugFrom(productData.name, usedSlugs),
           stock: 0,
           ...productData,
         },

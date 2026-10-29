@@ -1,13 +1,12 @@
 "use client";
-import React, { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useToggleWishlist } from "@/hooks/useToggleData";
 import { cormorantGaramond, inter } from "@/app/fonts";
 import { isBlackColor } from "@/lib/colors";
 import { getWholesaleDiscountPercent } from "@/lib/discounts";
 import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
 import { ProductType } from "@/types";
+import ProductCardHeart from "./ProductCardHeart";
 
 interface ProductCardProps extends ProductType {
   cartIds?: string[];
@@ -38,8 +37,9 @@ function getCardPhoto(
   return photo;
 }
 
-const ProductCard = memo(function ProductCard({
+export default function ProductCard({
   id,
+  slug,
   name,
   price,
   photo,
@@ -48,7 +48,6 @@ const ProductCard = memo(function ProductCard({
   sizes = [],
   cartTotalQuantity = 0
 }: ProductCardProps) {
-  const { isWishlisted, onHeartClick } = useToggleWishlist(id);
   const tiers = useWholesaleTiers();
   const displayPhoto = getCardPhoto(photo, colors, photos);
   const wholesalePercent = getWholesaleDiscountPercent(cartTotalQuantity, tiers);
@@ -56,24 +55,21 @@ const ProductCard = memo(function ProductCard({
     (price ?? 0) * (1 - wholesalePercent / 100);
 
   return (
-    <Link href={`/products/${id}`} passHref>
-      <div className={"product-card"}>
-        <Image
-          src={displayPhoto}
-          alt={name}
-          width={200}
-          height={200}
-          className="product-image"
-        />
-        <button className="product-heart-button" onClick={onHeartClick}>
+    <article className={"product-card"}>
+      <div className="product-media">
+        <Link href={`/products/${slug}`} className="product-link">
           <Image
-            src="/assets/icons/heartFilled.svg"
-            alt="heart"
-            width={24}
-            height={24}
-            className={`product-heart ${isWishlisted ? "active" : ""}`}
+            src={displayPhoto}
+            alt={`${name} — sandalias artesanales`}
+            width={400}
+            height={400}
+            sizes="(max-width: 768px) 45vw, 300px"
+            className="product-image"
           />
-        </button>
+        </Link>
+        <ProductCardHeart productId={id} productName={name} />
+      </div>
+      <Link href={`/products/${slug}`} className="product-link-body">
         <h2 className={`${cormorantGaramond.className} product-title`}>{name}</h2>
         <p className={`${inter.className} product-price`}>
           {wholesalePercent > 0 ? (
@@ -98,11 +94,7 @@ const ProductCard = memo(function ProductCard({
             ))}
           </div>
         )}
-      </div>
-    </Link>
+      </Link>
+    </article>
   );
-});
-
-ProductCard.displayName = "ProductCard";
-
-export default ProductCard;
+}

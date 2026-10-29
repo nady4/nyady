@@ -49,7 +49,7 @@ export default function ForgotPasswordForm() {
       <form onSubmit={handleSubmit}>
         {sent ? (
           <>
-            <p className="success">
+            <p className="success" role="status">
               Si la cuenta existe, te enviamos un email con el enlace para
               elegir una contraseña nueva. El enlace vence en 1 hora.
             </p>
@@ -63,7 +63,11 @@ export default function ForgotPasswordForm() {
               Escribí el email de tu cuenta y te mandamos un enlace para crear
               una contraseña nueva.
             </p>
+            <label htmlFor="forgot-email" className="sr-only">
+              Email
+            </label>
             <input
+              id="forgot-email"
               type="email"
               placeholder="Email"
               value={email}
@@ -71,7 +75,7 @@ export default function ForgotPasswordForm() {
               autoComplete="email"
               required
             />
-            {error && <p className="error">{error}</p>}
+            {error && <p className="error" role="alert">{error}</p>}
             <button type="submit" disabled={pending}>
               {pending ? "Enviando..." : "Enviar enlace de recuperación"}
             </button>

@@ -123,13 +123,15 @@ export default function ImageManager({
 
   return (
     <div className="admin-image-manager">
-      <div className="admin-image-tabs" role="tablist">
+      <div className="admin-image-tabs" role="tablist" aria-label="Colores con imágenes">
         {allBuckets.map((bucket) => (
           <button
             key={bucket}
             type="button"
             role="tab"
             aria-selected={bucket === activeBucket}
+            aria-controls="admin-image-grid"
+            aria-label={`Imágenes de color ${bucket}`}
             className={`admin-image-tab ${bucket === activeBucket ? "active" : ""}`}
             onClick={() => setActiveBucket(bucket)}
           >
@@ -144,6 +146,9 @@ export default function ImageManager({
       </div>
 
       <div
+        id="admin-image-grid"
+        role="tabpanel"
+        aria-label={`Imágenes del color ${activeBucket}`}
         className="admin-image-grid"
         onDragOver={(e) => e.preventDefault()}
       >
@@ -168,7 +173,7 @@ export default function ImageManager({
           >
             <Image
               src={url}
-              alt={`${activeBucket} ${index + 1}`}
+              alt={`Imagen ${index + 1} de ${activeList.length} del color ${activeBucket}`}
               width={120}
               height={120}
               className="admin-image"
@@ -187,7 +192,7 @@ export default function ImageManager({
             <button
               type="button"
               className="admin-image-remove"
-              aria-label="Quitar imagen"
+              aria-label={`Quitar imagen ${index + 1} de ${activeList.length} del color ${activeBucket}`}
               onClick={() => removeImage(activeBucket, url)}
             >
               ×
@@ -202,7 +207,7 @@ export default function ImageManager({
         )}
       </div>
 
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error" role="alert">{error}</p>}
 
       <div className="admin-image-upload-row">
         <input

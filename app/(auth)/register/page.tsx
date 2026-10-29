@@ -101,35 +101,57 @@ function RegisterPage() {
 
   return (
     <div className="auth-form">
-      <h2 className="title">Creá tu cuenta</h2>
+      <h1 className="title">Creá tu cuenta</h1>
       <form onSubmit={handleSubmit}>
+        <label htmlFor="register-email" className="sr-only">
+          Email
+        </label>
         <input
+          id="register-email"
           type="email"
           placeholder="Email"
+          autoComplete="email"
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           required
         />
+        <label htmlFor="register-username" className="sr-only">
+          Nombre de usuario
+        </label>
         <input
+          id="register-username"
           type="text"
           placeholder="Nombre de usuario"
+          autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
+        <label htmlFor="register-password" className="sr-only">
+          Contraseña (mínimo 8 caracteres)
+        </label>
         <input
+          id="register-password"
           type="password"
-          placeholder="Contraseña"
+          placeholder="Contraseña (mínimo 8 caracteres)"
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          minLength={8}
         />
+        <label htmlFor="register-confirm-password" className="sr-only">
+          Confirmar contraseña
+        </label>
         <input
+          id="register-confirm-password"
           type="password"
           placeholder="Confirmar contraseña"
+          autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
+          minLength={8}
         />
         <label className="terms-check">
           <input
@@ -164,18 +186,20 @@ function RegisterPage() {
           </span>
         </label>
         {(error || serverError) && (
-          <p className="error">{error || serverError}</p>
+          <p className="error" role="alert">
+            {error || serverError}
+          </p>
         )}
         {unverifiedEmail && (
           <div className="resend">
             {resendState === "sent" && (
-              <p className="success">
+              <p className="success" role="status">
                 Listo, te reenviamos el email de confirmación a{" "}
                 {unverifiedEmail}.
               </p>
             )}
             {resendState === "error" && (
-              <p className="error">
+              <p className="error" role="alert">
                 No pudimos reenviarlo. Intentá de nuevo más tarde.
               </p>
             )}

@@ -6,6 +6,11 @@
   justify-content: center;
   align-items: center;
   flex: 1;
+  // Mismo respiro vertical que las auth pages (el form no pega contra el
+  // navbar; abajo despeja la barra fija del footer).
+  padding: 4rem 1.25rem 5rem;
+  min-height: calc(100svh - 4rem);
+  box-sizing: border-box;
 
   .form-container {
     display: flex;

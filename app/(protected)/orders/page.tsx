@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import OrderTracking from "@/components/OrderTracking";
+import ConfirmSubmit from "@/components/ConfirmSubmit";
 import { getColorHex } from "@/lib/colors";
 import "@/styles/Orders.scss";
 
 export const metadata: Metadata = {
-  title: "Mis pedidos - NYADY",
+  title: "Mis pedidos",
   description: "Ver el historial de tus pedidos de sandalias artesanales.",
+  robots: { index: false, follow: true },
 };
 
 async function retryOrder(orderId: string) {
@@ -39,20 +42,43 @@ async function retryOrder(orderId: string) {
     redirect("/orders");
   }
 
-  await prisma.cart.deleteMany({
-    where: { userId }
-  });
-
+  // Repopulate the cart with the EXACT variants the order held (size /
+  // color / taco snapshots) without wiping whatever the user added since:
+  // identical rows collapse into it (quantity += n). Nullable compound-unique
+  // fields can't use the composite upsert key, so match each row explicitly.
   if (order.orderItems.length) {
-    await prisma.cart.createMany({
-      data: order.orderItems.map((item) => ({
-        userId,
-        productId: item.productId,
-        quantity: item.quantity
-      }))
-    });
+    for (const item of order.orderItems) {
+      const existing = await prisma.cart.findFirst({
+        where: {
+          userId,
+          productId: item.productId,
+          selectedSize: item.selectedSize ?? null,
+          selectedColor: item.selectedColor ?? null,
+          selectedTacoOption: item.selectedTacoOption ?? null,
+        },
+      });
+
+      if (existing) {
+        await prisma.cart.update({
+          where: { id: existing.id },
+          data: { quantity: { increment: item.quantity } },
+        });
+      } else {
+        await prisma.cart.create({
+          data: {
+            userId,
+            productId: item.productId,
+            quantity: item.quantity,
+            selectedSize: item.selectedSize ?? null,
+            selectedColor: item.selectedColor ?? null,
+            selectedTacoOption: item.selectedTacoOption ?? null,
+          },
+        });
+      }
+    }
   }
 
+  revalidatePath("/cart");
   redirect("/cart");
 }
 
@@ -236,9 +262,11 @@ export default async function OrdersPage() {
                   </button>
                 </form>
                 <form action={cancelOrder.bind(null, order.id)}>
-                  <button type="submit" className="order-cancel-button">
-                    Cancelar pedido
-                  </button>
+                  <ConfirmSubmit
+                    label="Cancelar pedido"
+                    message={`¿Seguro que querés cancelar el pedido #${order.id.slice(0, 8)}? Esta acción no se puede deshacer.`}
+                    className="order-cancel-button"
+                  />
                 </form>
               </div>
             )}

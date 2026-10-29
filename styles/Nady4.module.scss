@@ -42,7 +42,7 @@
 
     .company {
       font-weight: 500;
-      color: $logo-color;
+      color: $accent-text;
     }
 
     .period {
@@ -74,7 +74,7 @@
 
   .company {
     font-weight: 500;
-    color: $logo-color;
+    color: $accent-text;
   }
 
   .period {
@@ -106,7 +106,7 @@
     gap: 1rem;
 
     a {
-      color: $logo-color;
+      color: $accent-text;
       font-weight: 500;
       text-decoration: none;
 
@@ -160,7 +160,7 @@
   }
 
   .certsName {
-    color: $logo-color;
+    color: $accent-text;
     font-weight: 700;
   }
 
@@ -197,7 +197,7 @@
     transition: all 0.2s ease;
 
     &:hover {
-      color: $logo-color;
+      color: $accent-text;
       opacity: 1;
     }
 

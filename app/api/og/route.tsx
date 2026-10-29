@@ -20,7 +20,7 @@ export const GET = async (req: Request) => {
   const url = new URL(req.url);
   const productId = url.searchParams.get("productId");
 
-  let title = "Cuadros de arte textil hechos a mano";
+  let title = "Sandalias artesanales hechas a mano";
   let price = "";
   let photo: string | null = null;
 
@@ -34,7 +34,7 @@ export const GET = async (req: Request) => {
       price = `$${Math.round(num(product.price)).toLocaleString("es-AR")}`;
       photo = product.photo ?? null;
       // satori exige URLs absolutas: las fotos locales viven "/assets/..."
-      const base = process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "https://nyady.com";
+      const base = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXTAUTH_URL?.replace(/\/$/, "") ?? "https://nyady.com";
       if (photo?.startsWith("/")) photo = `${base}${photo}`;
     }
   }

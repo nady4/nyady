@@ -37,6 +37,13 @@ export async function POST(request: Request) {
       );
     }
 
+    if (typeof data.password !== "string" || data.password.length < 8) {
+      return NextResponse.json(
+        { error: "La contraseña debe tener al menos 8 caracteres" },
+        { status: 400 }
+      );
+    }
+
     const existingEmail = await prisma.user.findUnique({
       where: { email: data.email }
     });

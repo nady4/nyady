@@ -44,6 +44,7 @@ export default function UsersFilterBar({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Buscar por nombre de usuario o email"
+          aria-label="Buscar usuarios por nombre de usuario o email"
         />
         <button type="submit" className="admin-button small">
           Buscar

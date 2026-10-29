@@ -118,7 +118,10 @@ export default function ProductsTable({
   return (
     <div className="admin-products-table-wrap">
       {message && (
-        <div className={`admin-banner ${message.ok ? "ok" : "error"}`}>
+        <div
+          className={`admin-banner ${message.ok ? "ok" : "error"}`}
+          role={message.ok ? "status" : "alert"}
+        >
           <span>
             {message.ok
               ? "Acción aplicada"
@@ -168,7 +171,7 @@ export default function ProductsTable({
         <table className="admin-table">
           <thead>
             <tr>
-              <th className="admin-col-check">
+              <th scope="col" className="admin-col-check">
                 <input
                   type="checkbox"
                   aria-label="Seleccionar todos"
@@ -176,14 +179,16 @@ export default function ProductsTable({
                   onChange={toggleAll}
                 />
               </th>
-              <th className="admin-col-photo" aria-label="Foto" />
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th className="admin-col-number">Precio</th>
-              <th className="admin-col-number">Pedidos</th>
-              <th className="admin-col-center">Estado</th>
-              <th>Actualizado</th>
-              <th className="admin-col-actions" aria-label="Acciones" />
+              <th scope="col" className="admin-col-photo" aria-label="Foto" />
+              <th scope="col">Producto</th>
+              <th scope="col">Categoría</th>
+              <th scope="col" className="admin-col-number">Precio</th>
+              <th scope="col" className="admin-col-number">Pedidos</th>
+              <th scope="col" className="admin-col-center">Estado</th>
+              <th scope="col">Actualizado</th>
+              <th scope="col" className="admin-col-actions">
+                  <span className="admin-sr-only">Acciones</span>
+                </th>
             </tr>
           </thead>
           <tbody>

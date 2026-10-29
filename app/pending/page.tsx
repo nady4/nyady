@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pago en revisión - NYADY",
+  title: "Pago en revisión",
+  robots: { index: false, follow: true },
   description: "Tu pago está siendo procesado. Esto puede tomar unos minutos según el medio de pago elegido.",
 };
 

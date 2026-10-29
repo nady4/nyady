@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import InfoPage from "@/components/InfoPage";
-import styles from "@/styles/InfoPage.module.scss";
 import { renderMarkdown } from "@/lib/markdown";
 import { getInfoFallback } from "@/components/info/InfoFallbacks";
 
@@ -19,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description = row?.description ?? fallback?.description ?? "";
 
   return {
-    title: row ? `${title} - NYADY` : fallback ? title : "Página no encontrada - NYADY",
+    title: row || fallback ? title : "Página no encontrada",
     description:
       description ||
       "Información y preguntas frecuentes sobre NYADY, sandalias artesanales.",
@@ -45,12 +44,6 @@ export default async function DynamicInfoPage({ params }: Props) {
   return (
     <InfoPage title={title} description={description}>
       {renderMarkdown(content)}
-      {row ? (
-        /* Last-touched hint only for DB-managed pages, subtle. */
-        <p className={styles.updatedHint}>
-          Editado desde el panel
-        </p>
-      ) : null}
     </InfoPage>
   );
 }

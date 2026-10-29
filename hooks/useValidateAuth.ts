@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 interface FormValues {
   email: string;
@@ -14,12 +14,14 @@ interface ValidationResult {
   validateForm: () => boolean;
 }
 
+/** Shared minimum: register, reset and the API agree on 8 (bcrypt max 72). */
+export const PASSWORD_MIN_LENGTH = 8;
+
 export function useValidateAuth(formValues: FormValues): ValidationResult {
   const { email, password, username, confirmPassword, acceptTerms } =
     formValues;
   // error is set by validateForm() on submit and cleared reactively when the
-  // inputs that caused it change. Kept as state because it must persist across
-  // renders between the submit action and the next input change.
+  // inputs that caused it change.
   const [error, setError] = useState("");
 
   const isRegisterForm = useMemo(() => {
@@ -34,7 +36,7 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
 
   const isEmailValid =
     email?.trim() !== "" && email ? emailRegex.test(email) : false;
-  const isPasswordValid = password?.length >= 6;
+  const isPasswordValid = (password?.length ?? 0) >= PASSWORD_MIN_LENGTH;
 
   let formValid = isEmailValid && isPasswordValid;
 
@@ -51,21 +53,10 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
       formValid && isUsernameValid && doPasswordsMatch && acceptTerms === true;
   }
 
-  // Clear a stale "Las contraseñas no coinciden" error once the passwords
-  // match again, or any other stale error once the inputs change. This is a
-  // best-effort reactive clear; the authoritative validation runs in
-  // validateForm() on submit.
-  if (error === "Las contraseñas no coinciden") {
-    const doPasswordsMatch =
-      confirmPassword !== "" && password === confirmPassword;
-    if (doPasswordsMatch) {
-      setError("");
-    }
-  } else if (error) {
-    // For non-mismatch errors (set on submit), clear them as soon as the
-    // user edits any field, so the message doesn't linger.
-    setError("");
-  }
+  // Clear stale submit errors as soon as any input changes.
+  useEffect(() => {
+    queueMicrotask(() => setError(""));
+  }, [email, password, username, confirmPassword, acceptTerms]);
 
   const validateForm = (): boolean => {
     if (!email || !password) {
@@ -78,8 +69,10 @@ export function useValidateAuth(formValues: FormValues): ValidationResult {
       return false;
     }
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      setError(
+        `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`
+      );
       return false;
     }
 

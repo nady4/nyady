@@ -84,6 +84,7 @@ export default async function AdminShipmentsPage({ searchParams }: PageProps) {
             name="q"
             defaultValue={q}
             placeholder="Buscar por pedido, cliente o tracking"
+            aria-label="Buscar envíos por pedido, cliente o tracking"
           />
           <button type="submit" className="admin-button small">
             Buscar

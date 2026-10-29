@@ -63,7 +63,7 @@
       }
 
       a {
-        color: $logo-color;
+        color: $accent-text;
 
         &:hover {
           color: #000000;
@@ -99,7 +99,7 @@
 
 .updatedHint {
   margin-top: 2rem;
-  font-family: "Inter", Helvetica, Arial, sans-serif;
+  font-family: var(--font-inter, "Inter"), Helvetica, Arial, sans-serif;
   font-size: 0.78rem;
   color: #b9a68a;
   text-align: center;

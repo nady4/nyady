@@ -181,7 +181,11 @@ export default async function AdminOverviewPage() {
         <div className="admin-dashboard-col">
           <div className="admin-card">
             <h2 className="admin-card-title">Ventas de los últimos 30 días</h2>
-            <div className="admin-chart-bars">
+            <div
+              className="admin-chart-bars"
+              role="img"
+              aria-label={`Ventas por día de los últimos 30 días; pico de ${formatARS(maxRevenue)} el día con mayores ventas`}
+            >
               {series.map((point) => (
                 <div
                   key={dayKey(point.date)}

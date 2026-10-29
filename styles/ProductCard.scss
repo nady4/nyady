@@ -11,7 +11,7 @@
   padding: 1.5rem;
   border-radius: 1rem;
   background-color: $bg-secondary;
-  border: 1px solid #e5e0d8;
+  border: 1px solid $border-color;
   cursor: pointer;
   transition:
     box-shadow 0.2s ease,
@@ -22,6 +22,24 @@
     transform: translateY(-4px);
   }
 
+  .product-media {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .product-link,
+  .product-link-body {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .product-link {
+    font-size: 0;
+  }
+
   .product-heart-button {
     position: absolute;
     top: 1rem;
@@ -29,7 +47,9 @@
     cursor: pointer;
     background: transparent;
     border: none;
-    padding: 0;
+    padding: 0.25rem;
+    min-width: 32px;
+    min-height: 32px;
     z-index: 9;
 
     &:hover {
@@ -43,18 +63,28 @@
     .product-heart {
       opacity: 0.7;
       transition: all 0.2s ease;
+    }
 
-      &.active,
-      &:hover {
-        opacity: 1;
-        filter: drop-shadow(0 0 4px rgba(239, 53, 68, 0.6));
-      }
+    &:hover .product-heart,
+    &.active .product-heart {
+      opacity: 1;
+      filter: drop-shadow(0 0 4px rgba(200, 60, 80, 0.55));
     }
   }
 
   img {
     border-radius: 0.5rem;
     object-fit: cover;
+  }
+
+  // next/image width attr (400 for crisp retina srcset) rendered at the
+  // original visual size (200x200) so title/price/sizes fit inside the card;
+  // margin:auto centers it inside the full-width link.
+  .product-link .product-image {
+    width: 200px;
+    height: 200px;
+    display: block;
+    margin: 0 auto;
   }
 
   .product-image {
@@ -76,11 +106,11 @@
 
   .product-title {
     margin-top: 1rem;
-    font-family: "Cormorant Garamond", serif;
+    font-family: var(--font-cormorant-garamond, "Cormorant Garamond", serif);
     font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: #1a1a1a;
+    color: $text-color;
     text-align: center;
   }
 
@@ -93,7 +123,7 @@
     font-family: $body-font;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #2b2827;
+    color: $text-color;
     text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
 
     .price-original {
@@ -104,12 +134,7 @@
     }
 
     .price-discounted {
-      &.discount-10 {
-        color: #4a8a42;
-      }
-      &.discount-20 {
-        color: #65a856;
-      }
+      color: $price-green;
     }
   }
 
@@ -135,96 +160,4 @@
     }
   }
 
-  .bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  .button {
-    display: flex;
-    width: 100%;
-    font-family: $body-font;
-    font-size: 0.9rem;
-    font-weight: 500;
-    justify-content: center;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    background-color: $accent-color;
-    color: $text-color;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition:
-      background 0.15s ease,
-      transform 0.1s ease;
-
-    .button-icon {
-      margin-right: 0.5rem;
-      display: flex;
-      align-items: center;
-    }
-
-    &:hover {
-      background-color: $accent-hover;
-      transform: scale(1.02);
-    }
-
-    &:active {
-      transform: scale(0.98);
-    }
-  }
-
-  .isInCart {
-    width: 100%;
-  }
-
-  .quantity-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid $border-color;
-    background-color: $bg-color;
-    min-width: 130px;
-
-    button {
-      width: 1.8rem;
-      height: 1.8rem;
-      border-radius: 999px;
-      border: none;
-      background-color: $accent-color;
-      color: $text-color;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition:
-        background 0.15s ease,
-        transform 0.1s ease;
-
-      &:hover {
-        background-color: $accent-hover;
-        transform: scale(1.05);
-      }
-
-      &:active {
-        transform: scale(0.95);
-      }
-    }
-
-    span {
-      min-width: 2rem;
-      text-align: center;
-      font-size: 1rem;
-      font-weight: 500;
-      color: $text-color;
-    }
-  }
 }

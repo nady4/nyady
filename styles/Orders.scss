@@ -109,13 +109,13 @@
       &.approved,
       &.approved strong {
         background-color: rgba($success-color, 0.15);
-        color: $success-color;
+        color: $success-text;
       }
 
       &.pending,
       &.pending strong {
         background-color: rgba($warning-color, 0.15);
-        color: $warning-color;
+        color: $warning-text;
       }
 
       &.rejected,

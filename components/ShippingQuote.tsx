@@ -11,6 +11,7 @@ import {
   getDeliveryWindow,
   isExcludedCarrier
 } from "@/lib/shipping";
+import { formatARS } from "@/lib/money";
 import Link from "next/link";
 import "@/styles/ShippingQuote.scss";
 
@@ -56,18 +57,17 @@ export default function ShippingQuote({
   const [error, setError] = useState<string | null>(null);
   const [selectedPickupPoint, setSelectedPickupPoint] =
     useState<PickupPoint | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  // The standard-delivery group starts expanded and ships pre-selected so no
+  // user input is required to enable checkout (discovery, not mystery).
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    new Set(["standard_delivery"])
+  );
   const [expandedCarriers, setExpandedCarriers] = useState<Set<string>>(
     new Set()
   );
-  const fetchRequestedRef = useRef(false);
+  const preselectedRef = useRef(false);
 
-  const formatPrice = (price: number) => {
-    const rounded = Math.round(price).toString();
-    return rounded.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  };
-
-const getDeliveryDays = useCallback(
+  const getDeliveryDays = useCallback(
     (quote: ShippingQuoteResult): { min: string; max: string } =>
       getDeliveryWindow(quote.delivery_time.estimated_delivery),
     []
@@ -114,7 +114,6 @@ const getDeliveryDays = useCallback(
     },
     [onSelectOption]
   );
-
   const isSelected = useCallback(
     (
       serviceCode: string,
@@ -140,30 +139,6 @@ const getDeliveryDays = useCallback(
     },
     [selectedOption]
   );
-
-  useEffect(() => {
-    if (!address || items.length === 0 || fetchRequestedRef.current) return;
-
-    fetchRequestedRef.current = true;
-    setLoading(true);
-    setError(null);
-
-    quoteShippingToAddress(address, items, declaredValue)
-      .then((result) => {
-        if (result) {
-          setQuotes(result.all_results || []);
-        } else {
-          setQuotes([]);
-        }
-      })
-      .catch(() => {
-        setError("Failed to quote shipping");
-        setQuotes([]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [address?.id, items.length, declaredValue, address, items]);
 
   const groupedOptions = useMemo(() => {
     const filtered = quotes.filter(
@@ -211,6 +186,45 @@ const getDeliveryDays = useCallback(
     return sortedGroups;
   }, [quotes]);
 
+  const fetchQuotes = useCallback(() => {
+    if (!address || items.length === 0) return;
+
+    setLoading(true);
+    setError(null);
+
+    quoteShippingToAddress(address, items, declaredValue)
+      .then((result) => {
+        setQuotes(result?.all_results || []);
+      })
+      .catch(() => {
+        setError(
+          "No pudimos calcular el envío en este momento. Verificá tu conexión e intentá de nuevo."
+        );
+        setQuotes([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [address, items, declaredValue]);
+
+  useEffect(() => {
+    queueMicrotask(fetchQuotes);
+  }, [fetchQuotes]);
+
+  // Preselect the cheapest option of the first (expanded) group so the
+  // checkout is actionable without hunting through collapsed panels.
+  useEffect(() => {
+    if (preselectedRef.current || loading || error) return;
+    if (groupedOptions.length === 0 || selectedOption) return;
+    const group = groupedOptions[0];
+    if (group.options.length === 0) return;
+
+    preselectedRef.current = true;
+    const serviceCode = group.service_type.code;
+    const cheapest = group.options[0];
+    queueMicrotask(() => handleSelect(serviceCode, cheapest));
+  }, [groupedOptions, loading, error, selectedOption, handleSelect]);
+
   if (!address) {
     return (
       <div className="shipping-quote">
@@ -227,19 +241,28 @@ const getDeliveryDays = useCallback(
   if (loading)
     return (
       <div className="shipping-quote">
-        <p className="loading">Calculando envío...</p>
+        <p className="loading" role="status" aria-live="polite">
+          Calculando envío...
+        </p>
       </div>
     );
   if (error)
     return (
       <div className="shipping-quote">
-        <p className="error">{error}</p>
+        <p className="error" role="alert">
+          {error}
+        </p>
+        <button type="button" className="retry-button" onClick={fetchQuotes}>
+          Reintentar
+        </button>
       </div>
     );
   if (groupedOptions.length === 0)
     return (
       <div className="shipping-quote">
-        <p className="no-quotes">No hay opciones de envío disponibles</p>
+        <p className="no-quotes" role="status">
+          No hay opciones de envío disponibles
+        </p>
       </div>
     );
 
@@ -257,18 +280,28 @@ const getDeliveryDays = useCallback(
 
           return (
             <div key={gIdx} className="shipping-group">
-              <div
+              <button
+                type="button"
                 className="group-header"
+                aria-expanded={isExpanded}
+                aria-controls={`shipping-group-${groupKey}`}
                 onClick={() => toggleGroup(groupKey)}
               >
                 <span className="service-type-name">
                   {group.service_type.name}
                 </span>
-                <span className="group-toggle">{isExpanded ? "▲" : "▼"}</span>
-              </div>
+                <span className="group-toggle" aria-hidden="true">
+                  {isExpanded ? "▲" : "▼"}
+                </span>
+              </button>
 
               {isExpanded && (
-                <div className="group-options">
+                <div
+                  className="group-options"
+                  id={`shipping-group-${groupKey}`}
+                  role="radiogroup"
+                  aria-label={group.service_type.name}
+                >
                   {group.options.map((option, oIdx) => {
                     const optionKey = `${groupKey}-${option.carrier.id}`;
                     const hasPoints =
@@ -276,7 +309,12 @@ const getDeliveryDays = useCallback(
                       option.quote.pickup_points &&
                       option.quote.pickup_points.length > 0;
                     const isExpandedCarrier = expandedCarriers.has(optionKey);
-                    const isOptionSelected = isSelected(groupKey, option);
+                    const isOptionSelected = hasPoints
+                      ? selectedPickupPoint !== null &&
+                        option.quote.pickup_points!.some(
+                          (p) => p.point_id === selectedPickupPoint.point_id
+                        )
+                      : isSelected(groupKey, option);
 
                     return (
                       <div
@@ -284,11 +322,14 @@ const getDeliveryDays = useCallback(
                         className={`carrier-option ${isOptionSelected ? "selected" : ""}`}
                       >
                         {isDelivery ? (
-                          <div
-                            className="option-row"
-                            onClick={() => handleSelect(groupKey, option)}
-                          >
-                            <span className="carrier-name">
+                          <label className="option-row">
+                            <input
+                              type="radio"
+                              name={`shipping-${groupKey}`}
+                              checked={isSelected(groupKey, option)}
+                              onChange={() => handleSelect(groupKey, option)}
+                            />
+                            <span className="carrier-name rad-hidden">
                               {option.carrier.name}
                             </span>
                             <span className="delivery-time">
@@ -296,43 +337,63 @@ const getDeliveryDays = useCallback(
                               {getDeliveryDays(option.quote).max}
                             </span>
                             <span className="option-price">
-                              $
-                              {formatPrice(option.quote.amounts.price_incl_tax)}
+                              {formatARS(option.quote.amounts.price_incl_tax)}
                             </span>
-                          </div>
+                          </label>
                         ) : (
                           <>
-                            <div
-                              className="option-row with-points"
-                              onClick={() =>
-                                hasPoints
-                                  ? toggleCarrier(optionKey)
-                                  : handleSelect(groupKey, option)
-                              }
-                            >
-                              <span className="carrier-name">
-                                {option.carrier.name}
-                              </span>
-                              {hasPoints && (
-                                <span className="pickup-count">
-                                  ({option.quote.pickup_points?.length} puntos)
-                                  ▶
+                            {hasPoints ? (
+                              <button
+                                type="button"
+                                className="option-row with-points"
+                                aria-expanded={isExpandedCarrier}
+                                aria-controls={`pickup-points-${optionKey}`}
+                                onClick={() => toggleCarrier(optionKey)}
+                              >
+                                <span className="carrier-name">
+                                  {option.carrier.name} (
+                                  {option.quote.pickup_points?.length} puntos)
                                 </span>
-                              )}
-                              <span className="delivery-time">
-                                {getDeliveryDays(option.quote).min} -{" "}
-                                {getDeliveryDays(option.quote).max}
-                              </span>
-                              <span className="option-price">
-                                $
-                                {formatPrice(
-                                  option.quote.amounts.price_incl_tax
-                                )}
-                              </span>
-                            </div>
+                                <span className="delivery-time">
+                                  {getDeliveryDays(option.quote).min} -{" "}
+                                  {getDeliveryDays(option.quote).max}
+                                </span>
+                                <span className="option-price">
+                                  {formatARS(option.quote.amounts.price_incl_tax)}
+                                </span>
+                                <span
+                                  className="group-toggle"
+                                  aria-hidden="true"
+                                >
+                                  {isExpandedCarrier ? "▲" : "▶"}
+                                </span>
+                              </button>
+                            ) : (
+                              <label className="option-row">
+                                <input
+                                  type="radio"
+                                  name={`shipping-${groupKey}`}
+                                  checked={isSelected(groupKey, option)}
+                                  onChange={() => handleSelect(groupKey, option)}
+                                />
+                                <span className="carrier-name">
+                                  {option.carrier.name}
+                                </span>
+                                <span className="delivery-time">
+                                  {getDeliveryDays(option.quote).min} -{" "}
+                                  {getDeliveryDays(option.quote).max}
+                                </span>
+                                <span className="option-price">
+                                  {formatARS(option.quote.amounts.price_incl_tax)}
+                                </span>
+                              </label>
+                            )}
 
                             {hasPoints && isExpandedCarrier && (
-                              <div className="pickup-points-list">
+                              <div
+                                className="pickup-points-list"
+                                id={`pickup-points-${optionKey}`}
+                              >
                                 {option.quote.pickup_points!.map(
                                   (point, pidx) => (
                                     <label

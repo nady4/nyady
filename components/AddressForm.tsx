@@ -15,12 +15,14 @@ interface AddressSuggestion extends AddressFormValues {
 
 interface AddressFormProps {
   address: AddressFormValues | null;
+  /** Where to redirect after save (e.g. /cart when edited mid-checkout). */
+  nextPath?: string;
 }
 
 const MIN_QUERY_LENGTH = 4;
 const DEBOUNCE_MS = 400;
 
-export default function AddressForm({ address }: AddressFormProps) {
+export default function AddressForm({ address, nextPath }: AddressFormProps) {
   const [street, setStreet] = useState(address?.street || "");
   const [city, setCity] = useState(address?.city || "");
   const [state, setState] = useState(address?.state || "");
@@ -44,8 +46,10 @@ export default function AddressForm({ address }: AddressFormProps) {
 
     const query = street.trim();
     if (query.length < MIN_QUERY_LENGTH) {
-      setSuggestions([]);
-      setIsOpen(false);
+      queueMicrotask(() => {
+        setSuggestions([]);
+        setIsOpen(false);
+      });
       return;
     }
 
@@ -124,11 +128,17 @@ export default function AddressForm({ address }: AddressFormProps) {
 
   return (
     <form action={updateAddress}>
+      {nextPath && <input type="hidden" name="next" value={nextPath} />}
       <div className="street-field">
+        <label htmlFor="address-street" className="sr-only">
+          Calle y número
+        </label>
         <input
+          id="address-street"
           type="text"
           name="street"
           placeholder="Calle y número"
+          autoComplete="address-line1"
           value={street}
           onChange={(event) => handleStreetChange(event.target.value)}
           onKeyDown={handleKeyDown}
@@ -136,7 +146,6 @@ export default function AddressForm({ address }: AddressFormProps) {
             if (suggestions.length > 0) setIsOpen(true);
           }}
           onBlur={closeDropdown}
-          autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
           aria-controls="address-suggestions"
@@ -174,25 +183,40 @@ export default function AddressForm({ address }: AddressFormProps) {
         </p>
       )}
 
+      <label htmlFor="address-city" className="sr-only">
+        Ciudad
+      </label>
       <input
+        id="address-city"
         type="text"
         name="city"
         placeholder="Ciudad"
+        autoComplete="address-level2"
         value={city}
         onChange={(event) => setCity(event.target.value)}
         required
       />
+      <label htmlFor="address-state" className="sr-only">
+        Provincia
+      </label>
       <input
+        id="address-state"
         type="text"
         name="state"
         placeholder="Provincia"
+        autoComplete="address-level1"
         value={state}
         onChange={(event) => setState(event.target.value)}
       />
+      <label htmlFor="address-postal-code" className="sr-only">
+        Código postal
+      </label>
       <input
+        id="address-postal-code"
         type="text"
         name="postalCode"
         placeholder="Código postal"
+        autoComplete="postal-code"
         value={postalCode}
         onChange={(event) => setPostalCode(event.target.value)}
         required

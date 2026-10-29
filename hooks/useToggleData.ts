@@ -1,60 +1,87 @@
 "use client";
-import { useCallback } from "react";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
-import { addToCart, removeFromCart } from "@/store/slices/cartSlice";
+import { addToCart } from "@/store/slices/cartSlice";
 import {
   addToWishList,
   removeFromWishList,
 } from "@/store/slices/wishListSlice";
-import { toggleCartProduct, addToCartWithDetails } from "@/actions/cart";
+import { addToCartWithDetails } from "@/actions/cart";
 import { toggleWishlistProduct } from "@/actions/wishlist";
 
-export function useToggleCartProduct(productId: string) {
+interface ToastDetail {
+  message: string;
+  tone: "success" | "error";
+}
+
+/** Lightweight toast signal (rendered once by components/Toast.tsx). */
+function announce(message: string, tone: ToastDetail["tone"]) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent<ToastDetail>("nyady:toast", { detail: { message, tone } })
+  );
+}
+
+export function useAddToCart(productId: string) {
   const dispatch = useAppDispatch();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const userId = status === "authenticated" ? session?.user?.id as string : undefined;
+  const pathname = usePathname();
   const cartIds = useAppSelector((state) => state.cart);
-  const isInCart = cartIds.includes(productId);
+  const isInCart = useMemo(() => cartIds.includes(productId), [cartIds, productId]);
 
-  const onCartClick = useCallback(
-    (e?: React.MouseEvent, selectedSize?: string, selectedColor?: string, selectedTacoOption?: string, quantity: number = 1) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-
-      if (!userId) {
-        router.push("/signin");
+  /**
+   * ALWAYS adds (incrementing quantity for the same variant) — it never
+   * removes; the destructive toggle behaviour lives in the cart page.
+   */
+  const onAddToCart = useCallback(
+    (
+      selectedSize?: string,
+      selectedColor?: string,
+      selectedTacoOption?: string,
+      quantity: number = 1
+    ) => {
+      if (status !== "authenticated" || !session?.user?.id) {
+        router.push(`/signin?callbackUrl=${encodeURIComponent(pathname)}`);
+        announce("Iniciá sesión para comprar", "success");
         return;
       }
 
-      if (isInCart) {
-        dispatch(removeFromCart(productId));
-      } else {
-        dispatch(addToCart(productId));
-      }
+      dispatch(addToCart(productId));
 
-      if (selectedSize || selectedColor || selectedTacoOption) {
-        addToCartWithDetails(userId, productId, selectedSize, selectedColor, selectedTacoOption, quantity);
-      } else {
-        toggleCartProduct(userId, productId);
-      }
+      addToCartWithDetails(
+        session.user.id as string,
+        productId,
+        selectedSize,
+        selectedColor,
+        selectedTacoOption,
+        quantity
+      ).then((result) => {
+        if (result?.error) {
+          announce(result.error, "error");
+        } else {
+          announce(
+            quantity === 1
+              ? "Producto agregado al carrito"
+              : `${quantity} productos agregados al carrito`,
+            "success"
+          );
+        }
+      });
     },
-    [dispatch, isInCart, productId, userId, router]
+    [dispatch, productId, session, status, router, pathname]
   );
 
-  return { isInCart, onCartClick };
+  return { isInCart, onAddToCart };
 }
 
 export function useToggleWishlist(productId: string) {
   const dispatch = useAppDispatch();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const userId = status === "authenticated" ? session?.user?.id as string : undefined;
+  const pathname = usePathname();
   const wishListIds = useAppSelector((state) => state.wishList);
 
   const isWishlisted = useMemo(
@@ -63,12 +90,15 @@ export function useToggleWishlist(productId: string) {
   );
 
   const onHeartClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
+    (e?: React.MouseEvent) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
 
-      if (!userId) {
-        router.push("/signin");
+      if (status !== "authenticated" || !session?.user?.id) {
+        router.push(`/signin?callbackUrl=${encodeURIComponent(pathname)}`);
+        announce("Iniciá sesión para guardar favoritos", "success");
         return;
       }
 
@@ -78,9 +108,14 @@ export function useToggleWishlist(productId: string) {
         dispatch(addToWishList(productId));
       }
 
-      toggleWishlistProduct(userId, productId);
+      announce(
+        isWishlisted ? "Quitado de favoritos" : "Agregado a favoritos",
+        "success"
+      );
+
+      toggleWishlistProduct(session.user.id as string, productId);
     },
-    [dispatch, isWishlisted, productId, userId, router]
+    [dispatch, isWishlisted, productId, session, status, router, pathname]
   );
 
   return { isWishlisted, onHeartClick };

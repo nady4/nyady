@@ -20,14 +20,14 @@ export default function OrdersTable({
       <table className="admin-table">
         <thead>
           <tr>
-            <th>Pedido</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th className="admin-col-number">Items</th>
-            <th className="admin-col-number">Total</th>
-            <th className="admin-col-center">Estado</th>
-            <th className="admin-col-center">Envío</th>
-            <th className="admin-col-center">Ver</th>
+            <th scope="col">Pedido</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Cliente</th>
+            <th scope="col" className="admin-col-number">Items</th>
+            <th scope="col" className="admin-col-number">Total</th>
+            <th scope="col" className="admin-col-center">Estado</th>
+            <th scope="col" className="admin-col-center">Envío</th>
+            <th scope="col" className="admin-col-center">Ver</th>
           </tr>
         </thead>
         <tbody>

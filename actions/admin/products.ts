@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { ensureAdmin } from "@/lib/admin";
+import { uniqueProductSlug } from "@/lib/slug";
 import { collectProductUrls, deleteOrphanBlobs } from "@/lib/admin/blob";
 import type {
   AdminActionResult,
@@ -80,6 +81,7 @@ export async function createProductAction(
     await prisma.product.create({
       data: {
         name: input.name.trim(),
+        slug: await uniqueProductSlug(input.name),
         description: input.description?.trim() || null,
         price: input.price,
         category: input.category.trim(),
@@ -113,7 +115,7 @@ export async function updateProductAction(
 
   const existing = await prisma.product.findUnique({
     where: { id: productId },
-    select: { photo: true, photos: true },
+    select: { photo: true, photos: true, slug: true, name: true },
   });
   if (!existing) return { ok: false, error: "Producto no encontrado" };
 
@@ -122,11 +124,18 @@ export async function updateProductAction(
 
   const nextPhotos = sanitizePhotos(input.photos);
 
+  // Regenerate the URL slug only when the name actually changed, so existing
+  // product links keep working while renames keep URLs fresh.
+  const shouldRenameSlug = existing.name !== input.name.trim();
+
   try {
     await prisma.product.update({
       where: { id: productId },
       data: {
         name: input.name.trim(),
+        slug: shouldRenameSlug
+          ? await uniqueProductSlug(input.name, productId)
+          : existing.slug,
         description: input.description?.trim() || null,
         price: input.price,
         category: input.category.trim(),
@@ -288,6 +297,7 @@ export async function duplicateProductAction(
     await prisma.product.create({
       data: {
         name: `${product.name} (copia)`,
+        slug: await uniqueProductSlug(`${product.name} (copia)`),
         photo: product.photo,
         price: product.price,
         category: product.category,

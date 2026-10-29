@@ -205,10 +205,10 @@ export default function UserFormAdmin({
         </div>
       </div>
 
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error" role="alert">{error}</p>}
 
       <div className="admin-form-actions">
-        {saved && <span className="admin-saved-hint">Guardado</span>}
+        {saved && <span className="admin-saved-hint" role="status">Guardado</span>}
         <button type="submit" className="admin-button primary" disabled={busy}>
           {busy
             ? "Guardando..."

@@ -197,7 +197,7 @@ export default function OrderItemsEditor({
         + Agregar línea
       </button>
 
-      {error && <p className="admin-error">{error}</p>}
+      {error && <p className="admin-error" role="alert">{error}</p>}
 
       <div className="admin-form-actions">
         <button type="submit" className="admin-button primary" disabled={busy}>

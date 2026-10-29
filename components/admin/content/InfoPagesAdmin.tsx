@@ -77,7 +77,7 @@ export default function InfoPagesAdmin({ pages }: { pages: AdminInfoPageRow[] })
   return (
     <div className="admin-info-pages">
       {message && (
-        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"}>
+        <p className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"} role={message.kind === "ok" ? "status" : "alert"}>
           {message.text}
         </p>
       )}
@@ -149,10 +149,12 @@ export default function InfoPagesAdmin({ pages }: { pages: AdminInfoPageRow[] })
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Página</th>
-                <th>URL</th>
-                <th className="admin-col-center">Estado</th>
-                <th className="admin-col-actions" aria-label="Acciones" />
+                <th scope="col">Página</th>
+                <th scope="col">URL</th>
+                <th scope="col" className="admin-col-center">Estado</th>
+                <th scope="col" className="admin-col-actions">
+                  <span className="admin-sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody>

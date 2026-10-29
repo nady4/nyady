@@ -1,35 +1,85 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useFilterProducts } from "@/hooks/useFilterProducts";
 import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
-import { useAppSelector, useAppDispatch } from "@/hooks/useStore";
+import { useAppDispatch, useAppSelector } from "@/hooks/useStore";
 import { setCategories } from "@/store/slices/categorySlice";
-import { fraunces } from "@/app/fonts";
+import { resetFilters } from "@/store/slices/filterSlice";
+import { resetSearch } from "@/store/slices/searchSlice";
+import { resetPriceFilter } from "@/store/slices/priceSlice";
+import { cormorantGaramond } from "@/app/fonts";
 import ProductCard from "./ProductCard";
+import { ProductType } from "@/types";
 import "@/styles/ProductList.scss";
 import "@/styles/ProductCard.scss";
 
-function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
+interface ProductListProps {
+  /** Server-provided first render (SSR), used until the store hydrates. */
+  initialProducts?: ProductType[];
+  isLoadingExternal?: boolean;
+  /** Precomputed by the catalog server page: ?q= found 0 products. */
+  noResultsQuery?: string;
+}
+
+function ProductList({
+  initialProducts,
+  isLoadingExternal,
+  noResultsQuery,
+}: ProductListProps) {
   const dispatch = useAppDispatch();
-  const products = useAppSelector((state) => state.products);
-  const cartIds = useAppSelector((state) => state.cart);
+  const router = useRouter();
+  const storeProducts = useAppSelector((state) => state.products);
   const cartTotalQuantity = useCartTotalQuantity();
+  const activeSizes = useAppSelector((state) => state.filters.activeSizes);
+  const activeColors = useAppSelector((state) => state.filters.activeColors);
+  const searchQuery = useAppSelector((state) => state.search.query);
+  // Fallback to the server props while the store hydrates (and always if a
+  // route never dispatched products).
+  const products = storeProducts.length > 0 ? storeProducts : initialProducts ?? [];
+  const loading =
+    isLoadingExternal !== false &&
+    storeProducts.length === 0 &&
+    (initialProducts ?? []).length === 0;
+
+  // only used to keep the store's categories current after hydration
+  useEffect(() => {
+    if (storeProducts.length > 0) {
+      const categories = [...new Set(storeProducts.map((p) => p.category))];
+      dispatch(setCategories(categories));
+    }
+  }, [storeProducts, dispatch]);
 
   const filteredProducts = useFilterProducts(products);
-  const categories = useMemo(
-    () => [...new Set(products.map((p) => p.category))],
-    [products]
-  );
+  const hasAnyActive =
+    Object.values(activeSizes).some(Boolean) ||
+    Object.values(activeColors).some(Boolean);
+  const cleanQuery = searchQuery.trim();
+  const emptyQuery = (noResultsQuery ?? "").trim();
+  const hasQuery = cleanQuery.length > 0 || emptyQuery.length > 0;
 
-  // Loading is derived, not stored: we're loading until either products have
-  // arrived or the page-level loader (isLoadingExternal) has finished. Keeping
-  // this as derived state avoids a setState-in-effect and the cascading render
-  // it would cause.
-  const loading = isLoadingExternal !== false && products.length === 0;
+  const clearSearch = () => {
+    dispatch(resetSearch());
+    router.push("/catalog");
+  };
 
-  useEffect(() => {
-    dispatch(setCategories(categories));
-  }, [dispatch, categories]);
+  const resetAllFilters = () => {
+    dispatch(resetFilters());
+    dispatch(resetPriceFilter());
+  };
+
+  // Empty-by-URL (server precomputed): skip the skeleton entirely.
+  if (emptyQuery)
+    return (
+      <div className="product-list-empty">
+        <p className={`${cormorantGaramond.className} status`}>
+          Sin resultados para “{emptyQuery}”
+        </p>
+        <button type="button" className="reset-filters" onClick={clearSearch}>
+          Limpiar búsqueda
+        </button>
+      </div>
+    );
 
   if (loading)
     return (
@@ -46,20 +96,50 @@ function ProductList({ isLoadingExternal }: { isLoadingExternal?: boolean }) {
       </div>
     );
 
-  if (!loading && filteredProducts.length === 0)
+  if (filteredProducts.length === 0)
     return (
-      <p className={`${fraunces.className} status`}>
-        No se encontraron productos
-      </p>
+      <div className="product-list-empty">
+        <p className={`${cormorantGaramond.className} status`}>
+          {hasQuery
+            ? `Sin resultados para “${cleanQuery || emptyQuery}”`
+            : hasAnyActive
+              ? "No hay productos con esos filtros"
+              : "No se encontraron productos"}
+        </p>
+        {hasQuery && (
+          <button type="button" className="reset-filters" onClick={clearSearch}>
+            Limpiar búsqueda
+          </button>
+        )}
+        {!hasQuery && hasAnyActive && (
+          <button type="button" className="reset-filters" onClick={resetAllFilters}>
+            Limpiar filtros
+          </button>
+        )}
+      </div>
     );
 
   return (
-    <div className="product-list">
+    <div className="product-list" aria-label="Listado de productos">
+      {hasQuery && (
+        <p className="search-status" role="status">
+          {filteredProducts.length} resultado
+          {filteredProducts.length === 1 ? "" : "s"} para{" "}
+          <strong>“{cleanQuery}”</strong>{" "}
+          <button
+            type="button"
+            className="clear-search"
+            onClick={clearSearch}
+            aria-label="Limpiar búsqueda"
+          >
+            (quitar)
+          </button>
+        </p>
+      )}
       {filteredProducts.map((product) => (
         <ProductCard
           key={product.id}
           {...product}
-          cartIds={cartIds}
           cartTotalQuantity={cartTotalQuantity}
         />
       ))}

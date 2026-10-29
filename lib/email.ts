@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getAppUrl } from "@/lib/site-url";
 import {
   emailShell,
   emailButton,
@@ -21,15 +22,9 @@ function getClient(): Resend | null {
   return client;
 }
 
-// NEXTAUTH_URL is the canonical public origin (custom domain on Vercel);
-// the request origin is only a fallback for local/dev setups.
-export function getAppUrl(requestOrigin?: string): string {
-  return (
-    process.env.NEXTAUTH_URL?.replace(/\/$/, "") ??
-    requestOrigin ??
-    "http://localhost:3000"
-  );
-}
+// getAppUrl lives in lib/site-url.ts (single source of truth for the
+// public origin) and is re-exported here for the many existing importers.
+export { getAppUrl };
 
 export function hasEmailClient(): boolean {
   return Boolean(getClient());
@@ -447,7 +442,7 @@ export async function sendOrderPendingEmail({
       }) +
       voucherBlock +
       emailNote(
-        "Si ya pagaste, es posible que la acreditación tarde unos minutos. Si no cambia de estado en el día, escribinos a contacto@nyady.com."
+        "Si ya pagaste, es posible que la acreditación tarde unos minutos. Si no cambia de estado en el día, escribinos por WhatsApp al +54 9 11 7812-0252 (https://wa.me/5491178120252) o a contacto@nyady.com."
       )
   });
 

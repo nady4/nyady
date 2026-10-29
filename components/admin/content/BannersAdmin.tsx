@@ -142,6 +142,7 @@ export default function BannersAdmin({ banners }: { banners: AdminBannerRow[] })
           className={
             message.kind === "ok" ? "admin-saved-hint" : "admin-error"
           }
+          role={message.kind === "ok" ? "status" : "alert"}
         >
           {message.text}
         </p>

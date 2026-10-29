@@ -7,6 +7,11 @@
   align-items: center;
   flex: 1;
   background-color: $bg-color;
+  // Vertical breathing room: without it the form hugs the navbar (content
+  // crowds the top of the page). Bottom padding clears the fixed footer bar.
+  padding: 4rem 1.25rem 5rem;
+  min-height: calc(100svh - 4rem);
+  box-sizing: border-box;
 
   .form-title {
     font-family: $title-font;
@@ -94,7 +99,7 @@
 
     .success {
       margin-top: 0.5rem;
-      color: $success-color;
+      color: $success-text;
       font-family: $body-font;
       font-size: 0.875rem;
       text-align: center;
@@ -127,12 +132,12 @@
       }
 
       a {
-        color: $accent-color;
+        color: $accent-text;
         font-weight: 500;
         text-decoration: none;
 
         &:hover {
-          color: $accent-hover;
+          color: $accent-text;
           text-decoration: underline;
         }
       }
@@ -175,14 +180,14 @@
   .link {
     font-family: $body-font;
     font-size: 1rem;
-    color: $accent-color;
+    color: $accent-text;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
     margin-top: 1.5rem;
 
     &:hover {
-      color: $accent-hover;
+      color: $accent-text;
       text-decoration: underline;
     }
   }

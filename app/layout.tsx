@@ -1,10 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { fraunces, inter, cormorantGaramond } from "./fonts";
 import { ReduxProvider } from "@/store/provider";
 import { NextAuthProvider } from "@/providers/NextAuthProvider";
 import NavBar from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
+import SiteFooter from "@/components/SiteFooter";
+import Toast from "@/components/Toast";
+import { getSiteUrl } from "@/lib/site-url";
+
+export const viewport: Viewport = {
+  themeColor: "#2c2416",
+  width: "device-width",
+  initialScale: 1,
+};
 import "@/styles/globals.scss";
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: {
@@ -13,34 +23,22 @@ export const metadata: Metadata = {
   },
   description:
     "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
-  keywords: [
-    "sandalias",
-    "sandalias artesanales",
-    "sandalias de mujer",
-    "sandalias cómodas",
-    "sandalias de plataforma",
-    "calzado artesanal",
-    "calzado hecho a mano",
-    "NYADY",
-    "zapatillas de casa",
-    "calzado indoor",
-    "comprar sandalias argentina",
-  ],
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
   },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "NYADY | Sandalias Artesanales",
     description:
       "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano.",
-    url: "https://nyady.com",
+    url: "/",
     siteName: "NYADY",
     images: [
       {
-        url: "https://nyady.com/assets/products/Abril/1_negro.png",
+        url: "/api/og",
         width: 1200,
-        height: 1200,
+        height: 630,
         alt: "NYADY - Sandalias Artesanales",
       },
     ],
@@ -51,17 +49,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "NYADY | Sandalias Artesanales",
     description:
-      "Encontrá ese par que completa tus días. Calzado para disfrutar de la comodidad sin dejar de lado tu estilo. Sandalias artesanales hechas a mano.",
-    images: ["https://nyady.com/assets/products/Abril/1_negro.png"],
+      "Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
+    images: ["/api/og"],
   },
   alternates: {
-    canonical: "https://nyady.com",
+    canonical: "./",
   },
-  metadataBase: new URL(
-    process.env.NEXTAUTH_URL?.startsWith("https://")
-      ? process.env.NEXTAUTH_URL.replace(/\/$/, "")
-      : "https://nyady.com"
-  ),
+  metadataBase: new URL(siteUrl),
   robots: {
     index: true,
     follow: true,
@@ -80,14 +74,43 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "NYADY",
+    url: siteUrl,
+    description:
+      "Sandalias artesanales hechas a mano. Envíos a todo Argentina.",
+    logo: `${siteUrl}/favicon.png`,
+  };
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "NYADY",
+    url: siteUrl,
+    inLanguage: "es-AR",
+  };
+
   return (
-    <html lang="es">
+    <html lang="es-AR">
       <body className={`${fraunces.variable} ${inter.variable} ${cormorantGaramond.variable}`} suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
+        <a href="#contenido" className="skip-link">
+          Saltar al contenido
+        </a>
         <ReduxProvider>
           <NextAuthProvider>
             <NavBar />
-            {children}
-            <Footer />
+            <main id="contenido">{children}</main>
+            <SiteFooter />
+            <Toast />
           </NextAuthProvider>
         </ReduxProvider>
       </body>

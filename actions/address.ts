@@ -52,6 +52,15 @@ export async function updateAddress(formData: FormData): Promise<void> {
     });
   }
 
+  // Return the user to where they came from: editing the address mid-checkout
+  // must land back on /cart, not push them to the catalog (which loses the
+  // selected shipping option and coupon state). next?= is validated strictly
+  // below (same-origin, path-only).
+  const next = formData.get("next") as string | null;
+  const safeNext =
+    next && next.startsWith("/") && !next.startsWith("//") ? next : "/cuenta";
+
   revalidatePath("/address");
-  redirect("/catalog");
+  revalidatePath("/cart");
+  redirect(safeNext);
 }

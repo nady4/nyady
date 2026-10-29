@@ -136,7 +136,7 @@ export default function WholesaleTiersEditor({
           {busy ? "Guardando..." : "Guardar tramos"}
         </button>
         {message && (
-          <span className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"}>
+          <span className={message.kind === "ok" ? "admin-saved-hint" : "admin-error"} role={message.kind === "ok" ? "status" : "alert"}>
             {message.text}
           </span>
         )}

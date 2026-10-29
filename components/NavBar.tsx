@@ -1,12 +1,15 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { fraunces } from "@/app/fonts";
 import { getUserAddress } from "@/actions/address";
 import { getCartIds } from "@/actions/cart";
+import { useAppSelector } from "@/hooks/useStore";
+import { Suspense } from "react";
 import "@/styles/Navbar.scss";
 
 const INFO_OPTIONS = [
@@ -60,6 +63,19 @@ const INFO_OPTIONS = [
   { href: "/info/nady4", label: "Nady4", icon: "/assets/icons/code.svg" }
 ];
 
+interface AccountLink {
+  href: string;
+  label: string;
+  icon: string;
+}
+
+const ACCOUNT_LINKS: AccountLink[] = [
+  { href: "/cuenta", label: "Cuenta", icon: "/assets/icons/user.svg" },
+  { href: "/orders", label: "Mis Pedidos", icon: "/assets/icons/truck.svg" },
+  { href: "/wishlist", label: "Mis Favoritos", icon: "/assets/icons/heart.svg" },
+  { href: "/address", label: "Dirección de envío", icon: "/assets/icons/house.svg" }
+];
+
 type AddressType = {
   street: string;
   city: string;
@@ -67,49 +83,116 @@ type AddressType = {
   postalCode: string;
 } | null;
 
-export default function NavBar() {
+function NavContent() {
   const { data: session, status } = useSession();
   const infoRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [address, setAddress] = useState<AddressType>(null);
   const pathname = usePathname();
-  const [hasCartItems, setHasCartItems] = useState(false);
+  const searchParams = useSearchParams();
+  const reduxCartIds = useAppSelector((state) => state.cart);
+  const [fetchedCartHasItems, setFetchedCartHasItems] = useState(false);
+  const router = useRouter();
+
+  // Catalog text search, mirrored from ?q= so input agrees with SSR.
+  const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
+  useEffect(() => {
+    const q = searchParams.get("q") ?? "";
+    queueMicrotask(() => setSearchValue(q));
+  }, [searchParams]);
+
+  const submitSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    const q = searchValue.trim();
+    if (!q) {
+      router.push("/catalog");
+      return;
+    }
+    router.push(`/catalog?q=${encodeURIComponent(q)}`);
+  };
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
       getUserAddress().then(setAddress).catch(console.error);
+    } else {
+      queueMicrotask(() => setAddress(null));
     }
   }, [status, session?.user?.email]);
 
-  // Show a dot on the cart icon when the cart has items. Re-fetch on navigation
-  // (pathname) so the indicator stays in sync after add/remove on other pages,
-  // since the NavBar persists across routes and has no shared cart store.
+  // Cart indicator: Redux ids (updated instantly by the add-to-cart islands)
+  // OR a fetched value kept in sync on navigation (covers routes that never
+  // initialize the Redux slice).
   useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.id) return;
+    if (status !== "authenticated" || !session?.user?.id) {
+      queueMicrotask(() => setFetchedCartHasItems(false));
+      return;
+    }
     getCartIds(session.user.id as string)
-      .then((ids) => setHasCartItems(ids.length > 0))
-      .catch(() => setHasCartItems(false));
-  }, [status, session?.user?.id, pathname]);
+      .then((ids) => setFetchedCartHasItems(ids.length > 0))
+      .catch(() => setFetchedCartHasItems(false));
+  }, [status, session?.user?.id, pathname, searchParams]);
+
+  const hasCartItems = reduxCartIds.length > 0 || fetchedCartHasItems;
+
+  // Close open menus after every navigation.
+  useEffect(() => {
+    queueMicrotask(() => {
+      setInfoOpen(false);
+      setMenuOpen(false);
+    });
+  }, [pathname]);
 
   const toggleInfo = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setInfoOpen((prev) => !prev);
   }, []);
 
-  const handleClickOutside = useCallback((event: MouseEvent) => {
-    if (
-      infoRef.current &&
-      event.target instanceof Element &&
-      !infoRef.current.contains(event.target)
-    ) {
-      setInfoOpen(false);
-    }
+  const closeMenus = useCallback(() => {
+    setInfoOpen(false);
+    setMenuOpen(false);
   }, []);
 
+  const handleClickOutside = useCallback(
+    (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        infoRef.current &&
+        target instanceof Element &&
+        !infoRef.current.contains(target)
+      ) {
+        setInfoOpen(false);
+      }
+      if (
+        target instanceof Element &&
+        !target.closest(".mobile-menu, .menu-toggle")
+      ) {
+        setMenuOpen(false);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
+    return () => document.removeEventListener("pointerdown", handleClickOutside);
   }, [handleClickOutside]);
+
+  // Escape closes any open menu and returns focus to its trigger.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (infoOpen) {
+        setInfoOpen(false);
+      } else if (menuOpen) {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [infoOpen, menuOpen]);
 
   const formatAddress = (addr: AddressType) => {
     if (!addr) return "Seleccionar dirección";
@@ -126,7 +209,8 @@ export default function NavBar() {
             <Link href="/signin" className="nav-link">
               <Image
                 src="/assets/icons/signin.svg"
-                alt="Iniciar sesión"
+                alt=""
+                aria-hidden="true"
                 width={20}
                 height={20}
               />
@@ -134,60 +218,101 @@ export default function NavBar() {
             </Link>
           ) : (
             <>
-              <Link href="/cuenta" className="nav-link">
-                <Image
-                  src="/assets/icons/user.svg"
-                  alt="Cuenta"
-                  width={20}
-                  height={20}
-                />
-                <span>Cuenta</span>
-              </Link>
-              <Link href="/orders" className="nav-link">
-                <Image
-                  src="/assets/icons/truck.svg"
-                  alt="Mis Pedidos"
-                  width={20}
-                  height={20}
-                />
-                <span>Mis Pedidos</span>
-              </Link>
-              <Link href="/wishlist" className="nav-link">
-                <Image
-                  src="/assets/icons/heart.svg"
-                  alt="Mis Favoritos"
-                  width={20}
-                  height={20}
-                />
-                <span>Mis Favoritos</span>
-              </Link>
+              {ACCOUNT_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`nav-link${
+                    link.href === "/orders"
+                      ? " orders-link"
+                      : link.href === "/wishlist"
+                        ? " wishlist-link"
+                        : link.href === "/address"
+                          ? " address-link"
+                          : ""
+                  }`}
+                >
+                  <Image
+                    src={link.icon}
+                    alt=""
+                    aria-hidden="true"
+                    width={20}
+                    height={20}
+                  />
+                  <span>
+                    {link.href === "/address" ? formatAddress(address) : link.label}
+                  </span>
+                </Link>
+              ))}
             </>
           )}
         </div>
 
         <div className="center-content">
-          <Link href="/catalog">
-            <h1>
+          <Link href="/catalog" className="logo-link" aria-label="NYADY — ir al catálogo">
+            <div className="logo">
               <span className="logo-black">N</span>
               <span className="logo-accent">Y</span>
               <span className="logo-black">ADY</span>
-            </h1>
+            </div>
           </Link>
         </div>
 
         <div className="right-content">
+          <form className="nav-search" role="search" onSubmit={submitSearch}>
+            <input
+              type="search"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              placeholder="Buscar sandalias..."
+              aria-label="Buscar productos"
+              enterKeyHint="search"
+            />
+            <button type="submit" aria-label="Buscar">
+              <Image
+                src="/assets/icons/search.svg"
+                alt=""
+                aria-hidden="true"
+                width={16}
+                height={16}
+              />
+            </button>
+          </form>
+          {session && (
+            <Link href="/cart" className="cart-link" aria-label={`Carrito${hasCartItems ? ": tenés productos" : " (vacío)"}`}>
+              <Image
+                src="/assets/icons/cart_dark.svg"
+                alt=""
+                aria-hidden="true"
+                width={24}
+                height={24}
+              />
+              {hasCartItems && <span className="cart-badge" aria-hidden="true" />}
+            </Link>
+          )}
           <div className="info-wrapper" ref={infoRef}>
-            <button className="nav-link info-toggle" onClick={toggleInfo}>
+            <button
+              type="button"
+              className="nav-link info-toggle"
+              onClick={toggleInfo}
+              aria-expanded={infoOpen}
+              aria-haspopup="true"
+              aria-controls="info-dropdown"
+            >
               <span>Información</span>
               <Image
                 src="/assets/icons/chevron-down.svg"
-                alt="Desplegar"
+                alt=""
+                aria-hidden="true"
                 width={14}
                 height={14}
                 className={infoOpen ? "chevron open" : "chevron"}
               />
             </button>
-            <div className={`info-dropdown ${infoOpen ? "open" : "closed"}`}>
+            <div
+              className={`info-dropdown ${infoOpen ? "open" : "closed"}`}
+              id="info-dropdown"
+            >
               {INFO_OPTIONS.map((option) => (
                 <Link
                   key={option.href}
@@ -196,7 +321,8 @@ export default function NavBar() {
                 >
                   <Image
                     src={option.icon}
-                    alt={option.label}
+                    alt=""
+                    aria-hidden="true"
                     width={18}
                     height={18}
                   />
@@ -206,35 +332,123 @@ export default function NavBar() {
             </div>
           </div>
 
-          {session && (
-            <Link href="/address" className="nav-link address-link">
-              <Image
-                src="/assets/icons/house.svg"
-                alt="Dirección"
-                width={20}
-                height={20}
-              />
-              <span className="address-text" title={formatAddress(address)}>
-                {formatAddress(address)}
-              </span>
-            </Link>
-          )}
-
-          {session && (
-            <Link href="/cart" className="cart-link">
-              <Image
-                src="/assets/icons/cart_dark.svg"
-                alt="Carrito"
-                width={24}
-                height={24}
-              />
-              {hasCartItems && (
-                <span className="cart-badge" aria-hidden="true" />
-              )}
-            </Link>
-          )}
+          <button
+            type="button"
+            ref={menuButtonRef}
+            className="nav-link menu-toggle"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen((prev) => !prev);
+            }}
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          >
+            <Image
+              src="/assets/icons/menu.svg"
+              alt=""
+              aria-hidden="true"
+              width={22}
+              height={22}
+              className={menuOpen ? "menu-icon open" : "menu-icon"}
+            />
+          </button>
         </div>
       </div>
+
+      <div className={`mobile-menu ${menuOpen ? "open" : "closed"}`} id="mobile-menu">
+        <form className="mobile-search" role="search" onSubmit={submitSearch}>
+          <input
+            type="search"
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            placeholder="Buscar sandalias..."
+            aria-label="Buscar productos"
+            enterKeyHint="search"
+            autoComplete="off"
+          />
+          <button type="submit" aria-label="Buscar">
+            <Image
+              src="/assets/icons/search.svg"
+              alt=""
+              aria-hidden="true"
+              width={16}
+              height={16}
+            />
+          </button>
+        </form>
+        {session ? (
+          <>
+            {ACCOUNT_LINKS.map((link) => (
+              <Link key={link.href} href={link.href} onClick={closeMenus}>
+                <Image
+                  src={link.icon}
+                  alt=""
+                  aria-hidden="true"
+                  width={18}
+                  height={18}
+                />
+                <span>{link.label}</span>
+              </Link>
+            ))}
+            <Link href="/cart" onClick={closeMenus}>
+              <Image
+                src="/assets/icons/cart_dark.svg"
+                alt=""
+                aria-hidden="true"
+                width={18}
+                height={18}
+              />
+              <span>Carrito{hasCartItems ? " (con productos)" : ""}</span>
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link href="/signin" onClick={closeMenus}>
+              <Image
+                src="/assets/icons/signin.svg"
+                alt=""
+                aria-hidden="true"
+                width={18}
+                height={18}
+              />
+              <span>Iniciar sesión</span>
+            </Link>
+            <Link href="/cart" onClick={closeMenus}>
+              <Image
+                src="/assets/icons/cart_dark.svg"
+                alt=""
+                aria-hidden="true"
+                width={18}
+                height={18}
+              />
+              <span>Carrito</span>
+            </Link>
+          </>
+        )}
+        <div className="mobile-menu-section">Información</div>
+        {INFO_OPTIONS.map((option) => (
+          <Link key={`m-${option.href}`} href={option.href} onClick={closeMenus}>
+            <Image
+              src={option.icon}
+              alt=""
+              aria-hidden="true"
+              width={18}
+              height={18}
+            />
+            <span>{option.label}</span>
+          </Link>
+        ))}
+      </div>
     </nav>
+  );
+}
+
+export default function NavBar() {
+  return (
+    <Suspense fallback={<div className="navbar-container" />}>
+      <NavContent />
+    </Suspense>
   );
 }

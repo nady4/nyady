@@ -44,6 +44,7 @@ export default function ProductsFilterBar({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por nombre, SKU o categoría"
+          aria-label="Buscar productos por nombre, SKU o categoría"
         />
         <button type="submit" className="admin-button small">
           Buscar

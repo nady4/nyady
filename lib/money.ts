@@ -17,3 +17,8 @@ export function num(value: Prisma.Decimal | number | null | undefined): number {
 export function moneyRound(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
+
+/** Canonical ARS display format: "$27.500,00" style, es-AR, no decimals. */
+export function formatARS(value: number): string {
+  return `$${Math.round(value).toLocaleString("es-AR")}`;
+}

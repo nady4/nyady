@@ -67,13 +67,24 @@
     gap: 0.15rem;
   }
 
+  .admin-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .admin-nav-group-label {
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 1.2px;
     text-transform: uppercase;
     color: $text-muted;
-    opacity: 0.75;
     padding: 0 0.75rem 0.35rem;
   }
 
@@ -196,7 +207,7 @@
       transition: color 0.2s;
 
       &:hover {
-        color: $accent-hover;
+        color: $accent-text;
       }
     }
   }
@@ -298,7 +309,7 @@
   .admin-card-link {
     font-size: 0.85rem;
     font-weight: 600;
-    color: $accent-hover;
+    color: $accent-text;
     transition: color 0.2s;
 
     &:hover {
@@ -375,7 +386,7 @@
     }
 
     a {
-      color: $accent-hover;
+      color: $accent-text;
       font-weight: 600;
       white-space: nowrap;
       transition: color 0.2s;
@@ -387,7 +398,7 @@
     }
 
     .admin-alert-ok {
-      color: $success-color;
+      color: $success-text;
       font-weight: 600;
       font-size: 0.8rem;
       white-space: nowrap;
@@ -444,7 +455,7 @@
       .admin-recent-total {
         font-family: $title-font;
         font-weight: 600;
-        color: $accent-hover;
+        color: $accent-text;
         white-space: nowrap;
       }
     }
@@ -711,7 +722,7 @@
         font-family: $title-font;
         font-size: 1.05rem;
         font-weight: 600;
-        color: $accent-hover;
+        color: $accent-text;
       }
 
       .admin-product-made-on-demand {
@@ -752,7 +763,7 @@
 
   &.available {
     background-color: rgba($success-color, 0.15);
-    color: $success-color;
+    color: $success-text;
   }
 
   &.unavailable {
@@ -762,12 +773,12 @@
 
   &.status-approved {
     background-color: rgba($success-color, 0.15);
-    color: $success-color;
+    color: $success-text;
   }
 
   &.status-pending {
     background-color: rgba($warning-color, 0.15);
-    color: $warning-color;
+    color: $warning-text;
   }
 
   &.status-rejected {
@@ -962,7 +973,7 @@
       font-size: 1.05rem;
 
       strong {
-        color: $accent-hover;
+        color: $accent-text;
       }
     }
 
@@ -997,7 +1008,7 @@
       .admin-tracking-link {
         font-size: 0.88rem;
         font-weight: 600;
-        color: $accent-hover;
+        color: $accent-text;
         transition: color 0.2s;
 
         &:hover {
@@ -1150,7 +1161,7 @@
 
   &.ok {
     background-color: rgba($success-color, 0.12);
-    color: $success-color;
+    color: $success-text;
   }
 
   &.error {
@@ -1336,7 +1347,7 @@ th.admin-col-number {
 .admin-cell-price {
   font-family: $title-font;
   font-weight: 600;
-  color: $accent-hover;
+  color: $accent-text;
   white-space: nowrap;
 }
 
@@ -1740,7 +1751,7 @@ th.admin-col-number {
     color: $text-color;
 
     span:last-child {
-      color: $accent-hover;
+      color: $accent-text;
       font-weight: 600;
     }
   }
@@ -1782,20 +1793,20 @@ th.admin-col-number {
   strong {
     font-family: $title-font;
     font-size: 1.15rem;
-    color: $accent-hover;
+    color: $accent-text;
   }
 }
 
 .admin-saved-hint {
   font-size: 0.82rem;
   font-weight: 600;
-  color: $success-color;
+  color: $success-text;
 }
 
 .admin-tracking-link {
   font-size: 0.85rem;
   font-weight: 600;
-  color: $accent-hover;
+  color: $accent-text;
   transition: color 0.2s;
 
   &:hover {
@@ -1982,7 +1993,7 @@ th.admin-col-number {
   font-size: 0.9rem;
 
   strong {
-    color: $accent-hover;
+    color: $accent-text;
     font-family: $title-font;
   }
 }
@@ -2052,7 +2063,7 @@ th.admin-col-number {
 
 .admin-coupon-active {
   background-color: rgba($success-color, 0.15);
-  color: $success-color;
+  color: $success-text;
 }
 
 .admin-coupon-paused {
@@ -2067,7 +2078,7 @@ th.admin-col-number {
 
 .admin-coupon-exhausted {
   background-color: rgba($warning-color, 0.18);
-  color: $warning-color;
+  color: $warning-text;
 }
 
 .admin-banners-list {
@@ -2249,7 +2260,7 @@ th.admin-col-number {
     margin-left: 0.35rem;
 
     &.up {
-      color: $success-color;
+      color: $success-text;
     }
 
     &.down {
@@ -2261,7 +2272,7 @@ th.admin-col-number {
     }
 
     &.new {
-      color: $accent-hover;
+      color: $accent-text;
     }
   }
 

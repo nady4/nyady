@@ -105,6 +105,10 @@ model Product {
   wishLists  WishList[]
   carts      Cart[]
 
+  // Human-readable unique URL id, e.g. "abril-negro". Used by
+  // /products/[slug]; the cuid keeps resolving via a 301 redirect.
+  slug       String     @unique
+
   name       String
   photo      String
   price      Decimal    @db.Decimal(14, 2)

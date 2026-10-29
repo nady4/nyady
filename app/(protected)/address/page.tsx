@@ -4,18 +4,24 @@ import FormContainer from "@/components/FormContainer";
 import AddressForm from "@/components/AddressForm";
 
 export const metadata: Metadata = {
-  title: "Dirección de envío - NYADY",
+  title: "Dirección de envío",
   description:
     "Gestioná tu dirección de envío para recibir tus sandalias artesanales en casa.",
+  robots: { index: false, follow: true },
 };
 
-export default async function AddressPage() {
-  const address = await getUserAddress();
+export default async function AddressPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const [address, params] = await Promise.all([getUserAddress(), searchParams]);
+  const next = params.next && params.next.startsWith("/") ? params.next : undefined;
 
   return (
     <div className="form-page">
       <FormContainer title="Dirección de envío">
-        <AddressForm address={address} />
+        <AddressForm address={address} nextPath={next} />
       </FormContainer>
     </div>
   );

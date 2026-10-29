@@ -5,6 +5,7 @@ import { wishListSlice } from "./slices/wishListSlice";
 import { productsSlice } from "./slices/productsSlice";
 import { cartSlice } from "./slices/cartSlice";
 import filterReducer from "./slices/filterSlice";
+import searchReducer from "./slices/searchSlice";
 
 const rootReducer = {
   category: categoryReducer,
@@ -13,6 +14,7 @@ const rootReducer = {
   products: productsSlice.reducer,
   cart: cartSlice.reducer,
   filters: filterReducer,
+  search: searchReducer,
 };
 
 export function createStore() {

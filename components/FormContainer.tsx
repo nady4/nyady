@@ -10,7 +10,7 @@ type FormContainerProps = {
 export default function FormContainer({ title, children }: FormContainerProps) {
   return (
     <div className="form-container">
-      <h2 className="title">{title}</h2>
+      <h1 className="title">{title}</h1>
       {children}
     </div>
   );

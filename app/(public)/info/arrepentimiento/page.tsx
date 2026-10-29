@@ -28,7 +28,17 @@ export default function ArrepentimientoPage() {
 
       <h2>Cómo Ejercerlo</h2>
       <ol>
-        <li>Contactános por email a contacto@nyady.com</li>
+        <li>
+          Contactános por WhatsApp al{" "}
+          <a
+            href="https://wa.me/5491178120252"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            +54 9 11 7812-0252
+          </a>
+          , o por email a contacto@nyady.com
+        </li>
         <li>Indicá tu número de pedido</li>
         <li>Explicitá tu decisión de arrepentirte</li>
         <li>Te enviaremos la confirmación y las instrucciones de devolución</li>

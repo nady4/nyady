@@ -42,6 +42,7 @@ export default function OrdersFilterBar({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder="Buscar por ID de pedido, cliente, email o destinatario"
+          aria-label="Buscar pedidos por ID, cliente, email o destinatario"
         />
         <button type="submit" className="admin-button small">
           Buscar
