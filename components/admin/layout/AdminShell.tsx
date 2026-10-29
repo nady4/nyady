@@ -125,10 +125,7 @@ export default function AdminShell({
 
   return (
     <div className="admin-shell">
-      <aside
-        className={`admin-sidebar ${menuOpen ? "open" : ""}`}
-        inert={!menuOpen}
-      >
+      <aside className={`admin-sidebar ${menuOpen ? "open" : ""}`}>
         <div className="admin-sidebar-brand">
           <Link
             href="/admin"
