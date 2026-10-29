@@ -69,7 +69,7 @@ export async function getWishListProducts(
       },
     });
 
-    return products.map((p) => ({ ...p, price: num(p.price) }));
+    return products.map((p) => ({ ...p, price: num(p.price), purchasePrice: null }));
   } catch (error) {
     console.error("Error fetching wishlist:", error);
     return [];

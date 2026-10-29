@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/admin";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,7 @@ export async function GET(): Promise<Response> {
     "SKU",
     "Categoria",
     "Precio",
+    "PrecioCompra",
     "Stock",
     "Disponible",
     "Archivado",
@@ -45,6 +47,7 @@ export async function GET(): Promise<Response> {
         product.code ?? "",
         product.category,
         product.price.toFixed(2),
+        purchasePriceOf(product).toFixed(2),
         product.stock,
         product.available ? "si" : "no",
         product.archivedAt ? "si" : "no",

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { num } from "@/lib/money";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 import { fraunces } from "@/app/fonts";
 import { formatARS, formatAdminDateTime } from "@/lib/admin/format";
 
@@ -49,7 +50,17 @@ export default async function AdminOverviewPage() {
   ] = await Promise.all([
     prisma.order.findMany({
       where: { createdAt: { gte: since } },
-      select: { total: true, status: true, createdAt: true },
+      select: {
+        total: true,
+        status: true,
+        createdAt: true,
+        orderItems: {
+          select: {
+            quantity: true,
+            product: { select: { price: true, purchasePrice: true } },
+          },
+        },
+      },
     }),
     prisma.order.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.order.count({
@@ -77,17 +88,26 @@ export default async function AdminOverviewPage() {
     }),
   ]);
 
+  // Purchase cost of an order = sum of item quantities × current product
+  // cost (placeholder rule applies while costs are not tracked).
+  const orderCost = (order: (typeof ordersSince)[number]): number =>
+    order.orderItems.reduce(
+      (acc, item) => acc + item.quantity * purchasePriceOf(item.product),
+      0
+    );
+
   const monthOrders = ordersSince.filter((o) => o.createdAt >= startOfMonth);
   const monthApproved = monthOrders.filter((o) => o.status === "approved");
   const monthRevenue = monthApproved.reduce((acc, o) => acc + num(o.total), 0);
+  const monthCost = monthApproved.reduce((acc, o) => acc + orderCost(o), 0);
+  const monthProfit = monthRevenue - monthCost;
+  const monthMargin = monthRevenue > 0 ? (monthProfit / monthRevenue) * 100 : 0;
   const todayRevenue = ordersSince
     .filter((o) => o.status === "approved" && o.createdAt >= startOfDay)
     .reduce((acc, o) => acc + num(o.total), 0);
   const weekRevenue = ordersSince
     .filter((o) => o.status === "approved" && o.createdAt >= startOfWeek)
     .reduce((acc, o) => acc + num(o.total), 0);
-  const averageTicket =
-    monthApproved.length > 0 ? monthRevenue / monthApproved.length : 0;
 
   const statusCount = (status: string) =>
     statusGroups.find((g) => g.status === status)?._count._all ?? 0;
@@ -109,6 +129,11 @@ export default async function AdminOverviewPage() {
 
   const kpis = [
     {
+      label: "Rentabilidad del mes",
+      value: formatARS(monthProfit),
+      sub: `Costos ${formatARS(monthCost)} · Margen ${monthMargin.toFixed(0)}%`,
+    },
+    {
       label: "Ingresos del mes",
       value: formatARS(monthRevenue),
       sub: `Hoy ${formatARS(todayRevenue)} · Semana ${formatARS(weekRevenue)}`,
@@ -117,11 +142,6 @@ export default async function AdminOverviewPage() {
       label: "Pedidos del mes",
       value: String(monthOrders.length),
       sub: `${monthApproved.length} aprobados`,
-    },
-    {
-      label: "Ticket promedio",
-      value: formatARS(averageTicket),
-      sub: "Sobre pedidos aprobados del mes",
     },
     {
       label: "Usuarios nuevos",

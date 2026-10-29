@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import TagInput from "@/components/admin/ui/TagInput";
 import ImageManager from "@/components/admin/ui/ImageManager";
 import { createProductAction, updateProductAction } from "@/actions/admin/products";
+import { DEFAULT_COST_MARGIN } from "@/lib/admin/pricing";
 import type { AdminActionResult, ProductInput } from "@/types/admin";
 import type { ProductType } from "@/types";
 
@@ -35,6 +36,12 @@ export default function ProductFormAdmin({
   const [name, setName] = useState(product?.name ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product?.price?.toString() ?? "");
+  // Purchase cost: until the admin types a value, it follows the placeholder
+  // rule (retail price - DEFAULT_COST_MARGIN) so it always has a sensible
+  // starting point that still can be overridden per product.
+  const [costInput, setCostInput] = useState<string | null>(
+    product?.purchasePrice != null ? String(product.purchasePrice) : null
+  );
   const [category, setCategory] = useState(product?.category ?? "");
   const [code, setCode] = useState(product?.code ?? "");
   const [purchaseName, setPurchaseName] = useState(product?.purchaseName ?? "");
@@ -68,10 +75,19 @@ export default function ProductFormAdmin({
     return Object.values(photos).flat()[0] ?? "";
   }, [cover, photos]);
 
+  const parsedPrice = Number(price.replace(",", "."));
+  const costDefault =
+    Number.isFinite(parsedPrice) && parsedPrice > 0
+      ? Math.max(parsedPrice - DEFAULT_COST_MARGIN, 0)
+      : 0;
+  const costValue =
+    costInput ?? (product ? String(product.purchasePrice ?? 0) : String(costDefault));
+
   const buildPayload = (): ProductInput => ({
     name,
     description: description.trim() || null,
     price: Number(price.replace(",", ".")),
+    purchasePrice: Number(costValue.replace(",", ".")),
     category,
     code: code.trim() || null,
     purchaseName: purchaseName.trim() || null,
@@ -147,6 +163,22 @@ export default function ProductFormAdmin({
               placeholder="25000"
               required
             />
+          </label>
+
+          <label className="admin-field">
+            <span>Precio de compra ($, interno)</span>
+            <input
+              type="number"
+              value={costValue}
+              onChange={(e) => setCostInput(e.target.value)}
+              step="0.01"
+              min="0"
+              required
+            />
+            <span className="admin-field-hint">
+              Por defecto: precio − $10.000. Poné el costo real para que la
+              rentabilidad sea correcta.
+            </span>
           </label>
 
           <label className="admin-field">

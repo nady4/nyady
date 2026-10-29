@@ -47,7 +47,7 @@ export default async function WishlistPage() {
 
   const products = interleaveByColor(wishlistProducts).map((p) => ({
     ...p,
-    price: num(p.price),
+    price: num(p.price), purchasePrice: null,
     photos: (p.photos ?? undefined) as never,
   }));
 

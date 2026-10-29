@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { num } from "@/lib/money";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 import { isAdmin } from "@/lib/admin";
 import { orderStatusLabel } from "@/lib/order-status";
 
@@ -8,6 +10,22 @@ export const runtime = "nodejs";
 interface ShippingSelectionLike {
   shippingCost?: number;
   serviceType?: string;
+}
+
+type ExportItemRow = {
+  quantity: number;
+  productName: string | null;
+  selectedColor: string | null;
+  selectedSize: string | null;
+  selectedTacoOption: string | null;
+  product: {
+    price: Prisma.Decimal;
+    purchasePrice: Prisma.Decimal | null;
+  };
+};
+
+function itemCost(item: ExportItemRow): number {
+  return item.quantity * purchasePriceOf(item.product);
 }
 
 function csvEscape(value: unknown): string {
@@ -69,7 +87,11 @@ export async function GET(request: Request): Promise<Response> {
       user: {
         include: { address: true },
       },
-      orderItems: true,
+      orderItems: {
+        include: {
+          product: { select: { price: true, purchasePrice: true } },
+        },
+      },
     },
   });
 
@@ -85,6 +107,8 @@ export async function GET(request: Request): Promise<Response> {
     "Descuento",
     "Envio",
     "Total",
+    "Costo items",
+    "Rentabilidad",
     "Cupon",
     "Destinatario",
     "Telefono",
@@ -100,6 +124,8 @@ export async function GET(request: Request): Promise<Response> {
       (acc, item) => acc + num(item.unitPrice ?? 0) * item.quantity,
       0
     );
+    const cost = order.orderItems.reduce((acc, item) => acc + itemCost(item), 0);
+    const profit = num(order.total) - cost;
     const selection = order.shippingSelection as ShippingSelectionLike | null;
     const shipping = Number(selection?.shippingCost ?? 0);
     const items = order.orderItems
@@ -129,6 +155,8 @@ export async function GET(request: Request): Promise<Response> {
         (order.discountAmount ?? 0).toFixed(2),
         shipping.toFixed(2),
         order.total.toFixed(2),
+        cost.toFixed(2),
+        profit.toFixed(2),
         order.couponCode ?? "",
         order.recipientName ?? "",
         order.recipientPhone ?? "",

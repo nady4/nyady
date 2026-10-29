@@ -4,6 +4,7 @@ export type ProductType = {
   name: string;
   photo: string;
   price: number;
+  purchasePrice?: number | null;
   category: string;
   stock: number;
   available?: boolean;

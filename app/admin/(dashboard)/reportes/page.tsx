@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { num } from "@/lib/money";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 import { fraunces } from "@/app/fonts";
 import { formatARS } from "@/lib/admin/format";
 import { getStoreWholesaleTiers } from "@/lib/store-settings";
@@ -101,7 +103,22 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   const { from, to, prevFrom, prevTo, fromISO, toISO } = buildRange(params);
   const wholesaleTiers = await getStoreWholesaleTiers();
 
-  const [orders, previous] = await Promise.all([
+  const itemSelect = {
+    quantity: true,
+    unitPrice: true,
+    productName: true,
+    product: { select: { price: true, purchasePrice: true, category: true } },
+  } as const;
+
+  type OrderItemRow = {
+    quantity: number;
+    product: {
+      price: Prisma.Decimal;
+      purchasePrice: Prisma.Decimal | null;
+    };
+  };
+
+  const [orders, previousOrders] = await Promise.all([
     prisma.order.findMany({
       where: {
         status: "approved",
@@ -109,37 +126,48 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       },
       include: {
         user: { select: { id: true, username: true, email: true } },
-        orderItems: {
-          select: {
-            quantity: true,
-            unitPrice: true,
-            productName: true,
-            product: { select: { category: true } },
-          },
-        },
+        orderItems: { select: itemSelect },
       },
     }),
-    prisma.order.aggregate({
+    prisma.order.findMany({
       where: {
         status: "approved",
         createdAt: { gte: prevFrom, lte: prevTo },
       },
-      _sum: { total: true },
-      _count: { _all: true },
+      select: {
+        total: true,
+        orderItems: { select: itemSelect },
+      },
     }),
   ]);
 
+  // Purchase cost per order = item quantities × current product cost
+  // (placeholder rule applies while costs are not tracked).
+  const orderCost = (
+    order: { orderItems: OrderItemRow[] }
+  ): number =>
+    order.orderItems.reduce(
+      (acc, item) => acc + item.quantity * purchasePriceOf(item.product),
+      0
+    );
+
   const revenue = orders.reduce((acc, order) => acc + num(order.total), 0);
+  const cost = orders.reduce((acc, order) => acc + orderCost(order), 0);
+  const profit = revenue - cost;
+  const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
   const unitsSold = orders.reduce(
     (acc, order) =>
       acc + order.orderItems.reduce((a, item) => a + item.quantity, 0),
     0
   );
-  const averageTicket = orders.length > 0 ? revenue / orders.length : 0;
 
-  const prevRevenue = num(previous._sum.total ?? 0);
-  const prevCount = previous._count._all;
-  const prevTicket = prevCount > 0 ? prevRevenue / prevCount : 0;
+  const prevRevenue = previousOrders.reduce(
+    (acc, order) => acc + num(order.total),
+    0
+  );
+  const prevCount = previousOrders.length;
+  const prevCost = previousOrders.reduce((acc, order) => acc + orderCost(order), 0);
+  const prevProfit = prevRevenue - prevCost;
 
   // Daily series
   const revenueByDay = new Map<string, number>();
@@ -160,7 +188,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   // Top products (snapshot-aware)
   const productMap = new Map<
     string,
-    { name: string; category: string; units: number; revenue: number }
+    { name: string; category: string; units: number; revenue: number; cost: number }
   >();
   for (const order of orders) {
     for (const item of order.orderItems) {
@@ -170,9 +198,11 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         category: item.product?.category ?? "—",
         units: 0,
         revenue: 0,
+        cost: 0,
       };
       entry.units += item.quantity;
       entry.revenue += num(item.unitPrice ?? 0) * item.quantity;
+      entry.cost += item.quantity * purchasePriceOf(item.product);
       productMap.set(key, entry);
     }
   }
@@ -234,6 +264,12 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
   const kpis = [
     {
+      label: "Rentabilidad",
+      value: formatARS(profit),
+      delta: pct(profit, prevProfit),
+      sub: `Margen ${margin.toFixed(0)}% · Período previo: ${formatARS(prevProfit)}`,
+    },
+    {
       label: "Ingresos",
       value: formatARS(revenue),
       delta: pct(revenue, prevRevenue),
@@ -244,12 +280,6 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       value: String(orders.length),
       delta: pct(orders.length, prevCount),
       sub: `Período previo: ${prevCount}`,
-    },
-    {
-      label: "Ticket promedio",
-      value: formatARS(averageTicket),
-      delta: pct(averageTicket, prevTicket),
-      sub: `Período previo: ${formatARS(prevTicket)}`,
     },
     {
       label: "Unidades vendidas",
@@ -381,6 +411,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                     <th scope="col">Categoría</th>
                     <th scope="col" className="admin-col-number">Un.</th>
                     <th scope="col" className="admin-col-number">Ingresos</th>
+                    <th scope="col" className="admin-col-number">Rentab.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -391,6 +422,9 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
                       <td className="admin-col-number">{product.units}</td>
                       <td className="admin-cell-price">
                         {formatARS(product.revenue)}
+                      </td>
+                      <td className="admin-cell-price">
+                        {formatARS(product.revenue - product.cost)}
                       </td>
                     </tr>
                   ))}

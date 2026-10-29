@@ -18,6 +18,8 @@ export interface ProductInput {
   name: string;
   description: string | null;
   price: number;
+  /** Internal purchase cost (admin-only); feeds profitability reports. */
+  purchasePrice: number;
   category: string;
   code: string | null;
   purchaseName: string | null;

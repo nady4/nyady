@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { num } from "@/lib/money";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 import ProductFormAdmin from "@/components/admin/products/ProductFormAdmin";
 
 export const metadata = {
@@ -18,8 +19,13 @@ export default async function EditProductPage({
 
   if (!product) notFound();
 
-  // ProductFormAdmin expects a plain number for price.
-  const productJson = { ...product, price: num(product.price) };
+  // ProductFormAdmin expects plain numbers for the money fields; the cost
+  // falls back to the placeholder rule when the product has none yet.
+  const productJson = {
+    ...product,
+    price: num(product.price),
+    purchasePrice: purchasePriceOf(product),
+  };
 
   const categoryRows = await prisma.product.findMany({
     distinct: ["category"],

@@ -112,6 +112,11 @@ model Product {
   name       String
   photo      String
   price      Decimal    @db.Decimal(14, 2)
+
+  // Internal purchase cost (admin-only, never exposed to clients). New
+  // products default to retail price - 10.000 placeholder until a real cost
+  // is entered; readable/editable from the admin form.
+  purchasePrice Decimal? @db.Decimal(14, 2)
   category   String
   stock      Int
   code       String?

@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { ensureAdmin } from "@/lib/admin";
 import { uniqueProductSlug } from "@/lib/slug";
 import { collectProductUrls, deleteOrphanBlobs } from "@/lib/admin/blob";
+import { purchasePriceOf } from "@/lib/admin/pricing";
 import type {
   AdminActionResult,
   ProductActionKind,
@@ -50,6 +51,9 @@ function validateProductInput(
   if (!Number.isFinite(input.price) || input.price <= 0) {
     return { ok: false, error: "Ingresá un precio mayor a cero" };
   }
+  if (!Number.isFinite(input.purchasePrice) || input.purchasePrice < 0) {
+    return { ok: false, error: "Ingresá un precio de compra válido" };
+  }
   // The cover must belong to the uploaded set (prevents typos pointing to
   // arbitrary hosts through the form).
   const knownUrls = new Set(collectProductUrls(photo, input.photos));
@@ -84,6 +88,7 @@ export async function createProductAction(
         slug: await uniqueProductSlug(input.name),
         description: input.description?.trim() || null,
         price: input.price,
+        purchasePrice: input.purchasePrice,
         category: input.category.trim(),
         stock: 0, // hecho a pedido: sin stock real
         code: input.code?.trim() || null,
@@ -138,6 +143,7 @@ export async function updateProductAction(
           : existing.slug,
         description: input.description?.trim() || null,
         price: input.price,
+        purchasePrice: input.purchasePrice,
         category: input.category.trim(),
         stock: 0, // hecho a pedido: sin stock real
         code: input.code?.trim() || null,
@@ -300,6 +306,7 @@ export async function duplicateProductAction(
         slug: await uniqueProductSlug(`${product.name} (copia)`),
         photo: product.photo,
         price: product.price,
+        purchasePrice: purchasePriceOf(product),
         category: product.category,
         stock: product.stock,
         code: null,

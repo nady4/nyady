@@ -44,7 +44,7 @@ export default async function CatalogPage({
 
   let sortedProducts = interleaveByColor(products).map((p) => ({
     ...p,
-    price: num(p.price),
+    price: num(p.price), purchasePrice: null,
     photos: (p.photos ?? undefined) as never,
   }));
 

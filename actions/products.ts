@@ -11,11 +11,20 @@ type ProductRow = Prisma.ProductGetPayload<Record<string, never>>;
 /** Prisma row -> storefront type (prices become plain numbers). */
 function toProductType(product: ProductRow | null): ProductType | null {
   if (!product) return null;
-  return { ...product, price: num(product.price) };
+  // purchasePrice is admin-only: never serialize the cost to public clients.
+  return {
+    ...product,
+    price: num(product.price),
+    purchasePrice: null,
+  };
 }
 
 function toProductTypeList(products: ProductRow[]): ProductType[] {
-  return products.map((p) => ({ ...p, price: num(p.price) }));
+  return products.map((p) => ({
+    ...p,
+    price: num(p.price),
+    purchasePrice: null,
+  }));
 }
 
 // generateMetadata and the page component both resolve the same product in
@@ -78,6 +87,7 @@ async function getRelatedProductsUncached(
         product: {
           ...p,
           price: num(p.price),
+          purchasePrice: null,
           photos: p.photos as ProductType["photos"],
         },
         sameCategory: p.category === category,
