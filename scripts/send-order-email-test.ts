@@ -4,6 +4,7 @@
  * product + the discount math so the copy mirrors production emails.
  * Run: bunx tsx scripts/send-order-email-test.ts
  */
+import { num } from "@/lib/money";
 import prisma from "@/lib/prisma";
 import { notifyOrderConfirmed, notifyOrderStatusChanged } from "@/lib/order-emails";
 import { computeDiscounts, roundCurrency } from "@/lib/discounts";
@@ -24,7 +25,7 @@ async function main() {
     selectedColor: product.colors[0] ?? null,
     selectedSize: product.sizes[0] ?? null,
     selectedTacoOption: null,
-    unitPrice: roundCurrency(product.price),
+    unitPrice: roundCurrency(num(product.price)),
     productName: product.name,
     productPhoto: product.photo,
   }));

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { num } from "@/lib/money";
 import prisma from "@/lib/prisma";
 import OrderStatusEditor from "@/components/admin/orders/OrderStatusEditor";
 import OrderDetailsEditor from "@/components/admin/orders/OrderDetailsEditor";
@@ -61,12 +62,15 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
   const subtotal = order.orderItems.reduce(
     (acc, item) =>
       acc +
-      (item.unitPrice ?? item.product?.price ?? 0) * item.quantity,
+      num(item.unitPrice ?? item.product?.price ?? 0) * item.quantity,
     0
   );
   const shippingCost = Math.max(0, Number(selection?.shippingCost ?? 0));
+  const totalNum = num(order.total);
   const impliedDiscount =
-    order.discountAmount > 0 ? order.discountAmount : Math.max(0, subtotal + shippingCost - order.total);
+    num(order.discountAmount) > 0
+      ? num(order.discountAmount)
+      : Math.max(0, subtotal + shippingCost - totalNum);
 
   // Product catalog for the pending-orders item editor (orderItemsEditor).
   const productOptions = order.status === "pending"
@@ -84,6 +88,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         },
       })).map((product) => ({
         ...product,
+        price: num(product.price),
         colors: [...product.colors],
         sizes: [...product.sizes],
         tacoOptions: [...product.tacoOptions],
@@ -200,7 +205,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               )}
               <div className="admin-order-detail-total-row strong">
                 <span>Total</span>
-                <span>{formatARS(order.total)}</span>
+                <span>{formatARS(totalNum)}</span>
               </div>
             </div>
           </div>
@@ -317,7 +322,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               order={{
                 id: order.id,
                 status: order.status,
-                total: order.total,
+                total: totalNum,
                 source: order.source,
                 createdAt: order.createdAt,
                 archivedAt: order.archivedAt,
@@ -326,7 +331,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 recipientDocument: order.recipientDocument,
                 recipientPhone: order.recipientPhone,
                 couponCode: order.couponCode,
-                discountAmount: order.discountAmount,
+                discountAmount: num(order.discountAmount),
                 shippingCost,
                 shippingService: selection?.serviceType ?? null,
                 shippingLogistic: selection?.logisticType ?? null,

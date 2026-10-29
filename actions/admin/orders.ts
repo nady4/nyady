@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { num } from "@/lib/money";
 import prisma from "@/lib/prisma";
 import { ensureAdmin } from "@/lib/admin";
 import { markOrderReady } from "@/actions/orders";
@@ -76,7 +77,7 @@ async function buildOrderItemRows(
       selectedColor: optionalTrim(item.selectedColor ?? null, 40),
       selectedSize: optionalTrim(item.selectedSize ?? null, 40),
       selectedTacoOption: optionalTrim(item.selectedTacoOption ?? null, 40),
-      unitPrice: roundCurrency(product.price),
+      unitPrice: roundCurrency(num(product.price)),
       productName: product.name,
       productPhoto: getPhotoForColor(product as unknown as ProductType, item.selectedColor ?? null),
     };
@@ -106,7 +107,7 @@ async function storedCouponForOrder(
     return {
       code: record.code,
       type: record.type as "PERCENT" | "FIXED",
-      value: record.value,
+      value: num(record.value),
     };
   }
   return null;
@@ -127,9 +128,8 @@ export async function shipOrderAction(
 
   const result = await markOrderReady(orderId);
 
-  if (result.ok) {
-    await notifyOrderStatusChanged(orderId);
-  }
+  // The "En Envío" email is sent inside markOrderReady (single source, also
+  // covers the seller-only API route).
 
   revalidateOrders(orderId);
   return result;

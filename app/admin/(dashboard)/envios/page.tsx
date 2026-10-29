@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import ShipmentsAdmin from "@/components/admin/shipments/ShipmentsAdmin";
 import type { AdminShipmentRow } from "@/types/admin";
+import { num } from "@/lib/money";
 
 export const metadata = {
   title: "Envíos",
@@ -49,7 +50,7 @@ export default async function AdminShipmentsPage({ searchParams }: PageProps) {
       orderId: order.id,
       orderStatus: order.status,
       createdAt: order.createdAt,
-      total: order.total,
+      total: num(order.total),
       shipmentId: order.shipmentId ?? "",
       shipmentStatus: order.shipmentStatus,
       trackingNumber: order.trackingNumber,

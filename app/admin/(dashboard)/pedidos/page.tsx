@@ -1,5 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import OrdersTable from "@/components/admin/orders/OrdersTable";
 import OrdersFilterBar from "@/components/admin/orders/OrdersFilterBar";
 import type { AdminOrderRow } from "@/types/admin";
@@ -64,7 +65,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const rows: AdminOrderRow[] = orders.map((order) => ({
     id: order.id,
     status: order.status,
-    total: order.total,
+    total: num(order.total),
     createdAt: order.createdAt,
     archivedAt: order.archivedAt,
     source: order.source,

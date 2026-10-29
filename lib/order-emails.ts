@@ -1,9 +1,14 @@
 /**
- * Order email templates (confirmation + status changes) following the
- * NYADY brand layout used on the verification email (lib/email.ts).
+ * Order email flows (confirmation, pending-payment instructions and status
+ * changes) built on the shared shell (lib/emails/templates.ts).
  */
 import prisma from "@/lib/prisma";
-import { sendOrderConfirmationEmail, sendOrderStatusEmail } from "@/lib/email";
+import { num } from "@/lib/money";
+import {
+  sendOrderConfirmationEmail,
+  sendOrderPendingEmail,
+  sendOrderStatusEmail
+} from "@/lib/email";
 import { orderStatusLabel, shipmentStatusLabel } from "@/lib/order-status";
 
 export interface EmailOrderItem {
@@ -63,14 +68,14 @@ export async function notifyOrderConfirmed(orderId: string): Promise<void> {
         name: item.productName || item.product?.name || "Producto",
         variant,
         quantity: item.quantity,
-        unitPrice: item.unitPrice ?? item.product?.price ?? 0,
+        unitPrice: num(item.unitPrice ?? item.product?.price ?? 0),
       };
     });
 
     const subtotal = items.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
     const shippingCost = Math.max(0, Number(selection?.shippingCost ?? 0));
-    const discount = order.discountAmount > 0
-      ? Math.max(0, subtotal + shippingCost - order.total)
+    const discount = num(order.discountAmount) > 0
+      ? Math.max(0, subtotal + shippingCost - num(order.total))
       : 0;
 
     const paymentLabel =
@@ -87,7 +92,7 @@ export async function notifyOrderConfirmed(orderId: string): Promise<void> {
       discountLabel: order.couponCode ? order.couponCode : null,
       discountAmount: discount,
       shippingCost: shippingCost > 0 ? shippingCost : null,
-      total: order.total,
+      total: num(order.total),
       paymentLabel,
       address: await readAddress(order.userId),
       recipientName: order.recipientName,
@@ -143,5 +148,54 @@ export async function notifyOrderStatusChanged(
     });
   } catch (error) {
     console.error("[order-emails] status notification failed:", error);
+  }
+}
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  rapipago: "Rapipago",
+  pagofacil: "Pago Fácil",
+  pcb: "Transferencia bancaria",
+  atm: "Red de cajeros",
+  debito_avisos: "Débito",
+  efectivo_atm: "Efectivo en cajeros"
+};
+
+function paymentMethodLabel(methodId: string): string {
+  const key = methodId.toLowerCase();
+  if (PAYMENT_METHOD_LABELS[key]) return PAYMENT_METHOD_LABELS[key];
+  if (methodId.startsWith("master") || methodId.startsWith("credit_card"))
+    return "Tarjeta de crédito";
+  if (methodId.startsWith("deb"))
+    return "Tarjeta de débito";
+  return methodId;
+}
+
+/**
+ * "Pago pendiente" email: fired when a payment lands on pending (offline
+ * methods like Rapipago/Pago Fácil or card contingencias) iterando el cupón
+ * de pago cuando Mercado Pago lo aporta.
+ */
+export async function notifyOrderPendingInstructions(
+  orderId: string,
+  paymentMethodId: string,
+  paymentUrl: string | null,
+  amount: number
+): Promise<void> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { user: { select: { username: true, email: true } } },
+    });
+    if (!order) return;
+
+    await sendOrderPendingEmail({
+      to: order.user.email,
+      username: order.user.username,
+      orderId: order.id,
+      paymentMethodLabel: paymentMethodLabel(paymentMethodId),
+      paymentUrl,
+      amount,
+    });
+  } catch (error) {
+    console.error("[order-emails] pending instructions failed:", error);
   }
 }

@@ -5,6 +5,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+
 }
 
 model User {
@@ -105,7 +107,7 @@ model Product {
 
   name       String
   photo      String
-  price      Float
+  price      Decimal    @db.Decimal(14, 2)
   category   String
   stock      Int
   code       String?
@@ -141,7 +143,7 @@ model OrderItem {
   // Snapshots of the product at purchase time, so order history and admin
   // reports stay correct even if the product is later renamed, repriced or
   // deleted. Null for pre-snapshot rows; UIs fall back to the product relation.
-  unitPrice    Float?
+  unitPrice    Decimal?  @db.Decimal(14, 2)
   productName  String?
   productPhoto String?
 
@@ -155,7 +157,7 @@ model Order {
   orderItems OrderItem[]
 
   status     String
-  total      Float
+  total      Decimal    @db.Decimal(14, 2)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
@@ -204,14 +206,14 @@ model Order {
   couponId       String?
   coupon         Coupon?  @relation(fields: [couponId], references: [id])
   couponCode     String?
-  discountAmount Float    @default(0)
+  discountAmount Decimal    @default(0) @db.Decimal(14, 2)
 }
 
 model Coupon {
   id         String   @id @default(uuid())
   code       String   @unique
   type       String   // "PERCENT" | "FIXED"
-  value      Float    // percent (0-100) or fixed ARS amount
+  value      Decimal  @db.Decimal(10, 2)  // percent (0-100) or fixed ARS amount
   active     Boolean  @default(true)
   expiresAt  DateTime?
   usageLimit Int?     // null = unlimited (within one-per-user)

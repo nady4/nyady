@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import { isAdmin } from "@/lib/admin";
 import { orderStatusLabel } from "@/lib/order-status";
 
@@ -96,7 +97,7 @@ export async function GET(request: Request): Promise<Response> {
   const lines = [header.join(",")];
   for (const order of orders) {
     const subtotal = order.orderItems.reduce(
-      (acc, item) => acc + (item.unitPrice ?? 0) * item.quantity,
+      (acc, item) => acc + num(item.unitPrice ?? 0) * item.quantity,
       0
     );
     const selection = order.shippingSelection as ShippingSelectionLike | null;

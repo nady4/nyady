@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import CouponsAdmin from "@/components/admin/coupons/CouponsAdmin";
 import { nowMs } from "@/lib/admin/format";
+import { num } from "@/lib/money";
 import type { AdminCouponRow } from "@/types/admin";
 
 export const metadata = {
@@ -17,7 +18,7 @@ export default async function AdminCouponsPage() {
     id: coupon.id,
     code: coupon.code,
     type: coupon.type as "PERCENT" | "FIXED",
-    value: coupon.value,
+    value: num(coupon.value),
     active: coupon.active,
     expiresAt: coupon.expiresAt,
     usageLimit: coupon.usageLimit,

@@ -1,5 +1,6 @@
 "use server";
 
+import { num } from "@/lib/money";
 import prisma from "@/lib/prisma";
 
 export interface ValidatedCoupon {
@@ -64,7 +65,7 @@ export async function validateCouponForUser(
       id: coupon.id,
       code: coupon.code,
       type: coupon.type as "PERCENT" | "FIXED",
-      value: coupon.value
+      value: num(coupon.value)
     }
   };
 }

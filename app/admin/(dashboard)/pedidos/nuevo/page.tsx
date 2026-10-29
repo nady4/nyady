@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import ManualOrderForm from "@/components/admin/orders/ManualOrderForm";
 import type { AdminProductOption, AdminUserOption } from "@/types/admin";
+import { num } from "@/lib/money";
 
 export const metadata = {
   title: "Nuevo pedido manual",
@@ -32,6 +33,7 @@ export default async function NewManualOrderPage() {
   const userOptions: AdminUserOption[] = users;
   const productOptions: AdminProductOption[] = products.map((product) => ({
     ...product,
+    price: num(product.price),
     colors: [...product.colors],
     sizes: [...product.sizes],
     tacoOptions: [...product.tacoOptions],

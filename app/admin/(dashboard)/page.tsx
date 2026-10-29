@@ -1,5 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import { fraunces } from "@/app/fonts";
 import { formatARS, formatAdminDateTime } from "@/lib/admin/format";
 
@@ -78,13 +79,13 @@ export default async function AdminOverviewPage() {
 
   const monthOrders = ordersSince.filter((o) => o.createdAt >= startOfMonth);
   const monthApproved = monthOrders.filter((o) => o.status === "approved");
-  const monthRevenue = monthApproved.reduce((acc, o) => acc + o.total, 0);
+  const monthRevenue = monthApproved.reduce((acc, o) => acc + num(o.total), 0);
   const todayRevenue = ordersSince
     .filter((o) => o.status === "approved" && o.createdAt >= startOfDay)
-    .reduce((acc, o) => acc + o.total, 0);
+    .reduce((acc, o) => acc + num(o.total), 0);
   const weekRevenue = ordersSince
     .filter((o) => o.status === "approved" && o.createdAt >= startOfWeek)
-    .reduce((acc, o) => acc + o.total, 0);
+    .reduce((acc, o) => acc + num(o.total), 0);
   const averageTicket =
     monthApproved.length > 0 ? monthRevenue / monthApproved.length : 0;
 
@@ -98,7 +99,7 @@ export default async function AdminOverviewPage() {
   for (const order of ordersSince) {
     if (order.status !== "approved") continue;
     const key = dayKey(order.createdAt);
-    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + order.total);
+    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + num(order.total));
   }
   const series = days30.map((date) => ({
     date,
@@ -225,7 +226,7 @@ export default async function AdminOverviewPage() {
                     </span>
                     <span className="admin-recent-right">
                       <span className="admin-recent-total">
-                        {formatARS(order.total)}
+                        {formatARS(num(order.total))}
                       </span>
                       <span
                         className={`admin-status-badge status-${order.status}`}

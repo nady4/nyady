@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getPhotoForColor } from "@/lib/colors";
 import { ProductType } from "@/types";
+import { num } from "@/lib/money";
 
 type CartProductType = ProductType & { quantity: number; cartId: string };
 
@@ -177,7 +178,7 @@ export async function getCartProducts(
     });
 
     return cartItems.map((item) => {
-      const product = item.product as ProductType;
+      const product = { ...item.product, price: num(item.product.price) } as ProductType;
       return {
         ...product,
         // Show the photo of the color the customer picked (orders snapshot

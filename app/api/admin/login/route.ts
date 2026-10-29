@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { signInAdmin } from "@/lib/admin";
+import { rateLimit, clientIp, tooManyRequests } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
+  const rl = rateLimit({
+    name: "admin-login",
+    identity: clientIp(request),
+    limit: 10,
+    windowMs: 15 * 60_000
+  });
+  if (!rl.ok) return tooManyRequests(rl);
+
   let username = "";
   let password = "";
 

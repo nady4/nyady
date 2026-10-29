@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { notifyOrderStatusChanged } from "@/lib/order-emails";
 import {
   createShipment,
   ShippingSelection,
@@ -106,5 +107,8 @@ export async function markOrderReady(
   });
 
   revalidatePath("/orders");
+  // Single source of truth for the "In Envío" email: both the admin action
+  // and the seller-only API route ship through here, so the email lives here.
+  await notifyOrderStatusChanged(orderId);
   return { ok: true };
 }

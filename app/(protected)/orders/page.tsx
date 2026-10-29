@@ -182,7 +182,7 @@ export default async function OrdersPage() {
                 })}
               </span>
               <span className="order-total">
-                Total: ${order.total.toLocaleString("es-AR")}
+                Total: ${Number(order.total).toLocaleString("es-AR")}
               </span>
             </div>
 
@@ -195,7 +195,7 @@ export default async function OrdersPage() {
             {order.couponCode && (
               <div className="order-coupon">
                 Cupón: {order.couponCode} (−$
-                {order.discountAmount.toLocaleString("es-AR")})
+                {Number(order.discountAmount).toLocaleString("es-AR")})
               </div>
             )}
 
@@ -220,7 +220,7 @@ export default async function OrdersPage() {
                   </span>
                   <span className="order-item-subtotal">
                     Subtotal: $
-                    {(item.product.price * item.quantity).toLocaleString(
+                    {(Number(item.product.price) * item.quantity).toLocaleString(
                       "es-AR"
                     )}
                   </span>

@@ -20,7 +20,19 @@ export async function generateMetadata({
 
   return {
     title: `${product.name} - NYADY`,
-    description: product.description
+    description: product.description,
+    openGraph: {
+      title: `${product.name} — NYADY`,
+      description:
+        product.description ?? "Arte textil hecho a mano, envíos a todo el país",
+      images: [
+        `/api/og?productId=${encodeURIComponent(decodedId)}`
+      ]
+    },
+    twitter: {
+      card: "summary_large_image" as const,
+      images: [`/api/og?productId=${encodeURIComponent(decodedId)}`]
+    }
   };
 }
 

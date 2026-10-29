@@ -8,6 +8,7 @@ import { computeDiscounts, roundCurrency } from "@/lib/discounts";
 import { getStoreWholesaleTiers } from "@/lib/store-settings";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 interface CheckoutRequestBody {
   recipientName?: string;
@@ -26,6 +27,15 @@ export async function POST(req: Request) {
     }
 
     const userId = session.user.id as string;
+
+    const rl = rateLimit({
+      name: "orders-create",
+      identity: userId,
+      limit: 20,
+      windowMs: 10 * 60_000
+    });
+    if (!rl.ok) return tooManyRequests(rl);
+
     const cartItems = await getCartProducts(userId);
 
     if (!cartItems || cartItems.length === 0) {

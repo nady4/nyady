@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import { fraunces } from "@/app/fonts";
 import UserFormAdmin from "@/components/admin/users/UserFormAdmin";
 import UserSecurityPanel from "@/components/admin/users/UserSecurityPanel";
@@ -56,7 +57,7 @@ export default async function AdminUserDetailPage({
       carts: user._count.cart,
       wishLists: user._count.wishlist,
     },
-    orders: user.orders,
+    orders: user.orders.map((o) => ({ ...o, total: num(o.total) })),
   };
 
   return (

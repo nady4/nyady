@@ -262,15 +262,19 @@ export async function createShipment(
         service_type: selection.serviceType,
         logistic_type: selection.logisticType,
         carrier_id: selection.carrierId,
-        origin_id: "auto",
+        // Zipnova's origin for nyady. "auto" is only valid for some accounts;
+        // the real location id for NYADY comes from the quote response
+        // (origin.location_id) and is configured via ZIPNOVA_ORIGIN_ID.
+        origin_id: process.env.ZIPNOVA_ORIGIN_ID?.trim() || "auto",
         declared_value: selection.declaredValue,
         destination,
-        // Convert cm → mm for the create endpoint (quote uses cm).
+        // Item dimensions: la API v2 espera las mismas unidades que el quote
+        // (peso en gramos y dimensiones en centímetros; validar contra el quote).
         items: selection.items.map((item) => ({
           weight: item.weight,
-          height: item.height * 10,
-          width: item.width * 10,
-          length: item.length * 10,
+          height: item.height,
+          width: item.width,
+          length: item.length,
           description: item.description,
           classification_id: item.classification_id,
           must_keep_vertical: item.must_keep_vertical

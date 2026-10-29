@@ -3,7 +3,16 @@ import prisma from "@/lib/prisma";
 import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail, getAppUrl } from "@/lib/email";
 
+import { rateLimit, clientIp, tooManyRequests } from "@/lib/rate-limit";
+
 export async function POST(request: Request) {
+  const rl = rateLimit({
+    name: "resend-verification",
+    identity: clientIp(request),
+    limit: 5,
+    windowMs: 15 * 60_000
+  });
+  if (!rl.ok) return tooManyRequests(rl);
   try {
     const { email } = await request.json();
 

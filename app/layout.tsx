@@ -57,7 +57,11 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://nyady.com",
   },
-  metadataBase: new URL("https://nyady.com"),
+  metadataBase: new URL(
+    process.env.NEXTAUTH_URL?.startsWith("https://")
+      ? process.env.NEXTAUTH_URL.replace(/\/$/, "")
+      : "https://nyady.com"
+  ),
   robots: {
     index: true,
     follow: true,

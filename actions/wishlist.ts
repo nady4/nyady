@@ -1,4 +1,5 @@
 "use server";
+import { num } from "@/lib/money";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ProductType } from "@/types";
@@ -76,7 +77,7 @@ export async function getWishListProducts(
       },
     });
 
-    return products as ProductType[];
+    return products.map((p) => ({ ...p, price: num(p.price) }));
   } catch (error) {
     console.error("Error fetching wishlist:", error);
     return [];

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import ProductsTable from "@/components/admin/products/ProductsTable";
 import ProductsFilterBar from "@/components/admin/products/ProductsFilterBar";
 import type { AdminProductRow } from "@/types/admin";
@@ -72,7 +73,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
     id: product.id,
     name: product.name,
     photo: product.photo,
-    price: product.price,
+    price: num(product.price),
     category: product.category,
     code: product.code,
     purchaseName: product.purchaseName,

@@ -1,6 +1,22 @@
 "use server";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { ProductType } from "@/types";
+import { num } from "@/lib/money";
+
+/** Prisma row -> storefront type (prices become plain numbers). */
+function toProductType(
+  product: Prisma.ProductGetPayload<object> | null
+): ProductType | null {
+  if (!product) return null;
+  return { ...product, price: num(product.price) };
+}
+
+function toProductTypeList(
+  products: Prisma.ProductGetPayload<object>[]
+): ProductType[] {
+  return products.map((p) => ({ ...p, price: num(p.price) }));
+}
 
 export async function getProduct(id: string): Promise<ProductType | null> {
   try {
@@ -11,7 +27,7 @@ export async function getProduct(id: string): Promise<ProductType | null> {
     const product = await prisma.product.findFirst({
       where: { id, available: true, archivedAt: null },
     });
-    return product;
+    return toProductType(product);
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
@@ -36,7 +52,7 @@ export async function searchProducts(query: string): Promise<ProductType[]> {
       }
     });
 
-    return products;
+    return toProductTypeList(products);
   } catch (error) {
     console.error("Error searching products:", error);
     return [];
@@ -51,7 +67,7 @@ export async function getProducts(): Promise<ProductType[]> {
 
     const customOrder: string[] = [];
 
-    return products.sort((a, b) => {
+    return toProductTypeList(products).sort((a, b) => {
       const indexA = customOrder.indexOf(a.id);
       const indexB = customOrder.indexOf(b.id);
       const posA = indexA === -1 ? 999 : indexA;
@@ -66,7 +82,7 @@ export async function getProducts(): Promise<ProductType[]> {
 
 export async function getAllProducts(): Promise<ProductType[]> {
   try {
-    return await prisma.product.findMany();
+    return toProductTypeList(await prisma.product.findMany());
   } catch (error) {
     console.error("Error fetching all products:", error);
     return [];

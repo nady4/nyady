@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import { fraunces } from "@/app/fonts";
 import { formatARS } from "@/lib/admin/format";
 import { getStoreWholesaleTiers } from "@/lib/store-settings";
@@ -128,7 +129,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     }),
   ]);
 
-  const revenue = orders.reduce((acc, order) => acc + order.total, 0);
+  const revenue = orders.reduce((acc, order) => acc + num(order.total), 0);
   const unitsSold = orders.reduce(
     (acc, order) =>
       acc + order.orderItems.reduce((a, item) => a + item.quantity, 0),
@@ -136,7 +137,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   );
   const averageTicket = orders.length > 0 ? revenue / orders.length : 0;
 
-  const prevRevenue = previous._sum.total ?? 0;
+  const prevRevenue = num(previous._sum.total ?? 0);
   const prevCount = previous._count._all;
   const prevTicket = prevCount > 0 ? prevRevenue / prevCount : 0;
 
@@ -144,7 +145,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
   const revenueByDay = new Map<string, number>();
   for (const order of orders) {
     const key = dayKey(order.createdAt);
-    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + order.total);
+    revenueByDay.set(key, (revenueByDay.get(key) ?? 0) + num(order.total));
   }
   const daysCount = Math.min(
     120,
@@ -171,7 +172,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         revenue: 0,
       };
       entry.units += item.quantity;
-      entry.revenue += (item.unitPrice ?? 0) * item.quantity;
+      entry.revenue += num(item.unitPrice ?? 0) * item.quantity;
       productMap.set(key, entry);
     }
   }
@@ -186,7 +187,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       const category = item.product?.category ?? "—";
       categoryMap.set(
         category,
-        (categoryMap.get(category) ?? 0) + (item.unitPrice ?? 0) * item.quantity
+        (categoryMap.get(category) ?? 0) + num(item.unitPrice ?? 0) * item.quantity
       );
     }
   }
@@ -207,7 +208,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       total: 0,
       orders: 0,
     };
-    entry.total += order.total;
+    entry.total += num(order.total);
     entry.orders += 1;
     customerMap.set(order.user.id, entry);
   }
@@ -221,7 +222,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     if (!order.couponCode) continue;
     const entry = couponMap.get(order.couponCode) ?? { count: 0, discount: 0 };
     entry.count += 1;
-    entry.discount += order.discountAmount;
+    entry.discount += num(order.discountAmount);
     couponMap.set(order.couponCode, entry);
   }
   const couponRows = [...couponMap.entries()].sort((a, b) => b[1].count - a[1].count);

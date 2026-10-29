@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
+import { num } from "@/lib/money";
 import ProductFormAdmin from "@/components/admin/products/ProductFormAdmin";
 
 export const metadata = {
@@ -17,6 +18,9 @@ export default async function EditProductPage({
 
   if (!product) notFound();
 
+  // ProductFormAdmin expects a plain number for price.
+  const productJson = { ...product, price: num(product.price) };
+
   const categoryRows = await prisma.product.findMany({
     distinct: ["category"],
     select: { category: true },
@@ -32,7 +36,7 @@ export default async function EditProductPage({
         </Link>
       </div>
       <ProductFormAdmin
-        product={product}
+        product={productJson}
         categories={categoryRows.map((row) => row.category)}
       />
     </main>

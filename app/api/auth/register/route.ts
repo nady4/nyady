@@ -5,7 +5,17 @@ import { createVerificationToken } from "@/lib/verification";
 import { sendVerificationEmail, getAppUrl } from "@/lib/email";
 import { CURRENT_TERMS_VERSION } from "@/lib/terms";
 
+import { rateLimit, clientIp, tooManyRequests } from "@/lib/rate-limit";
+
 export async function POST(request: Request) {
+  const rl = rateLimit({
+    name: "register",
+    identity: clientIp(request),
+    limit: 10,
+    windowMs: 60 * 60_000
+  });
+  if (!rl.ok) return tooManyRequests(rl);
+
   try {
     const data = await request.json();
 

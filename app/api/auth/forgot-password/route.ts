@@ -8,7 +8,17 @@ import { sendPasswordResetEmail, getAppUrl } from "@/lib/email";
 // enumerate registered emails. Emails archived (soft-deleted) users too —
 // resetting their password doesn't unarchive them, and lib/auth.ts still
 // blocks the sign-in.
+import { rateLimit, clientIp, tooManyRequests } from "@/lib/rate-limit";
+
 export async function POST(request: Request) {
+  const rl = rateLimit({
+    name: "forgot-password",
+    identity: clientIp(request),
+    limit: 5,
+    windowMs: 15 * 60_000
+  });
+  if (!rl.ok) return tooManyRequests(rl);
+
   try {
     const { email } = await request.json().catch(() => ({ email: null }));
 

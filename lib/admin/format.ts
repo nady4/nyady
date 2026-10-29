@@ -11,8 +11,9 @@ export function nowMs(): number {
 }
 
 /** `$1.234.567` (es-AR, no decimals — prices are whole ARS in practice). */
-export function formatARS(value: number): string {
-  return `$${Math.round(value).toLocaleString("es-AR")}`;
+export function formatARS(value: number | { toNumber(): number }): string {
+  const n = typeof value === "number" ? value : value.toNumber();
+  return `$${Math.round(n).toLocaleString("es-AR")}`;
 }
 
 /** `dd/mm/yyyy` */
