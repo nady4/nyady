@@ -210,21 +210,11 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
 
-  // Categories
-  const categoryMap = new Map<string, number>();
-  for (const order of orders) {
-    for (const item of order.orderItems) {
-      const category = item.product?.category ?? "—";
-      categoryMap.set(
-        category,
-        (categoryMap.get(category) ?? 0) + num(item.unitPrice ?? 0) * item.quantity
-      );
-    }
-  }
-  const categoriesTotal = [...categoryMap.values()].reduce((a, b) => a + b, 0) || 1;
-  const topCategories = [...categoryMap.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
+  // Revenue share per product (denominator covers every product sold, so the
+  // bars stay proportional even though only the top ones are rendered).
+  const productsTotal =
+    [...productMap.values()].reduce((a, b) => a + b.revenue, 0) || 1;
+  const productBars = topProducts.slice(0, 8);
 
   // Best customers
   const customerMap = new Map<
@@ -268,6 +258,7 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
       value: formatARS(profit),
       delta: pct(profit, prevProfit),
       sub: `Margen ${margin.toFixed(0)}% · Período previo: ${formatARS(prevProfit)}`,
+      featured: true,
     },
     {
       label: "Ingresos",
@@ -336,7 +327,10 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
 
       <div className="admin-kpis">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="admin-kpi">
+          <div
+            key={kpi.label}
+            className={`admin-kpi ${kpi.featured ? "admin-kpi-featured" : ""}`}
+          >
             <span className="admin-kpi-label">{kpi.label}</span>
             <span className="admin-kpi-value">
               {kpi.value}{" "}
@@ -373,22 +367,25 @@ export default async function AdminReportsPage({ searchParams }: PageProps) {
         </div>
 
         <div className="admin-card">
-          <h2 className="admin-card-title">Por categoría</h2>
-          {topCategories.length === 0 ? (
+          <h2 className="admin-card-title">Por producto</h2>
+          {productBars.length === 0 ? (
             <p className="admin-empty">Sin ventas en el período</p>
           ) : (
-            <div className="admin-category-bars">
-              {topCategories.map(([category, total]) => (
-                <div key={category} className="admin-category-bar-row">
-                  <span className="admin-category-bar-name">{category}</span>
-                  <span className="admin-category-bar-track">
+            <div className="admin-product-bars">
+              {productBars.map((product) => (
+                <div key={product.name} className="admin-product-bar-row">
+                  <span className="admin-product-bar-name">
+                    <strong>{product.name}</strong>
+                    <small>{product.units} u.</small>
+                  </span>
+                  <span className="admin-product-bar-track">
                     <span
-                      className="admin-category-bar-fill"
-                      style={{ width: `${(total / categoriesTotal) * 100}%` }}
+                      className="admin-product-bar-fill"
+                      style={{ width: `${(product.revenue / productsTotal) * 100}%` }}
                     />
                   </span>
-                  <span className="admin-category-bar-value">
-                    {formatARS(total)}
+                  <span className="admin-product-bar-value">
+                    {formatARS(product.revenue)}
                   </span>
                 </div>
               ))}
