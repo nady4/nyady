@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import "@/styles/PaymentStatus.scss";
 
 export const metadata: Metadata = {
   title: "Pago rechazado",

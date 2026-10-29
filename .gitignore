@@ -45,6 +45,13 @@ pnpm-lock.yaml
 *.tsbuildinfo
 next-env.d.ts
 
+# caches (eslint local cache)
+.eslintcache
+
+# editors / system
+.idea/
+.vscode/
+*.local
 
 .claude
 AGENTS.md
