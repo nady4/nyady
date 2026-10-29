@@ -91,6 +91,11 @@ export default async function AdminSettingsPage() {
               }
             />
           </div>
+
+          <div className="admin-card">
+            <h2 className="admin-card-title">Descuentos mayoristas</h2>
+            <WholesaleTiersEditor tiers={await getStoreWholesaleTiers()} />
+          </div>
         </div>
 
         <div className="admin-settings-col">
@@ -133,11 +138,6 @@ export default async function AdminSettingsPage() {
               </span>
             </div>
             <StorefrontRefresh />
-          </div>
-
-          <div className="admin-card">
-            <h2 className="admin-card-title">Descuentos mayoristas</h2>
-            <WholesaleTiersEditor tiers={await getStoreWholesaleTiers()} />
           </div>
         </div>
       </div>
