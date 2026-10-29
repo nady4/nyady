@@ -252,7 +252,7 @@ model StoreSettings {
   contactEmail   String?
   whatsapp       String?
   instagram      String?
-  tiktok         String?
+  facebook       String?
   announcement   String?
   wholesaleTiers Json?
 

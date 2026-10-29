@@ -80,7 +80,7 @@ export default async function AdminSettingsPage() {
                       contactEmail: settings.contactEmail,
                       whatsapp: settings.whatsapp,
                       instagram: settings.instagram,
-                      tiktok: settings.tiktok,
+                      facebook: settings.facebook,
                       announcement: settings.announcement,
                       heroTitle: settings.heroTitle,
                       heroSubtitle: settings.heroSubtitle,

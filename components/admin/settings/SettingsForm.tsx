@@ -11,7 +11,7 @@ interface StoreSettingsFormProps {
     contactEmail: string | null;
     whatsapp: string | null;
     instagram: string | null;
-    tiktok: string | null;
+    facebook: string | null;
     announcement: string | null;
     heroTitle: string | null;
     heroSubtitle: string | null;
@@ -31,7 +31,7 @@ export default function SettingsForm({ settings }: StoreSettingsFormProps) {
   const [contactEmail, setContactEmail] = useState(settings?.contactEmail ?? "");
   const [whatsapp, setWhatsapp] = useState(settings?.whatsapp ?? "");
   const [instagram, setInstagram] = useState(settings?.instagram ?? "");
-  const [tiktok, setTiktok] = useState(settings?.tiktok ?? "");
+  const [facebook, setFacebook] = useState(settings?.facebook ?? "");
   const [announcement, setAnnouncement] = useState(settings?.announcement ?? "");
   const [heroTitle, setHeroTitle] = useState(settings?.heroTitle ?? "");
   const [heroSubtitle, setHeroSubtitle] = useState(settings?.heroSubtitle ?? "");
@@ -52,7 +52,7 @@ export default function SettingsForm({ settings }: StoreSettingsFormProps) {
       contactEmail: contactEmail.trim() || null,
       whatsapp: whatsapp.trim() || null,
       instagram: instagram.trim() || null,
-      tiktok: tiktok.trim() || null,
+      facebook: facebook.trim() || null,
       announcement: announcement.trim() || null,
       heroTitle: heroTitle.trim() || null,
       heroSubtitle: heroSubtitle.trim() || null,
@@ -120,12 +120,12 @@ export default function SettingsForm({ settings }: StoreSettingsFormProps) {
             />
           </label>
           <label className="admin-field">
-            <span>TikTok (@o-url)</span>
+            <span>Facebook (@o-url)</span>
             <input
               type="text"
-              value={tiktok}
-              onChange={(e) => setTiktok(e.target.value)}
-              placeholder="@nady4"
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              placeholder="@nyady.arg"
             />
           </label>
           <label className="admin-field admin-field-wide">

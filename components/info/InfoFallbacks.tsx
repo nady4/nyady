@@ -207,7 +207,7 @@ contacto@nyady.com
 
 ### Redes Sociales
 - Instagram: [@nyady.store](https://www.instagram.com/nyady.store)
-- Facebook: NYADY
+- Facebook: [@nyady.arg](https://facebook.com/nyady.arg)
 
 ## Respondemos Rápido
 Nos caracteriza nuestra velocidad de respuesta. En horario laboral, respondemos en menos de 24 horas.

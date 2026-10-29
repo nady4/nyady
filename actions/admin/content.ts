@@ -270,7 +270,7 @@ export interface StoreSettingsInput {
   contactEmail: string | null;
   whatsapp: string | null;
   instagram: string | null;
-  tiktok: string | null;
+  facebook: string | null;
   announcement: string | null;
   heroTitle: string | null;
   heroSubtitle: string | null;
@@ -295,7 +295,7 @@ export async function saveStoreSettingsAction(
     contactEmail: input.contactEmail?.trim() || null,
     whatsapp: input.whatsapp?.trim() || null,
     instagram: input.instagram?.trim() || null,
-    tiktok: input.tiktok?.trim() || null,
+    facebook: input.facebook?.trim() || null,
     announcement: input.announcement?.trim() || null,
     heroTitle: input.heroTitle?.trim() || null,
     heroSubtitle: input.heroSubtitle?.trim() || null,

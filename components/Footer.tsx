@@ -57,14 +57,14 @@ function FooterLinks() {
           />
         </a>
         <a
-          href="https://www.tiktok.com/@nady4"
+          href="https://facebook.com/nyady.arg"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="TikTok"
+          aria-label="Facebook"
         >
           <Image
-            src="/assets/icons/tiktok.svg"
-            alt="TikTok"
+            src="/assets/icons/facebook.svg"
+            alt="Facebook"
             width={20}
             height={20}
           />
