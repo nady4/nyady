@@ -63,7 +63,7 @@ export default async function AdminSettingsPage() {
   const adminUsername = process.env.ADMIN_USERNAME || "nyady";
 
   return (
-    <main className="admin-page admin-page-wide">
+    <main className="admin-page admin-page-wide admin-settings-page">
       <h1 className="admin-title">Configuración</h1>
 
       <div className="admin-settings-grid">
