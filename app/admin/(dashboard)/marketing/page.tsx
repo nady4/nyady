@@ -5,9 +5,6 @@ import TemplatesAdmin from "@/components/admin/marketing/TemplatesAdmin";
 import AssetsAdmin from "@/components/admin/marketing/AssetsAdmin";
 import MarketingSettingsCard from "@/components/admin/marketing/MarketingSettingsCard";
 import SocialConnectionsCard from "@/components/admin/marketing/SocialConnectionsCard";
-import PublishBulkCard, {
-  type BulkPublishGroup,
-} from "@/components/admin/marketing/PublishBulkCard";
 import BulkComposer, {
   type BulkProductOption,
 } from "@/components/admin/marketing/BulkComposer";
@@ -179,24 +176,6 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
     slug: option.slug,
   }));
 
-  // Publish-in-bulk groups: unpublished posts with a Meta channel, grouped by
-  // campaign (empty campaign label groups under "Sin campaña").
-  const bulkGroups: BulkPublishGroup[] = [];
-  for (const post of postRows) {
-    if (post.published) continue;
-    if (!post.channels.some((c) => c === "facebook" || c === "instagram")) continue;
-    if (post.status !== "draft" && post.status !== "ready") continue;
-    const key = post.campaign || "";
-    let group = bulkGroups.find((g) => g.campaign === key);
-    if (!group) {
-      group = { campaign: key, ready: [], drafts: [] };
-      bulkGroups.push(group);
-    }
-    const item = { id: post.id, title: post.title };
-    if (post.status === "ready") group.ready.push(item);
-    else group.drafts.push(item);
-  }
-  bulkGroups.sort((a, b) => (b.ready.length + b.drafts.length) - (a.ready.length + a.drafts.length));
 
   return (
     <main className="admin-page admin-page-wide">
@@ -219,33 +198,25 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
       </section>
 
       <section className="admin-content-section">
-        <h2 className="admin-content-section-title">Masa: crear & publicar</h2>
-        <p className="admin-field-hint">
-          Creá borradores por producto (con todas sus fotos, descripción con data real y option de IA) y
-          publicalos todos juntos en secuencia. TODO también disponible en pantalla completa en
-          {' '}<Link href="/admin/marketing/masa">/admin/marketing/masa</Link>.
-        </p>
-        <PublishBulkCard groups={bulkGroups} metaReady={isMetaConfigured()} />
-        <details className="admin-mkt_massa-embed">
-          <summary className="admin-button primary">+ Crear borradores en masa (mostrar panel)</summary>
-          <div style={{ marginTop: "1rem" }}>
-            <BulkComposer
-              products={bulkProducts}
-              templates={templateRows.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
-              siteUrl={getSiteUrl()}
-            />
-          </div>
-        </details>
-      </section>
-
-      <section className="admin-content-section">
         <h2 className="admin-content-section-title">Posteos</h2>
         <p className="admin-field-hint">
-          Biblioteca de contenido para redes (Facebook, Instagram y WhatsApp). Los posts
-          “listos” se publican a Meta con el botón {`"`}Publicar ahora{`"`} o entrando en la cola
-          programada.
+          Biblioteca de contenido para redes (Facebook, Instagram y WhatsApp).
+          “Publicar” publica al instante; “Publicar pendientes” hace la corrida en
+          secuencia con todo lo no publicado.
         </p>
         <PostsAdmin posts={postRows} />
+
+        <h3 className="admin-mkt-subtitle">Crear en masa</h3>
+        <p className="admin-field-hint">
+          Un borrador por producto con todas sus fotos, descripción con data real y
+          ¡opción de IA! Después usá “Publicar pendientes” de arriba (o{' '}
+          <Link href="/admin/marketing/masa">pantalla completa en /admin/marketing/masa</Link>).
+        </p>
+        <BulkComposer
+          products={bulkProducts}
+          templates={templateRows.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
+          siteUrl={getSiteUrl()}
+        />
       </section>
 
       <section className="admin-content-section">

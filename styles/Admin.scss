@@ -3792,3 +3792,12 @@ th.admin-col-number {
   font-size: 0.9rem;
   user-select: none;
 }
+
+/* Sub-heading for embedded subsections (e.g. "Crear en masa" under Posteos). */
+.admin-mkt-subtitle {
+  font-family: $title-font;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: $text-color;
+  margin: 1.6rem 0 -0.4rem;
+}
