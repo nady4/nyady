@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
 import { isAdmin } from "@/lib/admin";
 import { encryptToken } from "@/lib/marketing/crypto";
-import { completeMetaConnect, MetaError } from "@/lib/marketing/meta";
+import { completeMetaConnect, SCOPE, MetaError } from "@/lib/marketing/meta";
 import { STATE_COOKIE } from "@/lib/marketing/oauth-state";
 
 export const runtime = "nodejs";
@@ -50,13 +50,7 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const connected = await completeMetaConnect(code);
 
-    const scopes = [
-      "pages_show_list",
-      "pages_read_engagement",
-      "pages_manage_posts",
-      "instagram_basic",
-      "instagram_content_publish",
-    ];
+    const scopes = SCOPE.split(",");
     await prisma.socialAccount.upsert({
       where: { channel: "facebook" },
       update: {

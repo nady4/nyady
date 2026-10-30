@@ -18,6 +18,9 @@ export const SCOPE = [
   "pages_manage_posts",
   "instagram_basic",
   "instagram_content_publish",
+  // Needed for me/businesses (the FB4B-owned_pages fallback) and generally
+  // expected to travel with pages_* permissions in business-type apps.
+  "business_management",
 ].join(",");
 
 const API_VERSION = process.env.META_API_VERSION ?? "v26.0";
@@ -231,13 +234,17 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
     }
 
     // Direct fetch fallback for every page id the granular scopes mention.
-    for (const pageId of granularPageIds.slice(0, 5)) {
+    // NOTE: `tasks` is NOT a valid field on the Page node itself (only inside
+    // me/accounts) — requesting it 400s the whole call and loses the
+    // access_token we actually need.
+    const uniquePageIds = [...new Set(granularPageIds)];
+    for (const pageId of uniquePageIds.slice(0, 5)) {
       try {
         const pageJson = (await metaFetch(
           metaGraphUrl(pageId, new URLSearchParams({
             access_token: longToken,
             fields:
-              "id,name,access_token,tasks,instagram_business_account{id,username}",
+              "id,name,access_token,instagram_business_account{id,username}",
           }))
         )) as MetaTokenRow & {
           instagram_business_account?: IgBusiness | null;
