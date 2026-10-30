@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import OrderTracking from "@/components/OrderTracking";
 import ConfirmSubmit from "@/components/ConfirmSubmit";
-import { getColorHex } from "@/lib/colors";
+import { getColorSwatchStyle } from "@/lib/colors";
 import "@/styles/Orders.scss";
 
 export const metadata: Metadata = {
@@ -233,9 +233,7 @@ export default async function OrdersPage() {
                     {item.selectedColor && (
                       <span
                         className="order-item-color"
-                        style={{
-                          backgroundColor: getColorHex(item.selectedColor),
-                        }}
+                        style={getColorSwatchStyle(item.selectedColor)}
                         title={item.selectedColor}
                         aria-label={`Color ${item.selectedColor}`}
                       />

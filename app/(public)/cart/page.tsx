@@ -23,7 +23,7 @@ import {
   PACKAGE_ONE_PAIR
 } from "@/lib/shipping";
 import { useWholesaleTiers } from "@/hooks/useWholesaleTiers";
-import { getColorHex } from "@/lib/colors";
+import { getColorSwatchStyle } from "@/lib/colors";
 import { formatARS } from "@/lib/money";
 import Link from "next/link";
 import "@/styles/Cart.scss";
@@ -283,7 +283,7 @@ export default function CartPage() {
                 Color:
                 <span
                   className="color-dot"
-                  style={{ backgroundColor: getColorHex(item.selectedColor) }}
+                  style={getColorSwatchStyle(item.selectedColor)}
                   role="img"
                   aria-label={`Color ${item.selectedColor}`}
                 />

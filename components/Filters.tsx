@@ -6,7 +6,7 @@ import { useCartTotalQuantity } from "@/hooks/useCartTotalQuantity";
 import { toggleSize, toggleColor } from "@/store/slices/filterSlice";
 import { setMin, setMax } from "@/store/slices/priceSlice";
 import { inter } from "@/app/fonts";
-import { getColorHex } from "@/lib/colors";
+import { getColorSwatchStyle } from "@/lib/colors";
 import { formatARS } from "@/lib/money";
 import WholesaleNudge from "@/components/WholesaleNudge";
 import "@/styles/PriceFilter.scss";
@@ -89,7 +89,7 @@ const ColorFilter = () => {
         >
           <span
             className="color-circle"
-            style={{ backgroundColor: getColorHex(color) }}
+            style={getColorSwatchStyle(color)}
           />
         </button>
       ))}

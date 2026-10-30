@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { ProductType } from "@/types";
 
 // Single source of truth for product color → hex mapping. Previously this map
@@ -46,6 +47,62 @@ export function getColorHex(color: string): string {
     (k) => k.toLowerCase() === color.toLowerCase()
   );
   return COLOR_HEX[key || ""] || "#cccccc";
+}
+
+/**
+ * Animal print (leopard-style) tile: warm tan base with irregular dark
+ * rosettes and plain dots, so the swatch reads as a print instead of a flat
+ * color. Rendered through a data URI so it works on both client and server
+ * components (and in `backgroundImage`).
+ */
+const ANIMAL_PRINT_SVG = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'>
+<rect width='40' height='40' fill='#c9a66b'/>
+<ellipse cx='7' cy='8' rx='4.5' ry='3.6' fill='none' stroke='#54351a' stroke-width='2.4'/>
+<ellipse cx='7' cy='8' rx='2.2' ry='1.7' fill='#2f1d09'/>
+<ellipse cx='21' cy='5' rx='3.6' ry='3' fill='none' stroke='#54351a' stroke-width='2.2'/>
+<ellipse cx='35' cy='8' rx='2.6' ry='2.2' fill='#2f1d09'/>
+<ellipse cx='15' cy='17' rx='5' ry='4.2' fill='none' stroke='#54351a' stroke-width='2.4'/>
+<ellipse cx='15' cy='17' rx='2.4' ry='1.9' fill='#2f1d09'/>
+<ellipse cx='29' cy='16' rx='3.8' ry='3.2' fill='none' stroke='#54351a' stroke-width='2.2'/>
+<ellipse cx='29' cy='16' rx='1.8' ry='1.5' fill='#2f1d09'/>
+<ellipse cx='4' cy='25' rx='3.2' ry='2.7' fill='#2f1d09'/>
+<ellipse cx='18' cy='29' rx='4.2' ry='3.5' fill='none' stroke='#54351a' stroke-width='2.4'/>
+<ellipse cx='18' cy='29' rx='2' ry='1.6' fill='#2f1d09'/>
+<ellipse cx='33' cy='28' rx='3.4' ry='2.9' fill='none' stroke='#54351a' stroke-width='2.2'/>
+<ellipse cx='11' cy='38' rx='2.8' ry='2.3' fill='#2f1d09'/>
+<ellipse cx='29' cy='37.5' rx='4' ry='2.2' fill='none' stroke='#54351a' stroke-width='2.4'/>
+<ellipse cx='39' cy='36' rx='2.2' ry='1.9' fill='#2f1d09'/>
+<ellipse cx='39' cy='20' rx='2' ry='1.7' fill='#2f1d09'/>
+<ellipse cx='0.5' cy='2.5' rx='2.2' ry='1.9' fill='#2f1d09'/>
+</svg>`;
+
+const ANIMAL_PRINT_PATTERN = `url("data:image/svg+xml,${encodeURIComponent(
+  ANIMAL_PRINT_SVG.replace(/\n/g, " ")
+)}")`;
+
+/**
+ * Whether a color name is a print (patchwork) rather than a flat hue:
+ * "Animal Print" and its alias "Caspeado".
+ */
+export function isAnimalPrintColor(color: string): boolean {
+  return /animal print|caspeado/i.test(color);
+}
+
+/**
+ * Inline style for a color swatch. Flat colors get a solid background;
+ * print colors ("Animal Print", "Caspeado") layer a repeating SVG pattern
+ * over the base hex. The 50% tile makes the print scale with the swatch.
+ */
+export function getColorSwatchStyle(color: string): CSSProperties {
+  const backgroundColor = getColorHex(color);
+  if (isAnimalPrintColor(color)) {
+    return {
+      backgroundColor,
+      backgroundImage: ANIMAL_PRINT_PATTERN,
+      backgroundSize: "50% 50%",
+    };
+  }
+  return { backgroundColor };
 }
 
 /**

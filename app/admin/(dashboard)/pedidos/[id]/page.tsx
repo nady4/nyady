@@ -11,7 +11,7 @@ import {
   hasZipnovaCredentials,
 } from "@/actions/shipping";
 import type { ShippingSelection } from "@/actions/shipping";
-import { getColorHex } from "@/lib/colors";
+import { getColorSwatchStyle } from "@/lib/colors";
 import { fraunces } from "@/app/fonts";
 import { formatARS, formatAdminDateTime } from "@/lib/admin/format";
 import { shipmentStatusLabel } from "@/lib/order-status";
@@ -155,9 +155,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                             <span key="c" className="admin-order-item-color-wrap">
                               <span
                                 className="admin-order-item-color"
-                                style={{
-                                  backgroundColor: getColorHex(item.selectedColor),
-                                }}
+                                style={getColorSwatchStyle(item.selectedColor)}
                                 title={item.selectedColor}
                               />
                               {item.selectedColor}

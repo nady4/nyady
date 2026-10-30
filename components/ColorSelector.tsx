@@ -1,6 +1,6 @@
 "use client";
 import { memo } from "react";
-import { getColorHex } from "@/lib/colors";
+import { getColorSwatchStyle } from "@/lib/colors";
 import "@/styles/ColorSelector.scss";
 
 interface ColorSelectorProps {
@@ -27,7 +27,7 @@ const ColorSelector = memo(function ColorSelector({
           role="radio"
           aria-checked={selectedColor === color}
           className={`color-circle ${selectedColor === color ? "selected" : ""}`}
-          style={{ backgroundColor: getColorHex(color) }}
+          style={getColorSwatchStyle(color)}
           onClick={() => onColorChange(color)}
           aria-label={`Color ${color}`}
         />
