@@ -1,5 +1,4 @@
 import prisma from "@/lib/prisma";
-import { toMarketingProductOption } from "@/lib/marketing/product-option";
 import { getSiteUrl } from "@/lib/site-url";
 import { loadBulkProducts } from "@/lib/marketing/page-data";
 import BulkComposer, {
