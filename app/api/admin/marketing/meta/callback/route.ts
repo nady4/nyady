@@ -18,7 +18,7 @@ export async function GET(request: Request): Promise<Response> {
   const fail = (code: string, message: string) =>
     NextResponse.redirect(
       new URL(
-        `/admin/marketing?meta=error&mkt_msg=${encodeURIComponent(message.slice(0, 160))}`,
+        `/admin/marketing?meta=error&mkt_msg=${encodeURIComponent(message.slice(0, 800))}`,
         origin
       )
     );

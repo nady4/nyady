@@ -259,9 +259,66 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
       }
     }
 
+    // Portfolio fallback: FB4B tokens often hide pages from /me/accounts but
+    // still expose the user's businesses, whose owned_pages carry page tokens
+    // when the user consented to the pages scopes (which they did).
+    try {
+      const businessesJson = (await metaFetch(
+        metaGraphUrl("me/businesses", new URLSearchParams({
+          access_token: longToken,
+          fields: "id,name",
+        }))
+      )) as { data?: { id: string; name: string }[] };
+      const businesses = businessesJson.data ?? [];
+      debugInfo.push(
+        businesses.length > 0
+          ? `portfolio(s) del token: ${businesses.map((b) => b.name).join(", ")}`
+          : "el token no ve ningún portfolio (me/businesses vacío)"
+      );
+      for (const business of businesses.slice(0, 5)) {
+        try {
+          const ownedJson = (await metaFetch(
+            metaGraphUrl(`${business.id}/owned_pages`, new URLSearchParams({
+              access_token: longToken,
+              fields:
+                "id,name,access_token,tasks,instagram_business_account{id,username}",
+            }))
+          )) as {
+            data?: (MetaTokenRow & { instagram_business_account?: IgBusiness | null })[];
+          };
+          for (const owned of ownedJson.data ?? []) {
+            if (owned.access_token) {
+              debugInfo.push(
+                `fallback portfolio "${business.name}" resolvió la página ${owned.name} (id ${owned.id})`
+              );
+              return {
+                pageId: owned.id,
+                pageName: owned.name,
+                pageToken: owned.access_token,
+                ig: owned.instagram_business_account ?? null,
+              };
+            }
+          }
+          debugInfo.push(
+            `portfolio "${business.name}" sin páginas usables en owned_pages`
+          );
+        } catch (error) {
+          debugInfo.push(
+            `owned_pages de "${business.name}" falló: ${
+              error instanceof Error ? error.message.slice(0, 100) : "?"
+            }`
+          );
+        }
+      }
+    } catch (error) {
+      debugInfo.push(
+        `me/businesses falló: ${error instanceof Error ? error.message.slice(0, 120) : "?"}`
+      );
+    }
+
     const summary =
       rawPages.length === 0
-        ? `/me/accounts devolvió 0 páginas para este perfil (${debugInfo.join(" · ")}). En el selector de activos del login hay que DEJAR TILDADAS la Página (y el Instagram); si se destildó la página o solo se tildó el Instagram, /me/accounts queda vacío — reconectá e incluí la Página \`ny4dy\`.`
+        ? `/me/accounts: 0 páginas. Diagnóstico: ${debugInfo.join(" · ")}. (En el selector de activos la Página y el Instagram deben quedar tildados juntos.)`
         : `${rawPages.length} página(s) sin tarea CREATE_CONTENT: ${rawPages
             .slice(0, 8)
             .map(
