@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Function-bundle diet: the store only runs PostgreSQL through the
+  // prisma-client-js library engine (.prisma/client .so, required at
+  // runtime — never excluded). Everything else under @prisma/engines and
+  // the dead wasm runtimes are pruned post-generate (scripts/) and here via
+  // tracing excludes, because Functions Storage is billed per retained
+  // deployment.
+  outputFileTracingExcludes: {
+    "*": [
+      "node_modules/@prisma/engines/**",
+      "node_modules/@prisma/client/runtime/query_engine_bg.{cockroachdb,mysql,sqlserver,sqlite}.*",
+      "node_modules/@prisma/client/runtime/query_compiler_bg.{cockroachdb,mysql,sqlserver,sqlite}.*",
+      "node_modules/@prisma/client/runtime/query_compiler_bg.postgresql.*",
+    ],
+  },
   images: {
     remotePatterns: [
       {
