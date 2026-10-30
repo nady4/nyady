@@ -5,12 +5,18 @@ import TemplatesAdmin from "@/components/admin/marketing/TemplatesAdmin";
 import AssetsAdmin from "@/components/admin/marketing/AssetsAdmin";
 import MarketingSettingsCard from "@/components/admin/marketing/MarketingSettingsCard";
 import SocialConnectionsCard from "@/components/admin/marketing/SocialConnectionsCard";
+import PublishBulkCard, {
+  type BulkPublishGroup,
+} from "@/components/admin/marketing/PublishBulkCard";
+import BulkComposer, {
+  type BulkProductOption,
+} from "@/components/admin/marketing/BulkComposer";
 import MarketingStatsCard from "@/components/admin/marketing/MarketingStatsCard";
 import WhatsAppCampaignsCard, {
   type WaCampaignRow,
   type WaPostOption,
 } from "@/components/admin/marketing/WhatsAppCampaignsCard";
-import { loadAssetRows } from "@/lib/marketing/page-data";
+import { loadAssetRows, loadBulkProducts } from "@/lib/marketing/page-data";
 import { formatAdminDate, formatAdminDateTime } from "@/lib/admin/format";
 import { loadMarketingStats } from "@/lib/marketing/insights";
 import { loadWaRecipients } from "@/lib/marketing/whatsapp";
@@ -62,7 +68,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
 
   // Defensive load: a failure in any loader must never 500 the whole page or
   // blank the admin shell — degrade to empty sections instead.
-  const [posts, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients] =
+  const [posts, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients, bulkProductsRaw] =
     await Promise.all([
       prisma.socialPost
         .findMany({
@@ -108,6 +114,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
         .findMany({ select: { campaignId: true, phone: true } })
         .catch(() => []),
       loadWaRecipients(null).catch(() => []),
+      loadBulkProducts().catch(() => []),
     ]);
 
   const postRows: MarketingPostRow[] = posts.map((post) => ({
@@ -159,6 +166,37 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
     hashtags: post.hashtags,
     productSlug: post.productSlug,
   }));
+
+  const bulkProducts: BulkProductOption[] = bulkProductsRaw.map((option) => ({
+    id: option.id,
+    name: option.name,
+    price: option.price,
+    category: option.category,
+    photo: option.photo,
+    photoUrls: option.photoUrls,
+    colors: option.colors,
+    sizes: option.sizes,
+    slug: option.slug,
+  }));
+
+  // Publish-in-bulk groups: unpublished posts with a Meta channel, grouped by
+  // campaign (empty campaign label groups under "Sin campaña").
+  const bulkGroups: BulkPublishGroup[] = [];
+  for (const post of postRows) {
+    if (post.published) continue;
+    if (!post.channels.some((c) => c === "facebook" || c === "instagram")) continue;
+    if (post.status !== "draft" && post.status !== "ready") continue;
+    const key = post.campaign || "";
+    let group = bulkGroups.find((g) => g.campaign === key);
+    if (!group) {
+      group = { campaign: key, ready: [], drafts: [] };
+      bulkGroups.push(group);
+    }
+    const item = { id: post.id, title: post.title };
+    if (post.status === "ready") group.ready.push(item);
+    else group.drafts.push(item);
+  }
+  bulkGroups.sort((a, b) => (b.ready.length + b.drafts.length) - (a.ready.length + a.drafts.length));
 
   return (
     <main className="admin-page admin-page-wide">
@@ -237,6 +275,26 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
             },
           }}
         />
+      </section>
+
+      <section className="admin-content-section">
+        <h2 className="admin-content-section-title">Masa: crear & publicar</h2>
+        <p className="admin-field-hint">
+          Creá borradores por producto (con todas sus fotos, descripción con data real y option de IA) y
+          publicalos todos juntos en secuencia. TODO también disponible en pantalla completa en
+          {' '}<Link href="/admin/marketing/masa">/admin/marketing/masa</Link>.
+        </p>
+        <PublishBulkCard groups={bulkGroups} metaReady={isMetaConfigured()} />
+        <details className="admin-mkt_massa-embed">
+          <summary className="admin-button primary">+ Crear borradores en masa (mostrar panel)</summary>
+          <div style={{ marginTop: "1rem" }}>
+            <BulkComposer
+              products={bulkProducts}
+              templates={templateRows.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
+              siteUrl={getSiteUrl()}
+            />
+          </div>
+        </details>
       </section>
     </main>
   );

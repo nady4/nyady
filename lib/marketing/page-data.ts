@@ -92,3 +92,25 @@ export async function loadAssetRows(): Promise<MarketingAssetRow[]> {
     createdAtText: formatAdminDate(row.createdAt),
   }));
 }
+
+/** Flattened products for the bulk composer (masa page + embedded panel). */
+export async function loadBulkProducts() {
+  const productRows = await prisma.product.findMany({
+    where: { archivedAt: null },
+    orderBy: [{ category: "asc" }, { name: "asc" }],
+    take: 400,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      price: true,
+      photo: true,
+      photos: true,
+      category: true,
+      colors: true,
+      sizes: true,
+      description: true,
+    },
+  });
+  return productRows.map((row) => toMarketingProductOption(row as RowInput));
+}
