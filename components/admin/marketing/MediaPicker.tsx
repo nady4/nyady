@@ -30,6 +30,7 @@ export default function MediaPicker({
   const [source, setSource] = useState<SourceKey | null>(null);
   const [manualUrl, setManualUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const add = (url: string) => {
     const clean = url.trim();
@@ -55,6 +56,15 @@ export default function MediaPicker({
     if (target < 0 || target >= media.length) return;
     const next = [...media];
     [next[index], next[target]] = [next[target], next[index]];
+    onChange(next);
+  };
+
+  /** Drag & drop reordering (cover position = index 0) without a library. */
+  const reorder = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    const next = [...media];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
     onChange(next);
   };
 
@@ -187,12 +197,34 @@ export default function MediaPicker({
 
       {media.length === 0 ? (
         <p className="admin-field-hint">
-          Sin imágenes todavía. La primera cuenta como portada del post.
+          Sin imágenes todavía. La primera cuenta como portada del post. Arrastralas
+          para reordenar (el carrusel de Instagram usa este orden).
         </p>
       ) : (
         <div className="admin-mkt-media-list">
           {media.map((url, index) => (
-            <div key={url} className={`admin-mkt-media-item ${index === 0 ? "cover" : ""}`}>
+            <div
+              key={url}
+              draggable
+              onDragStart={() => setDragIndex(index)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragIndex !== null) reorder(dragIndex, index);
+                setDragIndex(null);
+              }}
+              onDragEnd={() => setDragIndex(null)}
+              className={`admin-mkt-media-item ${index === 0 ? "cover" : ""} ${
+                dragIndex === index ? "dragging" : ""
+              }`}
+            >
+              <span
+                className="admin-mkt-media-grip"
+                aria-hidden="true"
+                title="Arrastrar para reordenar"
+              >
+                ⠿
+              </span>
               <Image src={url} alt="" width={72} height={72} unoptimized />
               <span className="admin-mkt-media-role">
                 {index === 0 ? "Portada" : `#${index + 1}`}

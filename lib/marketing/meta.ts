@@ -476,11 +476,25 @@ export async function publishInstagramPost(
     }
   }
 
+  // IG containers only accept JPEG: convert any png/webp source first
+  // (deterministic Blob copy, cached by source URL hash). Failure is a
+  // warning unless the image itself is unusable (too big for IG).
+  let igImageUrls = imageUrls;
+  try {
+    const { ensureInstagramJpegUrls } = await import("@/lib/marketing/ig-image");
+    igImageUrls = await ensureInstagramJpegUrls(imageUrls);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("Imagen demasiado grande")) {
+      throw new MetaError(error.message);
+    }
+    console.error("[meta] ig jpeg conversion failed:", error);
+  }
+
   const creationId = await createIgContainer(
     igUserId,
     pageToken,
     caption,
-    imageUrls
+    igImageUrls
   );
   await pollIgContainer(creationId, pageToken);
 

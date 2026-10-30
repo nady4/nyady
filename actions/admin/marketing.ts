@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { ensureAdmin } from "@/lib/admin";
 import { deleteOrphanBlobs, isManagedBlob } from "@/lib/admin/blob";
 import { getSiteUrl } from "@/lib/site-url";
+import { formatARS } from "@/lib/admin/format";
 import { toMarketingProductOption } from "@/lib/marketing/product-option";
 import { isMetaConfigured } from "@/lib/marketing/meta";
 import {
@@ -863,4 +864,226 @@ export async function unmarkWaSentAction(
   }
   revalidateMarketing();
   return { ok: true };
+}
+
+// --- Bulk creation (IG/FB posts per product) ------------------------------------
+
+export type BulkPhotoMode = "all" | "cover_per_color" | "cover_only";
+
+export interface BulkCreateInput {
+  productIds: string[];
+  templateId: string | null; // null = free-text mode
+  customBody: string; // used when templateId is null (raw with placeholders)
+  useAi: boolean;
+  tone: number;
+  photoMode: BulkPhotoMode;
+  hasChannels: ("facebook" | "instagram")[];
+  campaign: string;
+}
+
+export interface BulkCreateOutcome {
+  ok: boolean;
+  error?: string;
+  results?: { productId: string; productName: string; postId?: string; error?: string }[];
+  skipped?: { productId: string; reason: string }[];
+  created?: number;
+}
+
+const BULK_MAX_PRODUCTS = 25;
+const IG_PHOTO_LIMIT = 10;
+const BULK_PLACEHOLDERS = ["{producto}", "{precio}", "{link}", "{tallas}", "{colores}"];
+void BULK_PLACEHOLDERS;
+
+/** Cover first, then per-color bucket urls — same order the composer shows. */
+function productPhotoUrlsFor(row: { photo: string; photos: unknown }): string[] {
+  const urls: string[] = [];
+  if (row.photo) urls.push(row.photo);
+  if (row.photos && typeof row.photos === "object" && !Array.isArray(row.photos)) {
+    for (const list of Object.values(row.photos as Record<string, unknown>)) {
+      if (Array.isArray(list)) {
+        for (const url of list) {
+          if (typeof url === "string" && url && !urls.includes(url)) urls.push(url);
+        }
+      }
+    }
+  }
+  return urls;
+}
+
+function selectPhotos(
+  productPhotoUrls: string[],
+  mode: BulkPhotoMode
+): { media: string[]; discarded: number } {
+  if (mode === "cover_only") {
+    return { media: productPhotoUrls.slice(0, 1), discarded: 0 };
+  }
+  if (mode === "cover_per_color") {
+    const links: string[] = [];
+    if (productPhotoUrls[0]) links.push(productPhotoUrls[0]);
+    // One representative photo per color bucket after the cover.
+    for (const url of productPhotoUrls.slice(1)) {
+      if (links.length >= IG_PHOTO_LIMIT) break;
+      if (!links.includes(url)) links.push(url);
+    }
+    return {
+      media: links.slice(0, IG_PHOTO_LIMIT),
+      discarded: Math.max(0, productPhotoUrls.length - IG_PHOTO_LIMIT),
+    };
+  }
+  return {
+    media: productPhotoUrls.slice(0, IG_PHOTO_LIMIT),
+    discarded: Math.max(0, productPhotoUrls.length - IG_PHOTO_LIMIT),
+  };
+}
+
+export async function createBulkPostsAction(
+  input: BulkCreateInput
+): Promise<BulkCreateOutcome> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+
+  const productIds = [...new Set(input.productIds ?? [])].filter(Boolean);
+  if (productIds.length === 0) {
+    return { ok: false, error: "Elegí al menos un producto" };
+  }
+  if (productIds.length > BULK_MAX_PRODUCTS) {
+    return { ok: false, error: `Máximo ${BULK_MAX_PRODUCTS} productos por corrida` };
+  }
+  const channels = (input.hasChannels ?? []).filter(
+    (c) => c === "facebook" || c === "instagram"
+  );
+  if (channels.length === 0) {
+    return { ok: false, error: "Elegí al menos un canal (Facebook o Instagram)" };
+  }
+
+  // Template or free-text body source.
+  let templateBody: string | null = null;
+  if (input.templateId) {
+    const template = await prisma.copyTemplate.findUnique({
+      where: { id: input.templateId },
+      select: { body: true, hashtags: true },
+    });
+    if (!template) return { ok: false, error: "Plantilla inexistente" };
+    templateBody = template.body;
+  } else {
+    const custom = (input.customBody ?? "").trim();
+    if (!custom) {
+      return { ok: false, error: "Escribí el texto o elegí una plantilla" };
+    }
+    templateBody = custom;
+  }
+
+  const campaign = input.campaign?.trim().slice(0, 60) || null;
+  const siteUrl = getSiteUrl();
+  const results: NonNullable<BulkCreateOutcome["results"]> = [];
+  const skipped: NonNullable<BulkCreateOutcome["skipped"]> = [];
+  let created = 0;
+
+  for (const productId of productIds) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
+        photo: true,
+        photos: true,
+        category: true,
+        colors: true,
+        sizes: true,
+        description: true,
+        archivedAt: true,
+      },
+    });
+    if (!product || product.archivedAt) {
+      skipped.push({ productId, reason: "Producto inexistente o archivado" });
+      continue;
+    }
+    const { price } = product;
+    const priceValue = price.toNumber();
+    const photoUrls = productPhotoUrlsFor(product);
+    if (photoUrls.length === 0) {
+      skipped.push({ productId, reason: "El producto no tiene fotos" });
+      continue;
+    }
+    const { media, discarded } = selectPhotos(photoUrls, input.photoMode);
+
+    // Body: template/text with real data, optionally AI-polished per product.
+    let body = (templateBody ?? "")
+      .replaceAll("{producto}", product.name)
+      .replaceAll("{precio}", formatARS(priceValue))
+      .replaceAll("{link}", `${siteUrl}/products/${product.slug}`)
+      .replaceAll(
+        "{tallas}",
+        product.sizes.length > 0 ? product.sizes.join(", ") : "-"
+      )
+      .replaceAll(
+        "{colores}",
+        product.colors.length > 0 ? product.colors.join(", ") : "-"
+      );
+
+    if (input.useAi) {
+      const ai = await generateMarketingCopyAction({
+        manualBrief:
+          `Partí del siguiente texto y devolveme una mejor redacción, respetando TODA la data real (precio, talles, link) sin inventar nada:\n\n${body}`.slice(
+            0,
+            800
+          ),
+        tone: Number(input.tone) || 0,
+        channels: ["instagram"],
+        productId,
+      });
+      if (ai.ok && ai.variants && ai.variants.length > 0) {
+        const variant = ai.variants[0];
+        body = [
+          variant.hook.trim(),
+          variant.body.trim(),
+          variant.cta.trim(),
+        ]
+          .filter(Boolean)
+          .join("\n\n");
+      } else {
+        skipped.push({
+          productId,
+          reason: `IA sin variants (${ai.error ?? "?"}): se guardó con el texto de la plantilla`,
+        });
+      }
+    }
+
+    const createResult = await createMarketingPostAction({
+      title: `${product.name}`.slice(0, 120),
+      body,
+      hashtags: [product.category.toLowerCase().replace(/\s+/g, "")],
+      channels,
+      media,
+      productId,
+      campaign: campaign ?? null,
+      status: "draft",
+      scheduledAt: null,
+    });
+    if (createResult.ok) {
+      created += 1;
+      results.push({
+        productId,
+        productName: product.name,
+        postId: createResult.postId,
+      });
+      if (discarded > 0) {
+        results.push({
+          productId: `${productId}-note`,
+          productName: product.name,
+          error: `${discarded} fotos quedaron fuera del cap de ${IG_PHOTO_LIMIT} (editalas en el composer)`,
+        });
+      }
+    } else {
+      results.push({
+        productId,
+        productName: product.name,
+        error: createResult.error ?? "No se pudo crear el post",
+      });
+    }
+  }
+
+  revalidateMarketing();
+  return { ok: true, results, skipped, created };
 }
