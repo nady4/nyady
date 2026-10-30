@@ -181,12 +181,87 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
    * Standalone IG probe (kept for callers that pass a page token directly).
    */
   if (pages.length === 0) {
-    // Rich, token-free diagnostics: the red banner on /admin/marketing now
-    // shows exactly what /me/accounts returned so a missing page vs. a
-    // missing CREATE_CONTENT task is distinguishable without re-deploys.
+    // FB4B quirk resolver: when /me/accounts comes back empty even though the
+    // user granted assets in the picker, inspect the token itself via
+    // /debug_token (app access token) — granular_scopes carry the granted
+    // page ids. If a page id is there, the page can usually still be fetched
+    // directly with the user token (id, name, access_token, IG), and the
+    // connect completes with that page token instead of failing.
+    const appId = process.env.META_APP_ID ?? "";
+    const appSecret = process.env.META_APP_SECRET ?? "";
+    const debugInfo: string[] = [];
+    let granularPageIds: string[] = [];
+    try {
+      const appToken = `${appId}|${appSecret}`;
+      const debugJson = (await metaFetch(
+        metaGraphUrl("debug_token", new URLSearchParams({
+          input_token: longToken,
+          access_token: appToken,
+          fields: "scopes,granular_scopes,profile_id,token_type",
+        }))
+      )) as {
+        data?: {
+          scopes?: string[];
+          granular_scopes?: { scope: string; target_ids?: string[] }[];
+          profile_id?: string;
+          token_type?: string;
+        };
+      };
+      const debugData = debugJson.data ?? {};
+      granularPageIds = (debugData.granular_scopes ?? [])
+        .filter(
+          (gs) =>
+            gs.scope === "pages_show_list" ||
+            gs.scope === "pages_manage_posts" ||
+            gs.scope === "pages_read_engagement"
+        )
+        .flatMap((gs) => gs.target_ids ?? []);
+      debugInfo.push(
+        `token_type=${debugData.token_type ?? "?"}`,
+        `scopes=${(debugData.scopes ?? []).join("/")}`,
+        `grant_id=${debugData.profile_id ?? "?"}`,
+        granularPageIds.length > 0
+          ? `páginas en scopes granulares: ${granularPageIds.join(",")}`
+          : "sin páginas en scopes granulares"
+      );
+    } catch (error) {
+      debugInfo.push(
+        `debug_token falló: ${error instanceof Error ? error.message.slice(0, 120) : "?"}`
+      );
+    }
+
+    // Direct fetch fallback for every page id the granular scopes mention.
+    for (const pageId of granularPageIds.slice(0, 5)) {
+      try {
+        const pageJson = (await metaFetch(
+          metaGraphUrl(pageId, new URLSearchParams({
+            access_token: longToken,
+            fields:
+              "id,name,access_token,tasks,instagram_business_account{id,username}",
+          }))
+        )) as MetaTokenRow & {
+          instagram_business_account?: IgBusiness | null;
+        };
+        if (pageJson.access_token) {
+          return {
+            pageId: pageJson.id,
+            pageName: pageJson.name,
+            pageToken: pageJson.access_token,
+            ig: pageJson.instagram_business_account ?? null,
+          };
+        }
+      } catch (error) {
+        debugInfo.push(
+          `fetch directo de ${pageId} falló: ${
+            error instanceof Error ? error.message.slice(0, 120) : "?"
+          }`
+        );
+      }
+    }
+
     const summary =
       rawPages.length === 0
-        ? "/me/accounts devolvió 0 páginas para este perfil. En el selector de activos del login hay que DEJAR TILDADAS la Página (y el Instagram); si se destildó la página o solo se tildó el Instagram, /me/accounts queda vacío — reconectá e incluí la Página `ny4dy`."
+        ? `/me/accounts devolvió 0 páginas para este perfil (${debugInfo.join(" · ")}). En el selector de activos del login hay que DEJAR TILDADAS la Página (y el Instagram); si se destildó la página o solo se tildó el Instagram, /me/accounts queda vacío — reconectá e incluí la Página \`ny4dy\`.`
         : `${rawPages.length} página(s) sin tarea CREATE_CONTENT: ${rawPages
             .slice(0, 8)
             .map(
