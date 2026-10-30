@@ -153,7 +153,8 @@ async function main() {
 
   // Credentials are mirrored into both `create` and `update` so re-seeding
   // repairs an existing user-1 instead of leaving a stale row behind. The
-  // password is the bcrypt hash of "Nyady-1234" (documented in the README).
+  // password is the bcrypt hash of the local-only demo password (kept in this
+  // file, never published in the README — local dev only).
   // The demo user is pre-verified so it can sign in without going through
   // the confirmation email.
   const userCredentials = {

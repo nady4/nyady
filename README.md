@@ -5,6 +5,9 @@
 <p align="center">
   Built with Next.js, TypeScript, Redux Toolkit, Prisma + PostgreSQL y NextAuth. Integrated with MercadoPago and Zipnova.
 </p>
+<p align="center">
+  🛡️ <i>This is a live store that charges real money through Mercado Pago with production credentials — see <a href="#-security">Security</a> for how it stays safe.</i>
+</p>
 <br>
 
 ## 📸 Screenshots
@@ -42,10 +45,11 @@
 
 <br>
 
-## 🌐 Live demo
+## 🌐 Live store
 
 - **URL:** <b><a href="https://nyady.com">nyady.com</a></b>
-- **Demo account:** `test@nyady.com` / username `nyady` / password `Nyady-1234` — or register a new one.
+
+> ⚠️ This is production, not a playground: every checkout moves real money through Mercado Pago and every account sees real order history. No demo credentials are published here. To explore the admin dashboard or request a safe demo walkthrough, reach out to `dev@nady4.com`.
 
 <br>
 
@@ -55,12 +59,13 @@
 
 - **Product catalog** with live search and filtering by category, size, and color
 - **Product detail pages** with size, color, and heel (`taco`) selectors and related products
+- **Product imagery on Vercel Blob** — per-color photo buckets served from Blob URLs (host allowlisted in `next.config.ts`); the local `public/assets/products` folder + `products.csv` are the bulk source, synced with `bun run catalog:sync` (uploads every image, drops colors without a photo and double sizes below 35, rewrites DB + CSV)
 - **Persistent, database-backed cart** keyed per user with selected variant (size/color/heel)
 - **Wishlist** saved per user
 - **Wholesale / volume discounts** — ≥4 units → 10% off, ≥20 units → 20% off
 - **Coupon engine** — `PERCENT` and `FIXED` codes, one-per-user, usage limits, and expiry dates
 - **Live shipping quotes** via Zipnova — carrier options, pickup points, and declared value
-- **Mercado Pago checkout** (Wallet) with `success` / `pending` / `failure` return pages
+- **Mercado Pago checkout** (Wallet) with `success` / `pending` / `failure` return pages — real charges in production (`APP_USR_*` credentials), test credentials locally
 - **Order history with tracking** — live shipment status and tracking history from Zipnova
 
 ### 🔐 Account & compliance
@@ -74,9 +79,9 @@
 
 ### ⚙️ Operations (seller-side)
 
-- **Admin dashboard** at `/admin` — protected by username/password from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, with a signed httpOnly session cookie (7 days, `proxy.ts` guards every `/admin/*` route and every admin server action / `/api/admin/*` route re-checks the session):
+- **Admin dashboard** at `/admin` — protected by username/password from `ADMIN_USERNAME` / `ADMIN_PASSWORD`, with a signed httpOnly session cookie (7 days, `proxy.ts` guards every `/admin/*` route and every admin server action / `/api/admin/*` route re-checks the session). The `nyady`/`nyady` unset default exists only to keep local dev moving — it must be overridden with real credentials before any deployment:
   - **Resumen** — KPIs (monthly/weekly/today revenue, orders, average ticket, new users), a 30-day sales chart, orders-by-status breakdown, actionable alerts (approved orders without shipment, unverified users, archived products) and latest orders.
-  - **Productos** — searchable, filterable, paginated table with bulk actions, **full CRUD** (name, price, stock, category, SKU, internal purchase name, description, sizes/colors/heel options, availability) and a **per-color image manager** powered by Vercel Blob (client uploads, cover selection, drag reorder, per-color buckets). Archive (soft delete) keeps order history while hiding the product from the store and clearing carts/wishlists; permanent delete is offered only for products without orders, with orphan-blob cleanup.
+  - **Productos** — searchable, filterable, paginated table with bulk actions, **full CRUD** (name, price, stock, category, SKU, internal purchase name, description, sizes/colors/heel options, availability) and a **per-color image manager** powered by Vercel Blob (client uploads, cover selection, drag reorder, per-color buckets), plus the `catalog:sync` bulk pipeline for mass image updates. Archive (soft delete) keeps order history while hiding the product from the store and clearing carts/wishlists; permanent delete is offered only for products without orders, with orphan-blob cleanup.
   - **Categorías** — rename/merge categories across all products in one transaction (categories live on `Product.category` in v1).
   - **Pedidos** — filterable table by status/date/customer with **CSV export**, a rich detail per order (items with purchase-time snapshots, totals/discounts breakdown, recipient, Zipnova shipment + live tracking timeline, internal notes), admin status transitions (approve/reject/cancel with guard rails), editable recipient + manual tracking fields, and item editing for pending orders only (totals recompute with the same discount math as checkout). **Manual order creation** for phone/WhatsApp sales (existing user + catalog items + optional coupon + shipping cost, `source: "manual"`).
   - **Envíos** — shipments table with persisted Zipnova status, per-row refresh, carrier option, tracking links, and destination.
@@ -87,6 +92,22 @@
   - **Configuración** — store profile + hero copy persisted on `StoreSettings` (landing falls back to the hardcoded copy), integration health board (DB, Mercado Pago, Zipnova, Resend, Vercel Blob, auth — env presence only, never values), admin credential info, read-only wholesale tiers, and a manual storefront revalidation button.
 - **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready from the admin dashboard, which creates the Zipnova shipment and unlocks tracking.
 - **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN` (`POST /api/orders/[id]/ship`)
+
+<br>
+
+## 🛡️ Security
+
+The store is **live and charges real money** (production Mercado Pago `APP_USR` credentials). These are the rules baked into the codebase to keep that safe:
+
+- **No secrets in the repo** — `.env*` is gitignored; production credentials (database, Mercado Pago, Zipnova, Resend, Vercel Blob) live only in Vercel environment variables. The connected Blob store authenticates from the Vercel runtime via **OIDC** (`VERCEL_OIDC_TOKEN` + `BLOB_STORE_ID`, auto-rotated tokens), so no long-lived token is ever distributed or stored.
+- **Server-side money math only** — the client never sends prices or totals. Checkout builds items from the **database cart** (`getCartProducts`), recomputes discounts with the single source of truth `lib/discounts.ts` (server-configured wholesale tiers + coupons) and derives the charged total from those server values; the request body only carries recipient data, the chosen shipping option and a coupon code, which is re-validated server-side too.
+- **Distrustful, idempotent payment webhook** — `POST /api/mp-webhook` re-fetches the payment from the Mercado Pago API before acting on it, only allows the documented status transitions (`pending → approved/...`), keeps a breadcrumb for refunds/chargebacks, and clears only the buyer's cart. Coupon consumption (`usedCount`) happens only after the preference is successfully created, so a failed preference never burns a one-per-user coupon nor leaves an orphan pending order.
+- **Admin surface** — every `/admin/*` route is blocked at the proxy level (Next 16 `proxy.ts`), and every admin server action or `/api/admin/*` route re-verifies the session itself (the cookie is an HMAC-signed httpOnly cookie signed with `NEXTAUTH_SECRET`, 7-day TTL). `/api/admin/login` has rate limiting. Blob uploads never accept arbitrary paths (`products/` and `banners/` prefixes only, with content-type/size validation).
+- **Account hygiene** — passwords as bcrypt hashes only; unverified accounts can't sign in (single-use 24h confirmation tokens); password recovery emails single-use 1-hour tokens whose sha256 hash is stored (raw token only travels via email, so a leaked DB alone can't reset an account); reset endpoints answer generically so they never leak which emails exist; archived users are rejected at sign-in before the password check runs.
+- **Rate limiting on sensitive routes** — register, resend verification, forgot-password, admin login, order/checkout creation and the MP webhook are all throttled (`lib/rate-limit.ts` — in-memory sliding-window counters keyed per client IP/route).
+- **Tamper-proof history** — every `OrderItem` snapshots unit price, product name, photo and chosen variant at purchase time, so later catalog edits (renames, price changes, availability, archiving) can never rewrite what a customer actually bought.
+- **Deploy hygiene** — `vercel env pull` outputs (`.env.local` from Vercel, which includes short-lived OIDC tokens) are gitignored too; nothing secret is committed to git.
+- **Responsible disclosure** — found a vulnerability? Email `dev@nady4.com` before publishing; don't run probes or test purchases against live data.
 
 <br>
 
@@ -102,7 +123,7 @@
 | State                     | Redux Toolkit (UI state only — filters/search)         |
 | Payments                  | Mercado Pago SDK (`@mercadopago/sdk-react`) + REST API |
 | Shipping                  | Zipnova REST API (quote, create, track)                |
-| Images                    | Vercel Blob (admin uploads with client `upload()`)     |
+| Images                    | Vercel Blob (OIDC auth on Vercel; admin uploads + `catalog:sync` bulk pipeline) |
 | Forms                     | React Hook Form                                        |
 | Runtime / package manager | Bun                                                    |
 
@@ -140,14 +161,15 @@ proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
 ### 🔍 Notable implementation details
 
 - **Single source of truth for discounts** — `lib/discounts.ts` is pure (no `"use server"`, no Prisma) so the wholesale + coupon math is imported by both the cart UI and the orders API, guaranteeing the charged total matches what the customer sees.
-- **Idempotent payment webhook** — looks up the order before updating, clears only the buyer's cart, and treats forged/stale notifications safely. The Zipnova shipment is deliberately _not_ created on payment; it's deferred until elaboración is complete.
+- **Idempotent payment webhook** — re-fetches the payment from the Mercado Pago API instead of trusting the notification body, looks up the order before updating, clears only the buyer's cart, and treats forged/stale notifications safely. The Zipnova shipment is deliberately _not_ created on payment; it's deferred until elaboración is complete.
 - **Coupon consumed only after the Mercado Pago preference succeeds** — a failed preference rolls back the orphan order so a one-per-user coupon isn't burned and the user can retry.
 - **Per-order snapshots** of recipient data, the chosen shipping option, and the coupon (code + discount) are stored on the order so tracking and history stay correct even if the cart is cleared or the coupon is later edited/deleted. Since the admin-dashboard migration, `OrderItem` also snapshots `unitPrice`, `productName`, `productPhoto`, `selectedSize` and `selectedTacoOption` at purchase time (with a one-time backfill), so order history and reports stay accurate even if products are later renamed, repriced or archived.
 - **Soft delete everywhere it matters** — `Product`, `User` and `Order` carry an `archivedAt` column. Archiving hides from the storefront and the default admin lists without breaking order history; archiving a product clears its carts/wishlists, and archived users are rejected at sign-in before the password check. Permanent delete is only available for entities without references.
 - **Admin manual orders** — created with `source: "manual"` and never touched by the Mercado Pago webhook; items are validated and priced server-side against the current catalog (snapshotting price/name/variant photo), and totals always recompute through `lib/discounts.ts`. Item editing is locked once an order leaves `pending`.
-- **Cart persisted in the database** (not Redux) — Redux is reserved for ephemeral UI state like filters and search, per the project's state-management rules.
+- **Cart persisted in the database** (not Redux) — Redux is reserved for ephemeral UI state like filters and search, per the project's state-management rules. Checkout items come from this DB cart (current catalog prices), never from the browser.
+- **Bulk catalog sync** — `bun run catalog:sync` treats `public/assets/products` + `products.csv` as the source of truth: uploads every image to Vercel Blob under deterministic `products/<folder>/<file>` paths (idempotent overwrites), drops colors without a photo and double sizes below 35, rewrites `photo`/`photos`/`sizes` in the DB, patches the CSV, and prunes carts that reference now-invalid variants.
 - **Stateless admin session** — the dashboard uses a 7-day HMAC-signed httpOnly cookie (`lib/admin-token.ts`, WebCrypto so it works in the edge proxy) instead of a database row; `proxy.ts` guards every `/admin/*` route except the login page, and all admin server actions — plus the `/api/admin/*` routes (upload, exports, revalidate) that the proxy doesn't cover — re-check the session server-side.
-- **Image uploads via Vercel Blob** — the browser asks `/api/admin/upload` (admin-guarded token endpoint with content-type/size/path-prefix validation) and PUTs files directly to Blob, avoiding serverless body-size limits. Removed/replaced images are best-effort cleaned with a reference check against other products and banners.
+- **Image uploads via Vercel Blob** — the browser asks `/api/admin/upload` (admin-guarded token endpoint with content-type/size/path-prefix validation) and PUTs files directly to Blob, avoiding serverless body-size limits. On Vercel the store authenticates via OIDC (no long-lived token needed); removed/replaced images are best-effort cleaned with a reference check against other products and banners.
 - **Zipnova credentials guard** — while `ZIPNOVA_*` env vars are placeholders, the admin orders view skips live status/tracking calls (they would 403) and falls back to the data persisted on the order; set the real keys and the calls resume automatically. Live Zipnova calls run only on the order detail and Envíos refresh, keeping the orders list fast.
 
 <br>
@@ -157,7 +179,7 @@ proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
 Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`, `Banner`, `StoreSettings`, `VerificationToken`, `PasswordResetToken`.
 
 - `Cart` rows are unique per `(user, product, selectedSize, selectedColor, selectedTacoOption)`.
-- `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only. `archivedAt` implements the soft delete; `createdAt`/`updatedAt` power admin sorting and reports.
+- `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only. `sizes`/`colors` are the storefront-availability lists (a variant can only be ordered if listed); `photos` is the per-color JSON map of image URLs, `photo` the cover image (a sync keeps the existing cover color if all its images survived, otherwise it falls back to the first color). `archivedAt` implements the soft delete; `createdAt`/`updatedAt` power admin sorting and reports.
 - `Order` carries a `shippingSelection` JSON snapshot, recipient fields, shipment id/tracking, and coupon snapshots used to create the Zipnova shipment after payment and render order history. `source` distinguishes web checkouts from admin-created manual orders, `notes` holds internal-only remarks, and `archivedAt` hides an order from the admin without touching the buyer's history.
 - `OrderItem` snapshots the purchase-time product (`unitPrice`, `productName`, `productPhoto`) and the selected variants (`selectedColor`, `selectedSize`, `selectedTacoOption`), backfilled from existing data by the `admin_dashboard` migration.
 - `User.archivedAt` implements soft-deleted accounts (blocked from sign-in, history preserved).
@@ -184,7 +206,7 @@ bun install
 
 ### 🔑 Environment setup
 
-Create a `.env` file (see `.gitignore` — `.env*` is ignored) with:
+Create a `.env` file with local/dev values (see `.gitignore` — `.env*` is ignored, nothing secret is ever committed). **Production values (real keys) live only in the Vercel project environment** — never in this repository, never in screenshots, never in logs:
 
 ```env
 # App / auth
@@ -195,11 +217,15 @@ DATABASE_URL=postgresql://user:password@host:5432/nyady
 
 # Admin dashboard (/admin)
 # Sign-in is at /admin/login; the session cookie is signed with NEXTAUTH_SECRET
-# (or ADMIN_SECRET if set). Defaults to nyady/nyady if unset — set real values!
+# (or ADMIN_SECRET if set). Defaults to nyady/nyady if unset — dev-only
+# convenience, override with real values before any deploy.
 ADMIN_USERNAME=nyady
 ADMIN_PASSWORD=yourAdminPassword
 
 # Mercado Pago
+# Locally use TEST credentials. Production runs with APP_USR (real money)
+# keys that must live in the Vercel env only — rotate immediately from the
+# Mercado Pago panel if one ever leaks.
 MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
 NEXT_PUBLIC_MP_PUBLIC_KEY=TEST-XXXXXXXXXXXXXXXX
 
@@ -211,10 +237,11 @@ ZIPNOVA_ACCOUNT_ID=yourAccountId
 # Seller-only ship endpoint
 ADMIN_TOKEN=yourStrongRandomToken
 
-# Vercel Blob — product & banner image uploads from the admin dashboard.
-# Create the store in Vercel (Project → Storage → Blob) — on Vercel deployments
-# the token is injected automatically; locally run `vercel env pull` or upload
-# it by hand to .env. Without it, admin image uploads show a friendly error.
+# Vercel Blob — product & banner images.
+# With the store connected to the Vercel project (Project → Storage → Blob),
+# auth is OIDC-based: on Vercel deployments nothing needs to be configured;
+# locally run `vercel env pull` to get BLOB_STORE_ID / VERCEL_OIDC_TOKEN.
+# Alternatively paste a full BLOB_READ_WRITE_TOKEN into .env for local use.
 # `**.public.blob.vercel-storage.com` is already allowlisted in next.config.ts.
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxx
 
@@ -227,6 +254,8 @@ RESEND_API_KEY=re_xxxxxxxx
 EMAIL_FROM=NYADY <no-reply@yourdomain.com>
 ```
 
+> ⚠️ Files created by `vercel env pull` (`.env.local`, which includes short-lived OIDC tokens) are also gitignored — double-check `git status` before committing anything env-like.
+
 ### 🛢️ Database setup
 
 ```bash
@@ -234,7 +263,9 @@ bun run db:migrate
 bun run db:seed
 ```
 
-The seed creates a demo user (`test@nyady.com` / username `nyady` / password `Nyady-1234`, pre-verified so it skips the email confirmation), a set of sample products, example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`), and the `StoreSettings` singleton with defaults.
+The seed is for **local development only** — it creates a pre-verified demo user (credentials are defined in [prisma/seed.ts](prisma/seed.ts) and intentionally not published), a set of sample products, example coupons (`BIENVENIDA10`, `5000OFF`, `VERANO15`, `MAYORISTA25`), and the `StoreSettings` singleton with defaults.
+
+> ⚠️ Never run `db:seed` or `db:import` against the production database: they `upsert` demo rows and would overwrite live catalog data. Production catalog changes go through the admin dashboard or `catalog:sync` against the production store.
 
 ### 💻 Run the dev server
 
@@ -272,14 +303,18 @@ Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `
 | `bun run db:migrate`  | Run Prisma migrations       |
 | `bun run db:seed`     | Seed the database           |
 | `bun run db:generate` | Generate the Prisma client  |
+| `bun run db:import`   | Import/refresh products from the catalog CSV |
+| `bun run catalog:sync` | Re-sync the catalog against `public/assets/products` photos: re-uploads every image to Vercel Blob, drops colors without a photo and double sizes below 35, and updates the DB + products.csv |
+| `bun run blob:check`  | Verify the Vercel Blob token |
 
 <br>
 
 ## 📝 Notes
 
 - The UI is in Spanish (es-AR) and prices are in Argentine pesos (ARS), matching the Mercado Pago and Zipnova integrations.
+- **Production is the real store**: Mercado Pago runs with production (`APP_USR`) credentials there, so checkouts charge customers. Test credentials are for local development only. Never commit real keys, and rotate any credential that could have leaked from logs, screenshots or a `.env` file.
 - Mercado Pago `auto_return` is enabled only for HTTPS `NEXTAUTH_URL`s (the API rejects HTTP return URLs), so use an HTTPS deployment or tunnel for full checkout redirects.
-- Product images in the seed reference remote hosts allowlisted in [next.config.ts](next.config.ts); admin-uploaded images live on Vercel Blob (`**.public.blob.vercel-storage.com`, also allowlisted).
+- **Product images live on Vercel Blob** (`**.public.blob.vercel-storage.com`, allowlisted in [next.config.ts](next.config.ts)). The local `public/assets/products` folders + `products.csv` are the bulk-sync source (`bun run catalog:sync`); the local-only seed products may still reference other allowlisted remote hosts so a fresh clone renders without uploading anything.
 - Deleting (not archiving) a product is only possible when it has no orders — order history is never broken. Products with sales get archived instead.
 
 <br>
