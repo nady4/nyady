@@ -35,7 +35,7 @@ export default function PublishBulkCard({
   const [campaignKey, setCampaignKey] = useState<string>(
     nonEmpty[0] ? groupKey(nonEmpty[0]) : ""
   );
-  const [includeDrafts, setIncludeDrafts] = useState(false);
+  const [includeDrafts, setIncludeDrafts] = useState(true);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; current: string } | null>(
     null
@@ -164,7 +164,7 @@ export default function PublishBulkCard({
             checked={includeDrafts}
             onChange={(e) => setIncludeDrafts(e.target.checked)}
           />
-          <span>Incluir borradores (se marcan “listos” al publicar)</span>
+          <span>Incluir borradores (los borradores se marcan “listos” al publicar)</span>
         </label>
       </div>
 

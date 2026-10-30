@@ -8,7 +8,6 @@ import {
   deleteMarketingPostAction,
   duplicateMarketingPostAction,
   publishMarketingPostAction,
-  toggleMarketingPostStatusAction,
 } from "@/actions/admin/marketing";
 import type { AdminActionResult, MarketingPostRow } from "@/types/admin";
 
@@ -149,16 +148,20 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
 
               <div className="admin-mkt-post-main">
                 <div className="admin-mkt-post-head">
-                  <strong className={post.status === "draft" ? "admin-mkt-muted" : ""}>
+                  <strong className={post.status === "draft" && !post.published ? "admin-mkt-muted" : ""}>
                     {post.title}
                   </strong>
-                  <span
-                    className={`admin-status-badge ${
-                      post.status === "ready" ? "available" : "unavailable"
-                    }`}
-                  >
-                    {post.status === "ready" ? "Listo" : "Borrador"}
-                  </span>
+                  {post.published ? (
+                    <span className="admin-status-badge available">Publicado</span>
+                  ) : (
+                    <span
+                      className={`admin-status-badge ${
+                        post.status === "ready" ? "available" : "unavailable"
+                      }`}
+                    >
+                      {post.status === "ready" ? "Listo" : "Borrador"}
+                    </span>
+                  )}
                 </div>
                 <p className="admin-mkt-post-body" title={post.body}>
                   {post.body.slice(0, 110)}
@@ -230,37 +233,18 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                 <Link href={`/admin/marketing/${post.id}`} className="admin-button small">
                   Editar
                 </Link>
-                {post.status === "ready" &&
-                  !post.published &&
+                {!post.published &&
                   (post.channels.includes("facebook") ||
                     post.channels.includes("instagram")) && (
                     <button
                       type="button"
                       className="admin-button small primary"
                       disabled={busy}
-                      onClick={() =>
-                        void run(
-                          () => publishMarketingPostAction(post.id),
-                          "Solicitud enviada a Meta"
-                        )
-                      }
+                      onClick={() => void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")}
                     >
-                      Publicar ahora
+                      Publicar
                     </button>
                   )}
-                <button
-                  type="button"
-                  className="admin-button small"
-                  disabled={busy}
-                  onClick={() =>
-                    void run(
-                      () => toggleMarketingPostStatusAction(post.id),
-                      post.status === "ready" ? "Marcado como borrador" : "Marcado como listo"
-                    )
-                  }
-                >
-                  {post.status === "ready" ? "A borrador" : "A listo"}
-                </button>
                 <button
                   type="button"
                   className="admin-button small"

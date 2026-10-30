@@ -110,6 +110,7 @@ export default function PostComposer({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
   const [publishState, setPublishState] = useState<{
     busy: boolean;
     message: string | null;
@@ -259,35 +260,79 @@ export default function PostComposer({
       : null,
   });
 
-  const save = async (status: "draft" | "ready") => {
+  const save = async (status: "draft" | "ready"): Promise<string | null> => {
     setSaveError(null);
     if (!state.title.trim()) {
       setSaveError("Falta el título interno del post");
-      return;
+      return null;
     }
     if (!state.body.trim()) {
       setSaveError("Escribí el copy del post");
-      return;
+      return null;
     }
     if (state.channels.length === 0) {
       setSaveError("Elegí al menos un canal");
-      return;
+      return null;
     }
     setSaving(true);
     try {
       const result: AdminActionResult & { postId?: string } = initial.id
         ? await updateMarketingPostAction(initial.id, buildInput(status))
         : await createMarketingPostAction(buildInput(status));
-      if (result.ok) {
-        router.push("/admin/marketing");
-        router.refresh();
-      } else {
-        setSaveError(result.error ?? "No se pudo guardar");
+      if (result.ok && result.postId) {
+        if (!initial.id) {
+          // New post: keep the user on the page (URL mirrors the created
+          // post) so they can publish it right away with the next click.
+          window.history.replaceState(null, "", `/admin/marketing/${result.postId}`);
+          setSavedNote("Guardado ✓");
+        } else {
+          setSavedNote("Cambios guardados ✓");
+        }
+        return result.postId;
       }
+      if (result.ok) return initial.id ?? null;
+      setSaveError(result.error ?? "No se pudo guardar");
+      return null;
     } catch {
       setSaveError("Error de conexión. Reintentá.");
+      return null;
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** Create/update + immediate Meta publish in one click (draft included). */
+  const saveAndPublish = async () => {
+    const postId = await save("ready");
+    if (!postId) return;
+    setPublishState({ busy: true, message: "Publicando en Meta…", ok: false });
+    try {
+      const result = await publishMarketingPostAction(postId);
+      if (result.ok && result.results) {
+        const parts: string[] = [];
+        for (const [channel, outcome] of Object.entries(result.results)) {
+          if (!outcome) continue;
+          parts.push(
+            outcome.ok
+              ? `${channel === "facebook" ? "Facebook" : "Instagram"} publicado`
+              : `${channel === "facebook" ? "Facebook" : "Instagram"}: ${outcome.error ?? "fallo"}`
+          );
+        }
+        setPublishState({
+          busy: false,
+          message: parts.length > 0 ? parts.join(" · ") : "Publicación enviada",
+          ok: parts.some((p) => p.includes("publicado")),
+        });
+        router.refresh();
+      } else {
+        setPublishState({
+          busy: false,
+          message: result.error ?? "No se pudo publicar",
+          ok: false,
+        });
+      }
+    } catch {
+      setPublishState({ busy: false, message: "Error publicando. Reintentá.", ok: false });
     }
   };
 
@@ -471,7 +516,7 @@ export default function PostComposer({
                   }
                   onClick={() => void publishNow()}
                 >
-                  {publishState.busy ? "Publicando…" : "Publicar ahora en Meta"}
+                  {publishState.busy ? "Publicando…" : "Publicar"}
                 </button>
                 {publishState.message && (
                   <p
@@ -488,6 +533,9 @@ export default function PostComposer({
               </div>
             )}
             {saveError && <p className="admin-error" role="alert">{saveError}</p>}
+            {savedNote && !saveError && (
+              <p className="admin-saved-hint" role="status">{savedNote}</p>
+            )}
             <div className="admin-mkt-savebar-buttons">
               <button
                 type="button"
@@ -500,14 +548,18 @@ export default function PostComposer({
               <button
                 type="button"
                 className="admin-button primary"
-                disabled={saving}
-                onClick={() => void save("ready")}
+                disabled={saving || publishState.busy}
+                onClick={() => void saveAndPublish()}
               >
-                {saving ? "Guardando..." : "Guardar y marcar listo"}
+                {saving || publishState.busy
+                  ? "Guardando…"
+                  : "Guardar y publicar"}
               </button>
             </div>
             <p className="admin-field-hint">
-              En esta fase el post queda en la biblioteca (Fase 2 conecta la publicación con Meta).
+              “Guardar y publicar” guarda este estado y lo manda a los canales Meta
+              tildados en un solo paso (WhatsApp sigue manual, con el botón de
+              compartir de arriba).
             </p>
           </div>
         </div>
