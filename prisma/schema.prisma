@@ -100,10 +100,12 @@ model Cart {
 }
 
 model Product {
-  id         String     @id @default(cuid())
-  orderItems OrderItem[]
-  wishLists  WishList[]
-  carts      Cart[]
+  id          String       @id @default(cuid())
+  orderItems  OrderItem[]
+  wishLists   WishList[]
+  carts       Cart[]
+  socialPosts SocialPost[]
+  socialAssets SocialAsset[]
 
   // Human-readable unique URL id, e.g. "abril-negro". Used by
   // /products/[slug]; the cuid keeps resolving via a 301 redirect.
@@ -272,6 +274,155 @@ model StoreSettings {
   heroCtaHref  String?
 
   updatedAt    DateTime @updatedAt
+}
+
+// Marketing / social content library. A SocialPost is a reusable piece of
+// content (copy + hashtags + media + linked product) that the phase-2
+// scheduler publishes to Facebook/Instagram. `status` is "draft" | "ready";
+// `scheduledAt` feeds the publish queue (cron + manual run).
+model SocialPost {
+  id          String    @id @default(cuid())
+  title       String
+  body        String
+  hashtags    String[]
+  channels    String[] // "facebook" | "instagram" | "whatsapp"
+  media       String[] // blob URLs; media[0] is the cover
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId   String?
+  campaign    String? // free-form collection name used for grouping/filtering
+  status      String    @default("draft")
+  scheduledAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Publication results (phase 2). Records store Meta ids + permalinks so
+  // the admin can jump to the published post and insights sync can find it.
+  fbPostId    String?
+  fbPermalink String?
+  igMediaId   String?
+  igPermalink String?
+  publishedAt DateTime?
+  lastError   String?
+
+  // Lifetime metric snapshots (phase 3).
+  metrics     SocialPostMetric[]
+
+  @@index([status, scheduledAt])
+  @@index([campaign])
+  @@index([productId])
+  @@index([publishedAt])
+}
+
+// Connected Meta assets (phase 2). One row per channel: "facebook" carries
+// the Page id/token; "instagram" carries the linked IG business account id
+// and the same (non-expiring, long-lived) Page token that publishes to it.
+// Tokens are AES-256-GCM encrypted (lib/marketing/crypto.ts) at rest.
+model SocialAccount {
+  id          String       @id @default(cuid())
+  channel     String       @unique // "facebook" | "instagram"
+  pageId      String?
+  pageName    String?
+  igUserId    String?
+  igUsername  String?
+  tokenEnc    String // AES-256-GCM blob: iv|tag|ciphertext (base64)
+  scopes      String[]
+  connectedAt DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// Daily metrics snapshot per published post (phase 3). One row per
+// (post, date); numbers are lifetime Meta values at snapshot time for IG
+// media and accumulated-past values for FB post insights.
+model SocialPostMetric {
+  id          String     @id @default(cuid())
+  post        SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      String
+  date        DateTime
+  likes       Int        @default(0)
+  comments    Int        @default(0)
+  shares      Int        @default(0)
+  saves       Int        @default(0)
+  impressions Int        @default(0)
+  reach       Int        @default(0)
+  clicks      Int        @default(0)
+  createdAt   DateTime   @default(now())
+
+  @@unique([postId, date])
+  @@index([date])
+  @@index([postId])
+}
+
+// Daily account-level stats (followers) per channel (phase 3).
+model SocialAccountStat {
+  id        String   @id @default(cuid())
+  channel   String // "facebook" | "instagram"
+  date      DateTime
+  followers Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([channel, date])
+  @@index([date])
+}
+
+// Manual WhatsApp campaigns (phase 4, no Cloud API): a reusable message plus
+// the per-recipient send log. Sending happens with wa.me deep links opened
+// from the admin, one at a time; Send rows track who already got the text
+// (useful in the WhatsApp Business mobile app context) so resends are
+// obvious before they happen.
+model WhatsAppCampaign {
+  id        String   @id @default(cuid())
+  name      String
+  bodyText  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sends WhatsAppCampaignSend[]
+}
+
+model WhatsAppCampaignSend {
+  id         String           @id @default(cuid())
+  campaign   WhatsAppCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String
+  phone      String // normalized digits (54...)
+  name       String?
+  sentAt     DateTime         @default(now())
+
+  @@unique([campaignId, phone])
+  @@index([campaignId])
+}
+
+// Reusable copy shortcut with placeholders: {producto} {precio} {link} {tallas}.
+model CopyTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  body      String
+  hashtags  String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Marketing image library (uploads to the "social/" Blob prefix, product
+// photos or banners), tagged so the composer can reuse them.
+model SocialAsset {
+  id        String   @id @default(cuid())
+  url       String
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId String?
+  tag       String?
+  createdAt DateTime @default(now())
+}
+
+// Singleton row (id = "default") with the AI brand voice prompt, default
+// hashtags and the IG/WA handles used by share links and previews.
+model MarketingSettings {
+  id              String    @id @default("default")
+  brandVoice      String?
+  defaultHashtags String[]
+  instagramHandle String?
+  whatsappPhone   String?
+  // Last successful insights sync (phase 3), for the admin panel status.
+  lastInsightsSyncAt DateTime?
+  updatedAt       DateTime  @updatedAt
 }
 
 // Admin-editable info/landing pages (e.g. /info/elaboracion). Content is

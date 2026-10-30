@@ -11,7 +11,7 @@ const ALLOWED_TYPES = [
   "image/webp",
   "image/avif",
 ];
-const ALLOWED_PREFIXES = ["products/", "banners/"];
+const ALLOWED_PREFIXES = ["products/", "banners/", "social/"];
 
 // POST /api/admin/upload
 // Vercel Blob client-upload token endpoint. The browser asks for a token and

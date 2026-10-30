@@ -89,6 +89,7 @@
 
   - **Reportes** — date-range analytics with previous-period deltas: revenue/orders/ticket, sales-per-day and per-category charts, top products by revenue (snapshot-based), best customers, coupon usage, plus CSV exports of orders (`from`/`to`) and the full product catalog.
   - **Contenido** — homepage promo banners (Vercel Blob upload, ordering, scheduling via start/end dates, active toggle) rendered below the hero by the server-rendered landing.
+  - **Marketing** — social content library for Facebook / Instagram / WhatsApp: posts (copy + hashtags + media + linked product), reusable copy templates, a marketing image library (Vercel Blob `social/` prefix, product-photo reuse), an AI copywriter backed by the OpenCode Go API (`glm-5.3-flash`, 3 variants with per-channel adaptation, brand-voice prompt, tone selector), live per-channel previews (IG feed card / FB post / WhatsApp bubble) and copy-to-clipboard + `wa.me` share fallbacks. **Meta publishing (phase 2)** — OAuth connection for the Facebook Page + linked Instagram business account (tokens AES-256-GCM encrypted at rest), "Publicar ahora" (FB photo/link posts; IG containers → `media_publish`, single or carousel), and a daily Vercel Cron queue (`/api/crons/marketing-publish`, `CRON_SECRET`-protected) plus a manual "Correr cola" button. **Insights (phase 3)** — daily cron `/api/crons/marketing-insights` snapshots lifetime per-post metrics (reach/impressions/reactions/comments/shares/saves/clicks) into `SocialPostMetric` plus follower counts into `SocialAccountStat`, rendered in an admin stats panel with totals and a "Sincronizar ahora" action; product links published to Meta carry automatic UTMs (`utm_source`/`utm_medium=social`/`utm_campaign`) for order-funnel attribution. **Manual WhatsApp campaigns (phase 4, no Cloud API)** — campaign text library backed by `WhatsAppCampaign`/`WhatsAppCampaignSend`, recipients derived from customers with orders (AR phone normalization for wa.me), per-recipient "Abrir chat" deep links with the campaign text pre-filled, a send log that prevents accidental resends, and copy import from existing SocialPosts. Optional later: WhatsApp Cloud API (business verification + approved marketing templates + per-message Meta pricing).
   - **Configuración** — store profile + hero copy persisted on `StoreSettings` (landing falls back to the hardcoded copy), integration health board (DB, Mercado Pago, Zipnova, Resend, Vercel Blob, auth — env presence only, never values), admin credential info, read-only wholesale tiers, and a manual storefront revalidation button.
 - **Artisanal elaboración flow** — after payment, an order enters "In Preparation" state (3–7 business days of crafting). The seller marks it ready from the admin dashboard, which creates the Zipnova shipment and unlocks tracking.
 - **Seller-only ship endpoint** guarded by an `ADMIN_TOKEN` (`POST /api/orders/[id]/ship`)
@@ -102,7 +103,7 @@ The store is **live and charges real money** (production Mercado Pago `APP_USR` 
 - **No secrets in the repo** — `.env*` is gitignored; production credentials (database, Mercado Pago, Zipnova, Resend, Vercel Blob) live only in Vercel environment variables. The connected Blob store authenticates from the Vercel runtime via **OIDC** (`VERCEL_OIDC_TOKEN` + `BLOB_STORE_ID`, auto-rotated tokens), so no long-lived token is ever distributed or stored.
 - **Server-side money math only** — the client never sends prices or totals. Checkout builds items from the **database cart** (`getCartProducts`), recomputes discounts with the single source of truth `lib/discounts.ts` (server-configured wholesale tiers + coupons) and derives the charged total from those server values; the request body only carries recipient data, the chosen shipping option and a coupon code, which is re-validated server-side too.
 - **Distrustful, idempotent payment webhook** — `POST /api/mp-webhook` re-fetches the payment from the Mercado Pago API before acting on it, only allows the documented status transitions (`pending → approved/...`), keeps a breadcrumb for refunds/chargebacks, and clears only the buyer's cart. Coupon consumption (`usedCount`) happens only after the preference is successfully created, so a failed preference never burns a one-per-user coupon nor leaves an orphan pending order.
-- **Admin surface** — every `/admin/*` route is blocked at the proxy level (Next 16 `proxy.ts`), and every admin server action or `/api/admin/*` route re-verifies the session itself (the cookie is an HMAC-signed httpOnly cookie signed with `NEXTAUTH_SECRET`, 7-day TTL). `/api/admin/login` has rate limiting. Blob uploads never accept arbitrary paths (`products/` and `banners/` prefixes only, with content-type/size validation).
+- **Admin surface** — every `/admin/*` route is blocked at the proxy level (Next 16 `proxy.ts`), and every admin server action or `/api/admin/*` route re-verifies the session itself (the cookie is an HMAC-signed httpOnly cookie signed with `NEXTAUTH_SECRET`, 7-day TTL). `/api/admin/login` has rate limiting. Blob uploads never accept arbitrary paths (`products/`, `banners/` and `social/` prefixes only, with content-type/size validation). The OpenCode Go API key never leaves the server (`OPENCODE_API_KEY` server-side only; the composer talks to admin-guarded server actions).
 - **Account hygiene** — passwords as bcrypt hashes only; unverified accounts can't sign in (single-use 24h confirmation tokens); password recovery emails single-use 1-hour tokens whose sha256 hash is stored (raw token only travels via email, so a leaked DB alone can't reset an account); reset endpoints answer generically so they never leak which emails exist; archived users are rejected at sign-in before the password check runs.
 - **Rate limiting on sensitive routes** — register, resend verification, forgot-password, admin login, order/checkout creation and the MP webhook are all throttled (`lib/rate-limit.ts` — in-memory sliding-window counters keyed per client IP/route).
 - **Tamper-proof history** — every `OrderItem` snapshots unit price, product name, photo and chosen variant at purchase time, so later catalog edits (renames, price changes, availability, archiving) can never rewrite what a customer actually bought.
@@ -141,11 +142,11 @@ app/
 ├── admin/            # Admin dashboard: (dashboard) shell + resumen/productos/pedidos/cupones/usuarios/categorías/envíos/reportes/contenido/configuración, and login
 ├── success|pending|failure/   # Payment return pages
 └── api/              # auth, register, products, orders, coupons, mp-webhook, admin (login/logout/upload/export/revalidate)
-actions/              # Server Actions: cart, wishlist, orders, coupons, shipping, address + actions/admin/* (products, users, orders, categories, content)
+actions/              # Server Actions: cart, wishlist, orders, coupons, shipping, address + actions/admin/* (products, users, orders, categories, content, marketing)
 lib/                  # Prisma client, NextAuth config, shared discount math, colors, admin session/token, order-status, admin blob cleanup
 store/                # Redux store + slices (UI state only)
 hooks/                # Data-loading + validation hooks
-components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking + admin/* (layout shell, products, orders, users, shipments, content, settings, ui)
+components/           # NavBar, Footer, ProductCard, Filters, ShippingQuote, CheckoutButton, OrderTracking + admin/* (layout shell, products, orders, users, shipments, content, marketing, settings, ui)
 types/                # Shared TypeScript types (storefront + admin)
 prisma/               # Schema + migrations + seed
 styles/               # SCSS stylesheets (incl. Admin.scss)
@@ -176,7 +177,7 @@ proxy.ts              # Route guard for /admin/* (Next 16 proxy convention)
 
 ## 🗄️ Data model
 
-Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`, `Banner`, `StoreSettings`, `VerificationToken`, `PasswordResetToken`.
+Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `OrderItem`, `Coupon`, `Banner`, `StoreSettings`, `InfoPage`, `SocialPost`, `CopyTemplate`, `SocialAsset`, `MarketingSettings`, `VerificationToken`, `PasswordResetToken`.
 
 - `Cart` rows are unique per `(user, product, selectedSize, selectedColor, selectedTacoOption)`.
 - `Product` has an `available` boolean (default `true`) used by the admin dashboard — products are made on demand, so `stock` is informational only. `sizes`/`colors` are the storefront-availability lists (a variant can only be ordered if listed); `photos` is the per-color JSON map of image URLs, `photo` the cover image (a sync keeps the existing cover color if all its images survived, otherwise it falls back to the first color). `archivedAt` implements the soft delete; `createdAt`/`updatedAt` power admin sorting and reports.
@@ -186,6 +187,7 @@ Prisma models: `User`, `Address`, `Product`, `Cart`, `WishList`, `Order`, `Order
 - `Banner` stores admin-managed homepage promos (image, copy, destination, ordering, active flag, start/end scheduling).
 - `StoreSettings` is a singleton row (`id = "default"`) with editable store profile and landing hero copy; empty fields fall back to the hardcoded landing strings.
 - `Coupon` supports `PERCENT` / `FIXED` types with `usageLimit`, `usedCount`, `onePerUser`, and `expiresAt`.
+- `SocialPost` is the marketing library entry (copy, hashtags, channels `facebook|instagram|whatsapp`, media array with cover first, optional product link, campaign tag, `draft|ready` status, `scheduledAt`). Published posts record Meta results (`fbPostId/fbPermalink`, `igMediaId/igPermalink`, `publishedAt`, `lastError`). `CopyTemplate` holds reusable copy with `{producto} {precio} {link} {tallas} {colores}` placeholders, `SocialAsset` the tagged marketing image library, and `MarketingSettings` the singleton with brand voice / default hashtags / IG handle / WA phone / last insights sync. `SocialPostMetric` + `SocialAccountStat` are daily snapshot tables written by the insights cron. `WhatsAppCampaign` + `WhatsAppCampaignSend` back the manual WhatsApp diffusion loop (unique per campaign + phone). Deleting rows cleans their orphan Blob images (`social/` included) via `lib/admin/blob.ts`.
 
 See [prisma/schema.prisma](prisma/schema.prisma) for the full schema.
 
@@ -252,6 +254,23 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxx
 # Resend account owner's address.
 RESEND_API_KEY=re_xxxxxxxx
 EMAIL_FROM=NYADY <no-reply@yourdomain.com>
+
+# AI copywriting (admin /admin/marketing) — OpenCode Go subscription API key
+# from https://opencode.ai/console. Without it the composer still works, only
+# the "generate with AI" panel explains that the key is missing.
+OPENCODE_API_KEY=oc_xxxxxxxx
+
+# Meta (Facebook/Instagram publishing, /admin/marketing phase 2)
+# Create a Business-type app in developers.facebook.com (development mode is
+# enough while the app owner is the NYADY Page/IG admin). The OAuth callback
+# is https://nyady.com/api/admin/marketing/meta/callback
+META_APP_ID=yourAppId
+META_APP_SECRET=yourAppSecret
+# Optional Graph API version pin (defaults to v26.0)
+# META_API_VERSION=v26.0
+
+# Scheduled publish queue auth (Vercel Cron sends Authorization: Bearer)
+CRON_SECRET=yourStrongRandomToken
 ```
 
 > ⚠️ Files created by `vercel env pull` (`.env.local`, which includes short-lived OIDC tokens) are also gitignored — double-check `git status` before committing anything env-like.
@@ -288,6 +307,7 @@ Accessible at **`/admin`** (login at `/admin/login`) with the credentials from `
 | **Usuarios** | Profiles, verification, password resets, archive |
 | **Reportes** | Date-range analytics, top products/customers, coupons, CSV exports |
 | **Contenido** | Homepage promo banners (upload, schedule, order) |
+| **Marketing** | Social posts library (copy, hashtags, media, product link), copy templates, image assets, AI variantes (OpenCode Go), previews IG/FB/WhatsApp + share links |
 | **Configuración** | Store profile & hero copy, integration health, storefront cache flush |
 
 <br>

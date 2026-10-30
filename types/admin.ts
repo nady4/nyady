@@ -294,3 +294,97 @@ export interface AdminUserEditInput {
   username: string;
   email: string;
 }
+
+// --- Marketing (social content library) --------------------------------------
+
+export type MarketingChannel = "facebook" | "instagram" | "whatsapp";
+
+/** Row shape handed from the marketing server page to PostsAdmin. */
+export interface MarketingPostRow {
+  id: string;
+  title: string;
+  body: string;
+  hashtags: string[];
+  channels: string[];
+  media: string[];
+  productId: string | null;
+  productName: string | null;
+  productSlug: string | null;
+  campaign: string | null;
+  status: string;
+  scheduledAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  fbPostId: string | null;
+  fbPermalink: string | null;
+  igMediaId: string | null;
+  igPermalink: string | null;
+  publishedAt: Date | null;
+  lastError: string | null;
+}
+
+/** Create/update payload for a SocialPost. */
+export interface MarketingPostInput {
+  title: string;
+  body: string;
+  hashtags: string[];
+  channels: string[];
+  media: string[];
+  productId: string | null;
+  campaign: string | null;
+  status: "draft" | "ready";
+  scheduledAt: string | null;
+}
+
+export interface MarketingTemplateRow {
+  id: string;
+  name: string;
+  body: string;
+  hashtags: string[];
+  updatedAt: Date;
+}
+
+export interface MarketingTemplateInput {
+  name: string;
+  body: string;
+  hashtags: string[];
+}
+
+export interface MarketingAssetRow {
+  id: string;
+  url: string;
+  productId: string | null;
+  productName: string | null;
+  tag: string | null;
+  createdAt: Date;
+}
+
+/** Product option for the composer's product picker (+ media gallery). */
+export interface MarketingProductOption {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  category: string;
+  photo: string;
+  /** All image URLs (cover + per-color buckets flattened) for quick reuse. */
+  photoUrls: string[];
+  colors: string[];
+  sizes: string[];
+  description: string | null;
+}
+
+export interface MarketingSettingsState {
+  brandVoice: string | null;
+  defaultHashtags: string[];
+  instagramHandle: string | null;
+  whatsappPhone: string | null;
+}
+
+/** Shape passed from marketing pages to the connection + composer clients. */
+export interface MetaConnectionState {
+  /** META_APP_ID/SECRET present in the environment. */
+  configured: boolean;
+  facebook: { connected: boolean; pageName: string | null };
+  instagram: { connected: boolean; username: string | null };
+}

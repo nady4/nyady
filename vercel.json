@@ -1,5 +1,15 @@
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install --legacy-peer-deps"
+  "installCommand": "npm install --legacy-peer-deps",
+  "crons": [
+    {
+      "path": "/api/crons/marketing-publish",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/crons/marketing-insights",
+      "schedule": "0 15 * * *"
+    }
+  ]
 }

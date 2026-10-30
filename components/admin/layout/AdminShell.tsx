@@ -53,6 +53,12 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: "Marketing",
+    items: [
+      { href: "/admin/marketing", label: "Marketing", icon: "/assets/icons/megaphone.svg" },
+    ],
+  },
+  {
     label: "Sitio",
     items: [
       { href: "/admin/contenido", label: "Contenido", icon: "/assets/icons/blog.svg" },
