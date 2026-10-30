@@ -12,6 +12,7 @@
     "db:seed": "bunx prisma db seed",
     "db:generate": "bunx prisma generate",
     "db:import": "bunx tsx prisma/import-products.ts",
+    "catalog:sync": "bunx tsx scripts/sync-catalog.ts",
     "blob:check": "bunx tsx scripts/blob-check.ts",
     "photos:normalize": "bunx tsx scripts/normalize-photos.ts"
   },
