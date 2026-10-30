@@ -219,6 +219,26 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
       </section>
 
       <section className="admin-content-section">
+        <h2 className="admin-content-section-title">Masa: crear & publicar</h2>
+        <p className="admin-field-hint">
+          Creá borradores por producto (con todas sus fotos, descripción con data real y option de IA) y
+          publicalos todos juntos en secuencia. TODO también disponible en pantalla completa en
+          {' '}<Link href="/admin/marketing/masa">/admin/marketing/masa</Link>.
+        </p>
+        <PublishBulkCard groups={bulkGroups} metaReady={isMetaConfigured()} />
+        <details className="admin-mkt_massa-embed">
+          <summary className="admin-button primary">+ Crear borradores en masa (mostrar panel)</summary>
+          <div style={{ marginTop: "1rem" }}>
+            <BulkComposer
+              products={bulkProducts}
+              templates={templateRows.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
+              siteUrl={getSiteUrl()}
+            />
+          </div>
+        </details>
+      </section>
+
+      <section className="admin-content-section">
         <h2 className="admin-content-section-title">Posteos</h2>
         <p className="admin-field-hint">
           Biblioteca de contenido para redes (Facebook, Instagram y WhatsApp). Los posts
@@ -277,25 +297,6 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
         />
       </section>
 
-      <section className="admin-content-section">
-        <h2 className="admin-content-section-title">Masa: crear & publicar</h2>
-        <p className="admin-field-hint">
-          Creá borradores por producto (con todas sus fotos, descripción con data real y option de IA) y
-          publicalos todos juntos en secuencia. TODO también disponible en pantalla completa en
-          {' '}<Link href="/admin/marketing/masa">/admin/marketing/masa</Link>.
-        </p>
-        <PublishBulkCard groups={bulkGroups} metaReady={isMetaConfigured()} />
-        <details className="admin-mkt_massa-embed">
-          <summary className="admin-button primary">+ Crear borradores en masa (mostrar panel)</summary>
-          <div style={{ marginTop: "1rem" }}>
-            <BulkComposer
-              products={bulkProducts}
-              templates={templateRows.map((t) => ({ id: t.id, name: t.name, body: t.body }))}
-              siteUrl={getSiteUrl()}
-            />
-          </div>
-        </details>
-      </section>
     </main>
   );
 }

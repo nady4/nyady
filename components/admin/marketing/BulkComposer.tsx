@@ -76,7 +76,6 @@ export default function BulkComposer({
 }: BulkComposerProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bodyMode, setBodyMode] = useState<BodyMode>(
     templates.length > 0 ? "template" : "custom"
@@ -105,6 +104,14 @@ export default function BulkComposer({
       ),
     [products]
   );
+
+  // Default the filter to the store's core category ("Sandalias") so the
+  // bulk flow starts on sandalías only when it exists.
+  const defaultCategory = useMemo(
+    () => categories.find((c) => c.toLowerCase() === "sandalias") ?? "",
+    [categories]
+  );
+  const [category, setCategory] = useState(defaultCategory);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
