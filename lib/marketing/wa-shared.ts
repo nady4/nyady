@@ -6,7 +6,8 @@
 export interface WaRecipient {
   phone: string; // normalized digits: 54 + 10 digits
   name: string | null;
-  lastOrderAt: Date;
+  /** Preformatted dd/mm/yyyy (server-side; avoids hydration mismatches). */
+  lastOrderAtText: string;
   ordersCount: number;
   totalSpent: number;
   alreadySent: boolean;

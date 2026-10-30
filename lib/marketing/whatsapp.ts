@@ -3,6 +3,7 @@ import {
   normalizeArPhone,
   type WaRecipient,
 } from "@/lib/marketing/wa-shared";
+import { formatAdminDate } from "@/lib/admin/format";
 
 /**
  * Server-only WhatsApp recipient loading (phase 4, no Cloud API). Recipients
@@ -43,13 +44,14 @@ export async function loadWaRecipients(
     map.set(phone, {
       phone,
       name: order.recipientName ?? null,
-      lastOrderAt: order.createdAt,
+      lastOrderAtText: formatAdminDate(order.createdAt),
       ordersCount: 1,
       totalSpent: order.total.toNumber(),
       alreadySent: false,
     });
   }
   if (map.size === 0) return [];
+  // `orders` came newest-first, so Map insertion order is newest-first already.
 
   // Fill ordersCount/totalSpent with a cheap aggregate over the found phones.
   const stats = await prisma.order.groupBy({
@@ -91,7 +93,5 @@ export async function loadWaRecipients(
     recipient.alreadySent = sentSet.has(recipient.phone);
   }
 
-  return [...map.values()].sort(
-    (a, b) => b.lastOrderAt.getTime() - a.lastOrderAt.getTime()
-  );
+  return [...map.values()];
 }

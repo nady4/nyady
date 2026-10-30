@@ -9,7 +9,7 @@ import {
   unmarkWaSentAction,
   updateWaCampaignAction,
 } from "@/actions/admin/marketing";
-import { formatAdminDate, formatARS } from "@/lib/admin/format";
+import { formatARS } from "@/lib/admin/format";
 import { waDeepLink, type WaRecipient } from "@/lib/marketing/wa-shared";
 import type { AdminActionResult } from "@/types/admin";
 
@@ -17,7 +17,7 @@ export interface WaCampaignRow {
   id: string;
   name: string;
   bodyText: string;
-  updatedAt: Date;
+  updatedAtText: string;
   sends: number;
 }
 
@@ -254,7 +254,7 @@ export default function WhatsAppCampaignsCard({
             >
               <strong>{campaign.name}</strong>
               <span className="admin-cell-sub">
-                {campaign.sends} enviados · {formatAdminDate(campaign.updatedAt)}
+                {campaign.sends} enviados · {campaign.updatedAtText}
               </span>
             </button>
           ))}
@@ -333,7 +333,7 @@ export default function WhatsAppCampaignsCard({
                       <td>{displayPhone(recipient.phone)}</td>
                       <td>{recipient.ordersCount}</td>
                       <td>{formatARS(recipient.totalSpent)}</td>
-                      <td>{formatAdminDate(recipient.lastOrderAt)}</td>
+                      <td>{recipient.lastOrderAtText}</td>
                       <td>
                         <span
                           className={`admin-status-badge ${

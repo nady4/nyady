@@ -3,6 +3,7 @@ import {
   toMarketingProductOption,
   type RowInput,
 } from "@/lib/marketing/product-option";
+import { formatAdminDate } from "@/lib/admin/format";
 import type {
   MarketingAssetRow,
   MarketingSettingsState,
@@ -63,7 +64,7 @@ export async function loadComposerData(): Promise<ComposerPageData> {
       name: t.name,
       body: t.body,
       hashtags: t.hashtags,
-      updatedAt: t.updatedAt,
+      updatedAtText: formatAdminDate(t.updatedAt),
     })),
     assets,
     campaigns: campaignRows.map((row) => row.campaign ?? ""),
@@ -88,6 +89,6 @@ export async function loadAssetRows(): Promise<MarketingAssetRow[]> {
     productId: row.productId,
     productName: row.product?.name ?? null,
     tag: row.tag,
-    createdAt: row.createdAt,
+    createdAtText: formatAdminDate(row.createdAt),
   }));
 }

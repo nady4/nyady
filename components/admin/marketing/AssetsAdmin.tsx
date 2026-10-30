@@ -9,7 +9,6 @@ import {
   deleteMarketingAssetAction,
   updateMarketingAssetAction,
 } from "@/actions/admin/marketing";
-import { formatAdminDate } from "@/lib/admin/format";
 import type { AdminActionResult, MarketingAssetRow } from "@/types/admin";
 
 export default function AssetsAdmin({ assets }: { assets: MarketingAssetRow[] }) {
@@ -171,7 +170,7 @@ export default function AssetsAdmin({ assets }: { assets: MarketingAssetRow[] })
                     setTagsInEdit((prev) => ({ ...prev, [asset.id]: e.target.value }))
                   }
                 />
-                <span className="admin-cell-sub">{formatAdminDate(asset.createdAt)}</span>
+                <span className="admin-cell-sub">{asset.createdAtText}</span>
               </div>
               <div className="admin-mkt-asset-actions">
                 <button

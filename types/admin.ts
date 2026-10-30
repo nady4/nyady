@@ -299,7 +299,9 @@ export interface AdminUserEditInput {
 
 export type MarketingChannel = "facebook" | "instagram" | "whatsapp";
 
-/** Row shape handed from the marketing server page to PostsAdmin. */
+/** Row shape handed from the marketing server page to PostsAdmin. Dates
+ * preformatted server-side (historically the client formatted them, which
+ * risked hydration mismatches whenever the browser TZ differed). */
 export interface MarketingPostRow {
   id: string;
   title: string;
@@ -312,14 +314,14 @@ export interface MarketingPostRow {
   productSlug: string | null;
   campaign: string | null;
   status: string;
-  scheduledAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  scheduledAtText: string;
+  dateText: string;
+  publishedText: string | null;
   fbPostId: string | null;
   fbPermalink: string | null;
   igMediaId: string | null;
   igPermalink: string | null;
-  publishedAt: Date | null;
+  published: boolean;
   lastError: string | null;
 }
 
@@ -341,7 +343,7 @@ export interface MarketingTemplateRow {
   name: string;
   body: string;
   hashtags: string[];
-  updatedAt: Date;
+  updatedAtText: string;
 }
 
 export interface MarketingTemplateInput {
@@ -356,7 +358,7 @@ export interface MarketingAssetRow {
   productId: string | null;
   productName: string | null;
   tag: string | null;
-  createdAt: Date;
+  createdAtText: string;
 }
 
 /** Product option for the composer's product picker (+ media gallery). */

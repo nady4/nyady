@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { syncMarketingInsightsAction } from "@/actions/admin/marketing";
-import { formatAdminDateTime } from "@/lib/admin/format";
 import type { MarketingStatsData } from "@/lib/marketing/insights";
 
 /**
@@ -52,9 +51,9 @@ export default function MarketingStatsCard({ stats }: { stats: MarketingStatsDat
       <div className="admin-mkt-stats-head">
         <h3 className="admin-card-title">Estadísticas de publicaciones</h3>
         <div className="admin-mkt-stats-headright">
-          {stats.lastSyncAt && (
+          {stats.lastSyncAtText && (
             <span className="admin-cell-sub">
-              Últ. sync: {formatAdminDateTime(stats.lastSyncAt)}
+              Últ. sync: {stats.lastSyncAtText}
             </span>
           )}
           <button
@@ -146,7 +145,7 @@ export default function MarketingStatsCard({ stats }: { stats: MarketingStatsDat
                         <span className="admin-cell-sub"> · {post.campaign}</span>
                       ) : null}
                     </td>
-                    <td>{formatAdminDateTime(post.publishedAt)}</td>
+                    <td>{post.publishedAtText}</td>
                     <td>{post.reach.toLocaleString("es-AR")}</td>
                     <td>{post.likes.toLocaleString("es-AR")}</td>
                     <td>{post.comments.toLocaleString("es-AR")}</td>

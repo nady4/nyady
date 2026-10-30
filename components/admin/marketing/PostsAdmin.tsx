@@ -10,7 +10,6 @@ import {
   publishMarketingPostAction,
   toggleMarketingPostStatusAction,
 } from "@/actions/admin/marketing";
-import { formatAdminDate } from "@/lib/admin/format";
 import type { AdminActionResult, MarketingPostRow } from "@/types/admin";
 
 const CHANNEL_LABELS: Record<string, string> = {
@@ -188,12 +187,12 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                   )}
                 </div>
               <div className="admin-mkt-post-dates">
-                {post.scheduledAt
-                  ? `Programado: ${formatAdminDate(post.scheduledAt)}`
-                  : `Creado: ${formatAdminDate(post.createdAt)}`}
-                {post.publishedAt && (
+                {post.scheduledAtText
+                  ? `Programado: ${post.scheduledAtText}`
+                  : `Creado: ${post.dateText}`}
+                {post.published && (
                   <span className="admin-mkt-published">
-                    · Publicado: {formatAdminDate(post.publishedAt)}
+                    · Publicado: {post.publishedText}
                   </span>
                 )}
               </div>
@@ -232,7 +231,7 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                   Editar
                 </Link>
                 {post.status === "ready" &&
-                  !post.publishedAt &&
+                  !post.published &&
                   (post.channels.includes("facebook") ||
                     post.channels.includes("instagram")) && (
                     <button

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/marketing/crypto";
+import { formatAdminDate, formatAdminDateTime } from "@/lib/admin/format";
 
 /**
  * Phase 3: insights sync. Pulls lifetime metrics for published posts and
@@ -313,18 +314,19 @@ export async function runInsightsSync(): Promise<InsightsSyncOutcome> {
 // --- Read-side (panel aggregates) ---------------------------------------------
 
 export interface MarketingStatsData {
-  lastSyncAt: Date | null;
+  /** Preformatted server-side (avoids client-side hydration mismatches). */
+  lastSyncAtText: string | null;
   followers: {
-    facebook: { followers: number; date: Date } | null;
-    instagram: { followers: number; date: Date } | null;
+    facebook: { followers: number; dateText: string } | null;
+    instagram: { followers: number; dateText: string } | null;
   };
   posts: {
     id: string;
     title: string;
     campaign: string | null;
-    publishedAt: Date;
+    publishedAtText: string;
     permalink: string | null;
-    date: Date;
+    dateText: string;
     likes: number;
     comments: number;
     shares: number;
@@ -374,9 +376,9 @@ export async function loadMarketingStats(): Promise<MarketingStatsData> {
         id: post.id,
         title: post.title,
         campaign: post.campaign,
-        publishedAt: post.publishedAt as Date,
+        publishedAtText: formatAdminDateTime(post.publishedAt as Date),
         permalink: post.igPermalink ?? post.fbPermalink ?? null,
-        date: latest.date,
+        dateText: formatAdminDate(latest.date),
         likes: latest.likes,
         comments: latest.comments,
         shares: latest.shares,
@@ -410,10 +412,16 @@ export async function loadMarketingStats(): Promise<MarketingStatsData> {
   const igRow = followersLatest.get("instagram");
 
   return {
-    lastSyncAt: settings?.lastInsightsSyncAt ?? null,
+    lastSyncAtText: settings?.lastInsightsSyncAt
+      ? formatAdminDateTime(settings.lastInsightsSyncAt)
+      : null,
     followers: {
-      facebook: fbRow ? { followers: fbRow.followers, date: fbRow.date } : null,
-      instagram: igRow ? { followers: igRow.followers, date: igRow.date } : null,
+      facebook: fbRow
+        ? { followers: fbRow.followers, dateText: formatAdminDate(fbRow.date) }
+        : null,
+      instagram: igRow
+        ? { followers: igRow.followers, dateText: formatAdminDate(igRow.date) }
+        : null,
     },
     posts,
     totals,
