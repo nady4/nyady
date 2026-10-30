@@ -143,14 +143,24 @@ export default function SocialConnectionsCard({
               </button>
             </>
           ) : (
-            <a
-              className="admin-button small"
-              href="/api/admin/marketing/meta/connect"
-              aria-disabled={busy}
-              title="Se conecta junto a la Página (necesita la IG profesional vinculada)"
-            >
-              Conectar Instagram
-            </a>
+            <>
+              <a
+                className="admin-button small"
+                href="/api/admin/marketing/meta/connect"
+                aria-disabled={busy}
+                title="Se conecta junto a la Página (necesita la IG profesional vinculada)"
+              >
+                Conectar Instagram
+              </a>
+              {connection.facebook.connected && (
+                <p className="admin-field-hint" style={{ flexBasis: "100%" }}>
+                  Es una sola conexión: en el selector de activos tildá la Página
+                  <strong>{` ${connection.facebook.pageName} `}</strong>y el
+                  Instagram juntos. Si no aparece el Instagram, vinculá
+                  `@tu_cuenta_de_IG` a la Página en el Accounts Center y reconectá.
+                </p>
+              )}
+            </>
           )}
         </div>
       </div>

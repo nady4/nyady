@@ -186,7 +186,7 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
     // missing CREATE_CONTENT task is distinguishable without re-deploys.
     const summary =
       rawPages.length === 0
-        ? "/me/accounts devolvió 0 páginas para este perfil (¿el perfil logueado no administra ninguna página? ¿las páginas están asignadas al portfolio del app?)"
+        ? "/me/accounts devolvió 0 páginas para este perfil. En el selector de activos del login hay que DEJAR TILDADAS la Página (y el Instagram); si se destildó la página o solo se tildó el Instagram, /me/accounts queda vacío — reconectá e incluí la Página `ny4dy`."
         : `${rawPages.length} página(s) sin tarea CREATE_CONTENT: ${rawPages
             .slice(0, 8)
             .map(
