@@ -111,12 +111,7 @@ export async function publishPostEverywhere(
   const message = [buildMessage(post), buildPostLinkSafe(post, link, "facebook")]
     .filter(Boolean)
     .join("\n\n");
-  const instagramCaption = [
-    buildMessage(post),
-    buildPostLinkSafe(post, link, "instagram"),
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  const instagramCaption = buildMessage(post);
 
   if (post.channels.includes("facebook")) {
     if (!accounts.facebook) {
