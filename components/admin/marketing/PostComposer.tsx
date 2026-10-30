@@ -10,6 +10,7 @@ import AiCopyPanel from "@/components/admin/marketing/AiCopyPanel";
 import PostPreview from "@/components/admin/marketing/PostPreview";
 import {
   createMarketingPostAction,
+  getMarketingTemplatesAction,
   publishMarketingPostAction,
   searchMarketingProductsAction,
   updateMarketingPostAction,
@@ -20,7 +21,6 @@ import type {
   AdminActionResult,
   MarketingProductOption,
   MarketingSettingsState,
-  MarketingTemplateRow,
   MetaConnectionState,
 } from "@/types/admin";
 
@@ -52,7 +52,7 @@ export interface ComposerInitial {
 interface PostComposerProps {
   initial: ComposerInitial;
   products: MarketingProductOption[];
-  templates: MarketingTemplateRow[];
+  templates: { id: string; name: string; body: string; hashtags: string[] }[];
   assets: { id: string; url: string; tag: string | null }[];
   campaigns: string[];
   settings: MarketingSettingsState;
@@ -111,6 +111,9 @@ export default function PostComposer({
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [savedNote, setSavedNote] = useState<string | null>(null);
+  const [templatesLive, setTemplatesLive] = useState<
+    { id: string; name: string; body: string; hashtags: string[] }[]
+  >(templates);
   const [publishState, setPublishState] = useState<{
     busy: boolean;
     message: string | null;
@@ -166,6 +169,19 @@ export default function PostComposer({
     [state.productId, products, productResults]
   );
 
+  // Templates created/edited elsewhere (index page) must be visible here:
+  // refetch on mount instead of trusting the RSC snapshot.
+  useEffect(() => {
+    let cancelled = false;
+    getMarketingTemplatesAction().then((result) => {
+      if (cancelled || !result.ok || !result.templates) return;
+      setTemplatesLive(result.templates);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Debounced product search through the server action.
   useEffect(() => {
     const term = productFinder.trim();
@@ -212,7 +228,7 @@ export default function PostComposer({
   };
 
   const applyTemplate = (templateId: string) => {
-    const template = templates.find((t) => t.id === templateId);
+    const template = templatesLive.find((t) => t.id === templateId);
     if (!template) return;
     const p = selectedProduct;
     const replacements: Record<string, string> = {
@@ -427,7 +443,7 @@ export default function PostComposer({
 
           <div className="admin-card">
             <h3 className="admin-card-title">Copy</h3>
-            {templates.length > 0 && (
+            {templatesLive.length > 0 && (
               <label className="admin-field">
                 <span>Aplicar plantilla</span>
                 <select
@@ -437,7 +453,7 @@ export default function PostComposer({
                   }}
                 >
                   <option value="">Elegir plantilla…</option>
-                  {templates.map((t) => (
+                  {templatesLive.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.name}
                     </option>

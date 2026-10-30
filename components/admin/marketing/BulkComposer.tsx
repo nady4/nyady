@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,6 +8,7 @@ import {
   type BulkCreateOutcome,
   type BulkPhotoMode,
   createBulkPostsAction,
+  getMarketingTemplatesAction,
 } from "@/actions/admin/marketing";
 import { formatARS } from "@/lib/admin/format";
 
@@ -76,6 +77,19 @@ export default function BulkComposer({
 }: BulkComposerProps) {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  // Templates are refetched on mount: a template created/edited elsewhere
+  // must not show a stale body here until a manual reload.
+  const [templatesLive, setTemplatesLive] = useState(templates);
+  useEffect(() => {
+    let cancelled = false;
+    getMarketingTemplatesAction().then((result) => {
+      if (cancelled || !result.ok || !result.templates) return;
+      setTemplatesLive(result.templates);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bodyMode, setBodyMode] = useState<BodyMode>(
     templates.length > 0 ? "template" : "custom"
@@ -305,7 +319,7 @@ export default function BulkComposer({
               name="admin-mkt-bulk-bodymode"
               checked={bodyMode === "template"}
               onChange={() => setBodyMode("template")}
-              disabled={templates.length === 0}
+              disabled={templatesLive.length === 0}
             />
             <span>Plantilla de la biblioteca</span>
           </label>
@@ -320,11 +334,11 @@ export default function BulkComposer({
           </label>
         </div>
 
-        {bodyMode === "template" && templates.length > 0 ? (
+        {bodyMode === "template" && templatesLive.length > 0 ? (
           <label className="admin-field">
             <span>Plantilla</span>
             <select value={templateId} onChange={(e) => setTemplateId(e.target.value)}>
-              {templates.map((t) => (
+              {templatesLive.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name}
                 </option>
@@ -333,7 +347,7 @@ export default function BulkComposer({
             <textarea
               rows={3}
               readOnly
-              value={templates.find((t) => t.id === templateId)?.body ?? ""}
+              value={templatesLive.find((t) => t.id === templateId)?.body ?? ""}
             />
           </label>
         ) : null}
@@ -358,7 +372,7 @@ export default function BulkComposer({
             if (!first) return null;
             const bodyText =
               bodyMode === "template"
-                ? templates.find((t) => t.id === templateId)?.body ?? ""
+                ? templatesLive.find((t) => t.id === templateId)?.body ?? ""
                 : customText;
             const preview = fillTemplate(bodyText, first, siteUrl);
             return (

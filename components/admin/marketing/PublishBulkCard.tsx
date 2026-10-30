@@ -32,23 +32,26 @@ export default function PublishBulkCard({
 }: PublishBulkCardProps) {
   const router = useRouter();
   const nonEmpty = groups.filter((group) => group.ready.length + group.drafts.length > 0);
-  const [campaignKey, setCampaignKey] = useState<string>(
-    nonEmpty[0] ? groupKey(nonEmpty[0]) : ""
-  );
   const [includeDrafts, setIncludeDrafts] = useState(true);
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number; current: string } | null>(
     null
   );
+  // Auto-selection: default to the first group with posts; after a mass
+  // creation the fresh campaign is at the top and gets picked automatically
+  // (state only pins a choice the user actually made).
+  const [pickedKey, setPickedKey] = useState<string | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(
     null
   );
   const [results, setResults] = useState<string[]>([]);
 
   const selected = useMemo(
-    () => nonEmpty.find((group) => groupKey(group) === campaignKey) ?? null,
-    [nonEmpty, campaignKey]
+    () =>
+      nonEmpty.find((group) => groupKey(group) === pickedKey) ?? nonEmpty[0] ?? null,
+    [nonEmpty, pickedKey]
   );
+  const campaignKey = selected ? groupKey(selected) : "";
 
   const targets = useMemo(() => {
     if (!selected) return [];
@@ -149,7 +152,7 @@ export default function PublishBulkCard({
           <span>Campaña</span>
           <select
             value={campaignKey}
-            onChange={(e) => setCampaignKey(e.target.value)}
+            onChange={(e) => setPickedKey(e.target.value)}
           >
             {nonEmpty.map((group) => (
               <option key={groupKey(group)} value={groupKey(group)}>

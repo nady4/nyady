@@ -957,6 +957,7 @@ export async function createBulkPostsAction(
 
   // Template or free-text body source.
   let templateBody: string | null = null;
+  let templateHashtags: string[] = [];
   if (input.templateId) {
     const template = await prisma.copyTemplate.findUnique({
       where: { id: input.templateId },
@@ -964,6 +965,7 @@ export async function createBulkPostsAction(
     });
     if (!template) return { ok: false, error: "Plantilla inexistente" };
     templateBody = template.body;
+    templateHashtags = template.hashtags;
   } else {
     const custom = (input.customBody ?? "").trim();
     if (!custom) {
@@ -971,6 +973,14 @@ export async function createBulkPostsAction(
     }
     templateBody = custom;
   }
+
+  // Default brand hashtags travel with every bulk draft (merged with the
+  // product's category tag).
+  const marketingSettings = await prisma.marketingSettings.findUnique({
+    where: { id: "default" },
+    select: { defaultHashtags: true },
+  });
+  const defaultHashtags = marketingSettings?.defaultHashtags ?? [];
 
   const campaign = input.campaign?.trim().slice(0, 60) || null;
   const siteUrl = getSiteUrl();
@@ -1022,6 +1032,7 @@ export async function createBulkPostsAction(
         product.colors.length > 0 ? product.colors.join(", ") : "-"
       );
 
+    let variantHashtags: string[] = [];
     if (input.useAi) {
       const ai = await generateMarketingCopyAction({
         manualBrief:
@@ -1035,6 +1046,7 @@ export async function createBulkPostsAction(
       });
       if (ai.ok && ai.variants && ai.variants.length > 0) {
         const variant = ai.variants[0];
+        variantHashtags = variant.hashtags;
         body = [
           variant.hook.trim(),
           variant.body.trim(),
@@ -1053,7 +1065,21 @@ export async function createBulkPostsAction(
     const createResult = await createMarketingPostAction({
       title: `${product.name}`.slice(0, 120),
       body,
-      hashtags: [product.category.toLowerCase().replace(/\s+/g, "")],
+      hashtags: (() => {
+        const merged: string[] = [];
+        for (const tag of [
+          ...defaultHashtags,
+          ...templateHashtags,
+          ...variantHashtags,
+          product.category.toLowerCase().replace(/\s+/g, ""),
+        ]) {
+          const clean = tag?.trim().replace(/^#+/, "");
+          if (clean && !merged.some((h) => h.toLowerCase() === clean.toLowerCase())) {
+            merged.push(clean);
+          }
+        }
+        return merged;
+      })(),
       channels,
       media,
       productId,
@@ -1086,4 +1112,29 @@ export async function createBulkPostsAction(
 
   revalidateMarketing();
   return { ok: true, results, skipped, created };
+}
+
+/** Fresh template list for clients whose page data pre-dates a template CRUD
+ * (avoids picking a template and seeing the old body until manual reload). */
+export async function getMarketingTemplatesAction(): Promise<{
+  ok: boolean;
+  error?: string;
+  templates?: { id: string; name: string; body: string; hashtags: string[] }[];
+}> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+  try {
+    const rows = await prisma.copyTemplate.findMany({ orderBy: { name: "asc" } });
+    return {
+      ok: true,
+      templates: rows.map((t) => ({
+        id: t.id,
+        name: t.name,
+        body: t.body,
+        hashtags: t.hashtags,
+      })),
+    };
+  } catch (error) {
+    console.error("[admin/marketing] template list failed:", error);
+    return { ok: false, error: "No se pudo listar las plantillas" };
+  }
 }
