@@ -163,23 +163,48 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
   )) as { access_token?: string };
   const longToken = longJson.access_token ?? shortToken;
 
+  // One call resolves pages AND their linked Instagram business account, so
+  // the callback flow needs no follow-up probe.
   const pagesJson = (await metaFetch(
     metaGraphUrl("me/accounts", new URLSearchParams({
       access_token: longToken,
-      fields: "id,name,access_token,tasks",
+      fields:
+        "id,name,access_token,tasks,instagram_business_account{id,username}",
     }))
-  )) as { data?: MetaTokenRow[] };
-  const pages = (pagesJson.data ?? []).filter(
+  )) as { data?: (MetaTokenRow & { instagram_business_account?: IgBusiness | null })[] };
+  const rawPages = pagesJson.data ?? [];
+  const pages = rawPages.filter(
     (page) => !page.tasks || page.tasks.includes("CREATE_CONTENT")
   );
+
+  /**
+   * Standalone IG probe (kept for callers that pass a page token directly).
+   */
   if (pages.length === 0) {
+    // Rich, token-free diagnostics: the red banner on /admin/marketing now
+    // shows exactly what /me/accounts returned so a missing page vs. a
+    // missing CREATE_CONTENT task is distinguishable without re-deploys.
+    const summary =
+      rawPages.length === 0
+        ? "/me/accounts devolvió 0 páginas para este perfil (¿el perfil logueado no administra ninguna página? ¿las páginas están asignadas al portfolio del app?)"
+        : `${rawPages.length} página(s) sin tarea CREATE_CONTENT: ${rawPages
+            .slice(0, 8)
+            .map(
+              (page) =>
+                `${page.name} (id ${page.id}, tareas: ${
+                  page.tasks?.join("/") ?? "ninguna"
+                })`
+            )
+            .join(" · ")}`;
     throw new MetaError(
-      "No se encontró una Página de Facebook donde puedas publicar (tarea CREATE_CONTENT)"
+      `No se encontró una Página de Facebook donde puedas publicar (tarea CREATE_CONTENT). ${summary}`
     );
   }
   const page = pages[0];
 
-  const ig = await fetchIgBusiness(page.id, page.access_token);
+  // instagram_business_account came in the same /me/accounts payload; only
+  // fall back to a dedicated probe when the combined field was absent.
+  const ig = page.instagram_business_account ?? (await fetchIgBusiness(page.id, page.access_token));
 
   return {
     pageId: page.id,

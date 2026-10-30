@@ -34,7 +34,7 @@ export default function SiteFooter() {
         </div>
         <div className="socials">
           <a
-            href="https://facebook.com/nyady.arg"
+            href="https://facebook.com/ny4dy"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook (se abre en una nueva pestaña)"
