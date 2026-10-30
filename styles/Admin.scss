@@ -3234,6 +3234,10 @@ th.admin-col-number {
   color: $accent-text;
   font-weight: 600;
   font-size: 0.8rem;
+  /* Own paragraph below the copy (matches the publisher's blank-line join). */
+  margin: 0.35rem 0 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .admin-mkt-preview-ig,

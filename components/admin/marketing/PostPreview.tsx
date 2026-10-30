@@ -55,10 +55,12 @@ export default function PostPreview(props: PreviewProps) {
         </div>
         <p className="admin-mkt-preview-igcaption">
           {text || "Acá va el copy del post…"}
-          {hashtags.length > 0 && (
-            <span className="admin-mkt-preview-hashtags"> {hashtagLine(hashtags)}</span>
-          )}
         </p>
+        {/* Real output joins body and hashtags with a blank line (publisher) —
+            keep them in separate paragraphs so the preview reflects that. */}
+        {hashtags.length > 0 && (
+          <p className="admin-mkt-preview-hashtags">{hashtagLine(hashtags)}</p>
+        )}
         {text && (
           <p className="admin-field-hint">El link no es clickeable en captions: el CTA va con “link en bio”.</p>
         )}
@@ -78,10 +80,10 @@ export default function PostPreview(props: PreviewProps) {
         </div>
         <p className="admin-mkt-preview-fbtext">
           {text || "Acá va el copy del post…"}
-          {hashtags.length > 0 && (
-            <span className="admin-mkt-preview-hashtags"> {hashtagLine(hashtags)}</span>
-          )}
         </p>
+        {hashtags.length > 0 && (
+          <p className="admin-mkt-preview-hashtags">{hashtagLine(hashtags)}</p>
+        )}
         {cover ? (
           <Image className="admin-mkt-preview-fbmedia" src={cover} alt="" width={440} height={260} unoptimized />
         ) : null}
@@ -124,6 +126,9 @@ export default function PostPreview(props: PreviewProps) {
         <p className="admin-mkt-preview-wabubble">
           {text.replace(/[\r\n]{2,}/g, "\n") || "Acá va el mensaje de WhatsApp…"}
         </p>
+        {hashtags.length > 0 && (
+          <p className="admin-mkt-preview-hashtags">{hashtagLine(hashtags)}</p>
+        )}
         {product && <span className="admin-mkt-preview-walink">{link}</span>}
       </div>
       <p className="admin-field-hint">
