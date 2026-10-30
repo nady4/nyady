@@ -32,6 +32,87 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
   const [search, setSearch] = useState("");
   const [channel, setChannel] = useState("");
   const [status, setStatus] = useState("");
+  // Publish-everything-pending toolbar loop state.
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{
+    done: number;
+    total: number;
+    current: string;
+  } | null>(null);
+  const [bulkResults, setBulkResults] = useState<string[]>([]);
+
+  /** Unpublished posts that have a Meta channel: the bulk-publish targets. */
+  const pending = useMemo(
+    () =>
+      posts.filter(
+        (post) =>
+          !post.published &&
+          (post.channels.includes("facebook") ||
+            post.channels.includes("instagram"))
+      ),
+    [posts]
+  );
+
+  const BULK_DELAY_MS = 4000;
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  /** Reuses the single-post publish action sequentially with a pause. */
+  const publishPending = async () => {
+    if (pending.length === 0 || bulkBusy || busy) return;
+    setBulkBusy(true);
+    setBulkResults([]);
+    let ok = 0;
+    let failed = 0;
+    const lines: string[] = [];
+    try {
+      for (let index = 0; index < pending.length; index += 1) {
+        const post = pending[index];
+        setBulkProgress({ done: index, total: pending.length, current: post.title });
+        try {
+          const result = await publishMarketingPostAction(post.id);
+          if (result.ok) {
+            const summary = Object.entries(result.results ?? {})
+              .map(([channelName, outcome]) =>
+                outcome.ok
+                  ? `${channelName === "facebook" ? "Facebook" : "Instagram"} ✓`
+                  : `${channelName === "facebook" ? "Facebook" : "Instagram"} ✗ ${outcome.error ?? ""}`.trim()
+              )
+              .filter(Boolean)
+              .join(" · ");
+            const allFailed =
+              result.results &&
+              Object.values(result.results).length > 0 &&
+              Object.values(result.results).every((outcome) => !outcome.ok);
+            if (allFailed) {
+              failed += 1;
+              lines.push(
+                `✗ ${post.title} — ${result.results?.facebook?.error ?? result.results?.instagram?.error ?? "fallo"}`
+              );
+            } else {
+              ok += 1;
+              lines.push(`✓ ${post.title} — ${summary || "publicado"}`);
+            }
+          } else {
+            failed += 1;
+            lines.push(`✗ ${post.title} — ${result.error ?? "fallo"}`);
+          }
+        } catch {
+          failed += 1;
+          lines.push(`✗ ${post.title} — error de conexión`);
+        }
+        if (index < pending.length - 1) await wait(BULK_DELAY_MS);
+      }
+      setMessage({
+        kind: failed > 0 && ok === 0 ? "error" : "ok",
+        text: `Publicados: ${ok} · Fallidos: ${failed}.`,
+      });
+      router.refresh();
+    } finally {
+      setBulkProgress(null);
+      setBulkResults(lines);
+      setBulkBusy(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -120,7 +201,35 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
             + Nuevo post
           </Link>
         )}
+        {pending.length > 0 && (
+          <button
+            type="button"
+            className="admin-button primary"
+            disabled={bulkBusy || busy}
+            title={`Publica secuencialmente los ${pending.length} posts pendientes (4s entre cada uno)`}
+            onClick={() => void publishPending()}
+          >
+            {bulkBusy && bulkProgress
+              ? `Publicando ${bulkProgress.done + 1}/${bulkProgress.total}…`
+              : `Publicar pendientes (${pending.length})`}
+          </button>
+        )}
       </div>
+
+      {bulkProgress && (
+        <p className="admin-field-hint" role="status">
+          Publicando {bulkProgress.done + 1}/{bulkProgress.total}: {bulkProgress.current}…
+        </p>
+      )}
+      {bulkResults.length > 0 && (
+        <div className="admin-mkt-bulkpub-results">
+          {bulkResults.map((line, index) => (
+            <p key={index} className={line.startsWith("✓") ? "admin-saved-hint" : "admin-error"}>
+              {line}
+            </p>
+          ))}
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <p className="admin-empty">
