@@ -3822,3 +3822,27 @@ th.admin-col-number {
     color: inherit;
   }
 }
+
+// Per-channel publish state chips (FB ✓ / IG pendiente)
+.admin-status-badge.partial {
+  background-color: rgba($warning-text, 0.14);
+  color: $warning-text;
+}
+
+.admin-mkt-chip-state {
+  display: inline-block;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+
+  &.ok {
+    background-color: rgba($success-text, 0.12);
+    color: $success-text;
+  }
+
+  &.pend {
+    background-color: rgba($warning-text, 0.14);
+    color: $warning-text;
+  }
+}

@@ -179,8 +179,54 @@ export default function PostsAdmin({
     return `/admin/marketing${params.size > 0 ? `?${params.toString()}` : ""}`;
   };
 
-  const rowBadge = (post: MarketingPostRow) =>
-    post.published ? "Publicado" : post.status === "ready" ? "Listo" : "Borrador";
+  /** Per-channel publish state (fb/ig done flags + Pending channel). */
+  const channelState = (post: MarketingPostRow) => {
+    const fbNeeded = post.channels.includes("facebook");
+    const igNeeded = post.channels.includes("instagram");
+    const fbDone = fbNeeded && post.fbPostId != null;
+    const igDone = igNeeded && post.igMediaId != null;
+    return {
+      fbNeeded,
+      igNeeded,
+      fbDone,
+      igDone,
+      partial: (fbNeeded && !fbDone) || (igNeeded && !igDone),
+    };
+  };
+
+  /** Badge label accounting partial publishes (FB ok + IG failed, etc.). */
+  const rowBadge = (post: MarketingPostRow) => {
+    const state = channelState(post);
+    const metaChannels = (state.fbNeeded ? 1 : 0) + (state.igNeeded ? 1 : 0);
+    if (state.fbNeeded || state.igNeeded) {
+      const done = (state.fbDone ? 1 : 0) + (state.igDone ? 1 : 0);
+      if (!post.published && done === 0) {
+        return post.status === "ready" ? "Listo" : "Borrador";
+      }
+      if (done < metaChannels && done > 0) return "Parcial";
+      if (done === metaChannels) return "Publicado";
+    }
+    return post.published ? "Publicado" : post.status === "ready" ? "Listo" : "Borrador";
+  };
+
+  /** Per-channel mini chips under the meta row (✓ published / pendiente). */
+  const channelStateChips = (post: MarketingPostRow) => {
+    const state = channelState(post);
+    const chips: { label: string; done: boolean }[] = [];
+    if (state.fbNeeded) chips.push({ label: "FB", done: state.fbDone });
+    if (state.igNeeded) chips.push({ label: "IG", done: state.igDone });
+    return chips;
+  };
+
+  /** Publish button shows whenever any Meta channel is still pending. */
+  const publishAction = (post: MarketingPostRow): string | null => {
+    const state = channelState(post);
+    if (!state.fbNeeded && !state.igNeeded) return null;
+    const pending = (state.fbNeeded && !state.fbDone) || (state.igNeeded && !state.igDone);
+    if (!pending) return null;
+    const someDone = (state.fbDone && state.fbNeeded) || (state.igDone && state.igNeeded);
+    return someDone ? "Publicar faltante" : "Publicar";
+  };
 
   return (
     <div className="admin-mkt-posts">
@@ -321,20 +367,28 @@ export default function PostsAdmin({
 
               <div className="admin-mkt-post-main">
                 <div className="admin-mkt-post-head">
-                  <strong className={post.status === "draft" && !post.published ? "admin-mkt-muted" : ""}>
+                  <strong
+                    className={
+                      post.status === "draft" && !post.published && !channelState(post).partial
+                        ? "admin-mkt-muted"
+                        : ""
+                    }
+                  >
                     {post.title}
                   </strong>
-                  {post.published ? (
-                    <span className="admin-status-badge available">Publicado</span>
-                  ) : (
-                    <span
-                      className={`admin-status-badge ${
-                        post.status === "ready" ? "available" : "unavailable"
-                      }`}
-                    >
-                      {rowBadge(post)}
-                    </span>
-                  )}
+                  <span
+                    className={`admin-status-badge ${
+                      rowBadge(post) === "Publicado"
+                        ? "available"
+                        : rowBadge(post) === "Parcial"
+                          ? "partial"
+                          : post.status === "ready"
+                            ? "available"
+                            : "unavailable"
+                    }`}
+                  >
+                    {rowBadge(post)}
+                  </span>
                 </div>
                 <p className="admin-mkt-post-body" title={post.body}>
                   {post.body.slice(0, 110)}
@@ -348,6 +402,14 @@ export default function PostsAdmin({
                       title={CHANNEL_LABELS[c] ?? c}
                     >
                       {CHANNEL_LABELS[c] ?? c}
+                    </span>
+                  ))}
+                  {channelStateChips(post).map((chip) => (
+                    <span
+                      key={`${post.id}-${chip.label}`}
+                      className={`admin-mkt-chip-state ${chip.done ? "ok" : "pend"}`}
+                    >
+                      {chip.label} {chip.done ? "✓" : "pendiente"}
                     </span>
                   ))}
                   {post.campaign && <span className="admin-cell-sub">·· {post.campaign}</span>}
@@ -407,20 +469,18 @@ export default function PostsAdmin({
                 <Link href={`/admin/marketing/${post.id}`} className="admin-button small">
                   Editar
                 </Link>
-                {!post.published &&
-                  (post.channels.includes("facebook") ||
-                    post.channels.includes("instagram")) && (
-                    <button
-                      type="button"
-                      className="admin-button small primary"
-                      disabled={busy || bulkBusy}
-                      onClick={() =>
-                        void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")
-                      }
-                    >
-                      Publicar
-                    </button>
-                  )}
+                {publishAction(post) !== null && (
+                  <button
+                    type="button"
+                    className="admin-button small primary"
+                    disabled={busy || bulkBusy}
+                    onClick={() =>
+                      void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")
+                    }
+                  >
+                    {publishAction(post)}
+                  </button>
+                )}
                 <button
                   type="button"
                   className="admin-button small"

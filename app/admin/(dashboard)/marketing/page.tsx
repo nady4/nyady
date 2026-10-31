@@ -139,9 +139,13 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
           }),
           prisma.socialPost.count({ where: buildPostWhere(filters) }),
           prisma.socialPost.findMany({
+            // Pending = any requested Meta channel without a published id
+            // (covers never-published AND partial publishes like FB ok/IG err).
             where: {
-              publishedAt: null,
-              channels: { hasSome: ["facebook", "instagram"] },
+              OR: [
+                { channels: { has: "facebook" }, fbPostId: null },
+                { channels: { has: "instagram" }, igMediaId: null },
+              ],
             },
             orderBy: { updatedAt: "desc" },
             select: { id: true, title: true },

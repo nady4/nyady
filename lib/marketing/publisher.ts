@@ -113,8 +113,17 @@ export async function publishPostEverywhere(
     .join("\n\n");
   const instagramCaption = buildMessage(post);
 
+  // Per-channel skip: a channel that already has an external id (fbPostId /
+  // igMediaId) is NOT re-published — this keeps "Publicar" idempotent when
+  // only one channel succeeded before (e.g. FB ok + IG rate-limited) and
+  // spares the IG 100-posts/24h window for what actually failed.
+  const needsFacebook = post.channels.includes("facebook") && !post.fbPostId;
+  const needsInstagram = post.channels.includes("instagram") && !post.igMediaId;
+
   if (post.channels.includes("facebook")) {
-    if (!accounts.facebook) {
+    if (!needsFacebook) {
+      results.facebook = { ok: true, id: post.fbPostId ?? "", url: post.fbPermalink ?? null };
+    } else if (!accounts.facebook) {
       results.facebook = { ok: false, error: "Facebook no está conectado" };
     } else {
       try {
@@ -138,7 +147,13 @@ export async function publishPostEverywhere(
   }
 
   if (post.channels.includes("instagram")) {
-    if (!accounts.instagram) {
+    if (!needsInstagram) {
+      results.instagram = {
+        ok: true,
+        id: post.igMediaId ?? "",
+        url: post.igPermalink ?? null,
+      };
+    } else if (!accounts.instagram) {
       results.instagram = { ok: false, error: "Instagram no está conectado" };
     } else {
       // IG reads its own caption: the link travels as plain text (no
@@ -154,13 +169,33 @@ export async function publishPostEverywhere(
       } catch (error) {
         results.instagram = {
           ok: false,
-          error: error instanceof Error ? error.message : "Error publicando en Instagram",
+          error: friendlyInstagramError(
+            error instanceof Error ? error.message : "Error publicando en Instagram"
+          ),
         };
       }
     }
   }
 
   return { results };
+}
+
+/** Maps raw Graph errors into admin-readable messages, highlighting rate limits. */
+function friendlyInstagramError(message: string): string {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes("rate limit") ||
+    lower.includes("too many") ||
+    lower.includes("reduce the amount") ||
+    lower.includes("#2207042") ||
+    lower.includes("application request limit")
+  ) {
+    return "IG: límite de publicación alcanzado (~100 posts API/24h). Reintentá en unas horas o mañana — el post queda pendiente y “Publicar” reenvía solo el canal faltante.";
+  }
+  if (lower.includes("#9007") || lower.includes("media id was not found")) {
+    return "IG: el contenedor expiró (24h) o la media ya no existe; reintentá la publicación.";
+  }
+  return message;
 }
 
 interface PersistedResults {

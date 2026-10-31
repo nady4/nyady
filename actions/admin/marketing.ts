@@ -652,6 +652,19 @@ export async function publishMarketingPostAction(
     return { ok: false, error: "Falta META_APP_ID / META_APP_SECRET en el entorno" };
   }
 
+  // Nothing left to publish: both requested channels already have external
+  // ids (avoids accidental double-posting from double clicks).
+  const pendingFacebook =
+    post.channels.includes("facebook") && !post.fbPostId;
+  const pendingInstagram =
+    post.channels.includes("instagram") && !post.igMediaId;
+  if (!pendingFacebook && !pendingInstagram) {
+    return {
+      ok: false,
+      error: "Ya está publicado en todos sus canales Meta (nada pendiente).",
+    };
+  }
+
   try {
     const results = await publishAndPersist(post, getSiteUrl());
     revalidateMarketing();
