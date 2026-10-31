@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,15 +23,46 @@ const CHANNEL_COLORS: Record<string, string> = {
   whatsapp: "is-whatsapp",
 };
 
-export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
+export interface PostsFilters {
+  q: string;
+  channel: string;
+  status: string;
+  published: string; // "" (todos) | "pending" | "published"
+}
+
+export interface PublishPendingTarget {
+  id: string;
+  title: string;
+}
+
+const SEARCH_DEBOUNCE_MS = 500;
+
+/**
+ * Posts list with server-side pagination: filters/status live in the URL
+ * (searchParams) and rows arrive pre-filtered. The "Publicar pendientes"
+ * button targets the full pending list across pages (server-computed).
+ */
+export default function PostsAdmin({
+  posts,
+  filters,
+  page,
+  perPage,
+  total,
+  pendingTargets,
+}: {
+  posts: MarketingPostRow[];
+  filters: PostsFilters;
+  page: number;
+  perPage: number;
+  total: number;
+  pendingTargets: PublishPendingTarget[];
+}) {
   const router = useRouter();
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(
     null
   );
   const [busy, setBusy] = useState(false);
-  const [search, setSearch] = useState("");
-  const [channel, setChannel] = useState("");
-  const [status, setStatus] = useState("");
+  const [searchValue, setSearchValue] = useState(filters.q);
   // Publish-everything-pending toolbar loop state.
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{
@@ -41,101 +72,35 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
   } | null>(null);
   const [bulkResults, setBulkResults] = useState<string[]>([]);
 
-  /** Unpublished posts that have a Meta channel: the bulk-publish targets. */
-  const pending = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !post.published &&
-          (post.channels.includes("facebook") ||
-            post.channels.includes("instagram"))
-      ),
-    [posts]
-  );
+  // Keep the search box in sync when navigation resets server filters.
+  useEffect(() => {
+    setSearchValue(filters.q);
+  }, [filters.q]);
 
-  const BULK_DELAY_MS = 4000;
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  /** Reuses the single-post publish action sequentially with a pause. */
-  const publishPending = async () => {
-    if (pending.length === 0 || bulkBusy || busy) return;
-    setBulkBusy(true);
-    setBulkResults([]);
-    let ok = 0;
-    let failed = 0;
-    const lines: string[] = [];
-    try {
-      for (let index = 0; index < pending.length; index += 1) {
-        const post = pending[index];
-        setBulkProgress({ done: index, total: pending.length, current: post.title });
-        try {
-          const result = await publishMarketingPostAction(post.id);
-          if (result.ok) {
-            const summary = Object.entries(result.results ?? {})
-              .map(([channelName, outcome]) =>
-                outcome.ok
-                  ? `${channelName === "facebook" ? "Facebook" : "Instagram"} ✓`
-                  : `${channelName === "facebook" ? "Facebook" : "Instagram"} ✗ ${outcome.error ?? ""}`.trim()
-              )
-              .filter(Boolean)
-              .join(" · ");
-            const allFailed =
-              result.results &&
-              Object.values(result.results).length > 0 &&
-              Object.values(result.results).every((outcome) => !outcome.ok);
-            if (allFailed) {
-              failed += 1;
-              lines.push(
-                `✗ ${post.title} — ${result.results?.facebook?.error ?? result.results?.instagram?.error ?? "fallo"}`
-              );
-            } else {
-              ok += 1;
-              lines.push(`✓ ${post.title} — ${summary || "publicado"}`);
-            }
-          } else {
-            failed += 1;
-            lines.push(`✗ ${post.title} — ${result.error ?? "fallo"}`);
-          }
-        } catch {
-          failed += 1;
-          lines.push(`✗ ${post.title} — error de conexión`);
-        }
-        if (index < pending.length - 1) await wait(BULK_DELAY_MS);
-      }
-      setMessage({
-        kind: failed > 0 && ok === 0 ? "error" : "ok",
-        text: `Publicados: ${ok} · Fallidos: ${failed}.`,
-      });
-      router.refresh();
-    } finally {
-      setBulkProgress(null);
-      setBulkResults(lines);
-      setBulkBusy(false);
-    }
+  /** Merges current filters with overrides and navigates (page resets to 1). */
+  const pushFilters = (overrides: Partial<PostsFilters>, pageParam?: number) => {
+    const next: PostsFilters = { ...filters, ...overrides };
+    const params = new URLSearchParams();
+    if (next.q.trim()) params.set("q", next.q.trim());
+    if (next.channel) params.set("channel", next.channel);
+    if (next.status) params.set("status", next.status);
+    if (next.published) params.set("published", next.published);
+    const targetPage = pageParam ?? 1;
+    if (targetPage > 1) params.set("page", String(targetPage));
+    router.push(`/admin/marketing${params.size > 0 ? `?${params.toString()}` : ""}`);
   };
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return posts.filter((post) => {
-      if (channel && !post.channels.includes(channel)) return false;
-      if (status && post.status !== status) return false;
-      if (
-        term &&
-        !post.title.toLowerCase().includes(term) &&
-        !post.body.toLowerCase().includes(term) &&
-        !(post.campaign ?? "").toLowerCase().includes(term) &&
-        !(post.productName ?? "").toLowerCase().includes(term)
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [posts, search, channel, status]);
+  // Debounced search: the user types and the URL updates automatically.
+  useEffect(() => {
+    if (searchValue === filters.q) return;
+    const timer = setTimeout(() => {
+      pushFilters({ q: searchValue }, 1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
 
-  const run = async (
-    action: () => Promise<AdminActionResult>,
-    okText = "Listo"
-  ) => {
+  const run = async (action: () => Promise<AdminActionResult>, okText = "Listo") => {
     setMessage(null);
     setBusy(true);
     try {
@@ -154,6 +119,87 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
     }
   };
 
+  const BULK_DELAY_MS = 4000;
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  /** Sequential Meta publish over every pending target (server-computed full list). */
+  const publishPending = async () => {
+    if (pendingTargets.length === 0 || bulkBusy || busy) return;
+    setBulkBusy(true);
+    setBulkResults([]);
+    setMessage(null);
+    let ok = 0;
+    let failed = 0;
+    const lines: string[] = [];
+    try {
+      for (let index = 0; index < pendingTargets.length; index += 1) {
+        const target = pendingTargets[index];
+        setBulkProgress({
+          done: index,
+          total: pendingTargets.length,
+          current: target.title,
+        });
+        try {
+          const result = await publishMarketingPostAction(target.id);
+          if (result.ok) {
+            const summary = Object.entries(result.results ?? {})
+              .map(([channelName, outcome]) =>
+                outcome.ok
+                  ? `${channelName === "facebook" ? "Facebook" : "Instagram"} ✓`
+                  : `${channelName === "facebook" ? "Facebook" : "Instagram"} ✗ ${outcome.error ?? ""}`.trim()
+              )
+              .filter(Boolean)
+              .join(" · ");
+            const allFailed =
+              result.results &&
+              Object.values(result.results).length > 0 &&
+              Object.values(result.results).every((outcome) => !outcome.ok);
+            if (allFailed) {
+              failed += 1;
+              lines.push(
+                `✗ ${target.title} — ${result.results?.facebook?.error ?? result.results?.instagram?.error ?? "fallo"}`
+              );
+            } else {
+              ok += 1;
+              lines.push(`✓ ${target.title} — ${summary || "publicado"}`);
+            }
+          } else {
+            failed += 1;
+            lines.push(`✗ ${target.title} — ${result.error ?? "fallo"}`);
+          }
+        } catch {
+          failed += 1;
+          lines.push(`✗ ${target.title} — error de conexión`);
+        }
+        if (index < pendingTargets.length - 1) await wait(BULK_DELAY_MS);
+      }
+      setMessage({
+        kind: failed > 0 && ok === 0 ? "error" : "ok",
+        text: `Publicados: ${ok} · Fallidos: ${failed}.`,
+      });
+      router.refresh();
+    } finally {
+      setBulkProgress(null);
+      setBulkResults(lines);
+      setBulkBusy(false);
+    }
+  };
+
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  /** Preserves all filters while moving to another page. */
+  const pageHref = (targetPage: number): string => {
+    const params = new URLSearchParams();
+    if (filters.q.trim()) params.set("q", filters.q.trim());
+    if (filters.channel) params.set("channel", filters.channel);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.published) params.set("published", filters.published);
+    if (targetPage > 1) params.set("page", String(targetPage));
+    return `/admin/marketing${params.size > 0 ? `?${params.toString()}` : ""}`;
+  };
+
+  const rowBadge = (post: MarketingPostRow) =>
+    post.published ? "Publicado" : post.status === "ready" ? "Listo" : "Borrador";
+
   return (
     <div className="admin-mkt-posts">
       {message && (
@@ -170,13 +216,13 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
           type="search"
           className="admin-input"
           placeholder="Buscar por título, copy, campaña o producto…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
         />
         <select
           className="admin-input"
-          value={channel}
-          onChange={(e) => setChannel(e.target.value)}
+          value={filters.channel}
+          onChange={(e) => pushFilters({ channel: e.target.value }, 1)}
           aria-label="Filtrar por canal"
         >
           <option value="">Todos los canales</option>
@@ -188,30 +234,38 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
         </select>
         <select
           className="admin-input"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          value={filters.status}
+          onChange={(e) => pushFilters({ status: e.target.value }, 1)}
           aria-label="Filtrar por estado"
         >
           <option value="">Todos los estados</option>
           <option value="draft">Borrador</option>
           <option value="ready">Listo para publicar</option>
         </select>
-        {posts.length === 0 && (
-          <Link href="/admin/marketing/nuevo" className="admin-button primary">
-            + Nuevo post
-          </Link>
-        )}
-        {pending.length > 0 && (
+        <select
+          className="admin-input"
+          value={filters.published || ""}
+          onChange={(e) => pushFilters({ published: e.target.value }, 1)}
+          aria-label="Filtrar por publicación"
+        >
+          <option value="">Todo lo tanto</option>
+          <option value="pending">Sin publicar</option>
+          <option value="published">Publicados</option>
+        </select>
+        <Link href="/admin/marketing/nuevo" className="admin-button">
+          + Nuevo post
+        </Link>
+        {pendingTargets.length > 0 && (
           <button
             type="button"
             className="admin-button primary"
             disabled={bulkBusy || busy}
-            title={`Publica secuencialmente los ${pending.length} posts pendientes (4s entre cada uno)`}
+            title={`Publica secuencialmente los ${pendingTargets.length} pendientes (4s entre cada uno)`}
             onClick={() => void publishPending()}
           >
             {bulkBusy && bulkProgress
               ? `Publicando ${bulkProgress.done + 1}/${bulkProgress.total}…`
-              : `Publicar pendientes (${pending.length})`}
+              : `Publicar pendientes (${pendingTargets.length})`}
           </button>
         )}
       </div>
@@ -231,23 +285,41 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
         </div>
       )}
 
-      {filtered.length === 0 ? (
+      <div className="admin-mkt-pager">
+        <span>
+          {total} posteo(s) · página {page} de {totalPages}
+        </span>
+        <span className="admin-mkt-pager-links">
+          {page > 1 && (
+            <Link className="admin-button small" href={pageHref(page - 1)}>
+              ‹ Anterior
+            </Link>
+          )}
+          {page < totalPages && (
+            <Link className="admin-button small" href={pageHref(page + 1)}>
+              Siguiente ›
+            </Link>
+          )}
+        </span>
+      </div>
+
+      {posts.length === 0 ? (
         <p className="admin-empty">
-          {posts.length === 0
-            ? "Sin posteos todavía. Creá el primero desde el composer."
-            : "Ningún post coincide con el filtro."}
+          {total === 0
+            ? "Sin posteos todavía. Creá el primero desde el composer o el creator en masa."
+            : "Ningún post coincide con el filtro/página."}
         </p>
       ) : (
         <div className="admin-mkt-posts-list">
-          {filtered.map((post) => (
+          {posts.map((post) => (
             <div key={post.id} className="admin-mkt-post-card">
               {post.media[0] ? (
                 <div className="admin-mkt-post-cover">
                   <Image
                     src={post.media[0]}
                     alt={post.title}
-                    width={96}
-                    height={96}
+                    width={72}
+                    height={72}
                     unoptimized
                   />
                 </div>
@@ -268,7 +340,7 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                         post.status === "ready" ? "available" : "unavailable"
                       }`}
                     >
-                      {post.status === "ready" ? "Listo" : "Borrador"}
+                      {rowBadge(post)}
                     </span>
                   )}
                 </div>
@@ -298,6 +370,8 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                     </Link>
                   )}
                 </div>
+              </div>
+
               <div className="admin-mkt-post-dates">
                 {post.scheduledAtText
                   ? `Programado: ${post.scheduledAtText}`
@@ -313,30 +387,29 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                   {post.lastError}
                 </p>
               )}
-            </div>
 
-            <div className="admin-mkt-post-links">
-              {post.fbPermalink && (
-                <a
-                  className="admin-mkt-permalink is-facebook"
-                  href={post.fbPermalink}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  Ver en Facebook
-                </a>
-              )}
-              {post.igPermalink && (
-                <a
-                  className="admin-mkt-permalink is-instagram"
-                  href={post.igPermalink}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  Ver en Instagram
-                </a>
-              )}
-            </div>
+              <div className="admin-mkt-post-links">
+                {post.fbPermalink && (
+                  <a
+                    className="admin-mkt-permalink is-facebook"
+                    href={post.fbPermalink}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    Ver en Facebook
+                  </a>
+                )}
+                {post.igPermalink && (
+                  <a
+                    className="admin-mkt-permalink is-instagram"
+                    href={post.igPermalink}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    Ver en Instagram
+                  </a>
+                )}
+              </div>
 
               <div className="admin-mkt-post-actions">
                 <Link href={`/admin/marketing/${post.id}`} className="admin-button small">
@@ -348,8 +421,10 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
                     <button
                       type="button"
                       className="admin-button small primary"
-                      disabled={busy}
-                      onClick={() => void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")}
+                      disabled={busy || bulkBusy}
+                      onClick={() =>
+                        void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")
+                      }
                     >
                       Publicar
                     </button>
@@ -377,6 +452,26 @@ export default function PostsAdmin({ posts }: { posts: MarketingPostRow[] }) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {total > perPage && (
+        <div className="admin-mkt-pager">
+          <span>
+            {total} posteo(s) · página {page} de {totalPages}
+          </span>
+          <span className="admin-mkt-pager-links">
+            {page > 1 && (
+              <Link className="admin-button small" href={pageHref(page - 1)}>
+                ‹ Anterior
+              </Link>
+            )}
+            {page < totalPages && (
+              <Link className="admin-button small" href={pageHref(page + 1)}>
+                Siguiente ›
+              </Link>
+            )}
+          </span>
         </div>
       )}
     </div>

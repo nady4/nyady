@@ -3801,3 +3801,24 @@ th.admin-col-number {
   color: $text-color;
   margin: 1.6rem 0 -0.4rem;
 }
+
+// Posts pagination bar (top + bottom of the list)
+.admin-mkt-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0;
+
+  span {
+    font-size: 0.82rem;
+    color: $text-muted;
+  }
+
+  .admin-mkt-pager-links {
+    display: inline-flex;
+    gap: 0.4rem;
+    color: inherit;
+  }
+}

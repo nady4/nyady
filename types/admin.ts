@@ -383,6 +383,12 @@ export interface MarketingSettingsState {
   whatsappPhone: string | null;
 }
 
+/** Full (unpaginated) title list for the "Publicar pendientes" bulk run. */
+export interface PublishPendingTarget {
+  id: string;
+  title: string;
+}
+
 /** Shape passed from marketing pages to the connection + composer clients. */
 export interface MetaConnectionState {
   /** META_APP_ID/SECRET present in the environment. */

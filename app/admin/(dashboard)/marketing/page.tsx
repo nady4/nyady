@@ -20,7 +20,11 @@ import { loadWaRecipients } from "@/lib/marketing/whatsapp";
 import { isMetaConfigured } from "@/lib/marketing/meta";
 import { metaAccountStatus } from "@/lib/marketing/publisher";
 import { getSiteUrl } from "@/lib/site-url";
-import type { MarketingPostRow } from "@/types/admin";
+import type { Prisma } from "@prisma/client";
+import type {
+  MarketingPostRow,
+  PublishPendingTarget,
+} from "@/types/admin";
 
 export const metadata = {
   title: "Marketing",
@@ -32,6 +36,42 @@ interface PageProps {
 
 function first(value: string | string[] | undefined): string {
   return (Array.isArray(value) ? value[0] : value) ?? "";
+}
+
+interface PostFilters {
+  q: string;
+  channel: string;
+  status: string;
+  published: string;
+}
+
+type PostWithProduct = Prisma.SocialPostGetPayload<{
+  include: { product: { select: { name: true; slug: true } } };
+}>;
+type WaOptionRow = {
+  id: string;
+  title: string;
+  body: string;
+  hashtags: string[];
+  product: { slug: string } | null;
+};
+
+function buildPostWhere(filters: PostFilters): Prisma.SocialPostWhereInput {
+  const where: Prisma.SocialPostWhereInput = {};
+  if (filters.status) where.status = filters.status;
+  if (filters.channel) where.channels = { has: filters.channel };
+  if (filters.published === "pending") where.publishedAt = null;
+  if (filters.published === "published") where.publishedAt = { not: null };
+  const q = filters.q.trim();
+  if (q) {
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { body: { contains: q, mode: "insensitive" } },
+      { campaign: { contains: q, mode: "insensitive" } },
+      { product: { name: { contains: q, mode: "insensitive" } } },
+    ];
+  }
+  return where;
 }
 
 function oauthBanner(
@@ -63,16 +103,72 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const metaState = oauthBanner(first(params.meta), first(params.mkt_msg));
 
+  // Posts pagination filters (URL is the source of truth).
+  const filters = {
+    q: first(params.q).trim(),
+    channel: ["facebook", "instagram", "whatsapp"].includes(first(params.channel))
+      ? first(params.channel)
+      : "",
+    status: ["draft", "ready"].includes(first(params.status))
+      ? first(params.status)
+      : "",
+    published: ["pending", "published"].includes(first(params.published))
+      ? first(params.published)
+      : "",
+  };
+  const perPage = 20;
+  const page = Math.max(1, Number(first(params.page)) || 1);
   // Defensive load: a failure in any loader must never 500 the whole page or
   // blank the admin shell — degrade to empty sections instead.
-  const [posts, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients, bulkProductsRaw] =
+  const [postResults, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients, bulkProductsRaw] =
     await Promise.all([
-      prisma.socialPost
-        .findMany({
-          orderBy: { updatedAt: "desc" },
-          include: { product: { select: { name: true, slug: true } } },
-        })
-        .catch(() => []),
+      (async (): Promise<
+        [PostWithProduct[], number, PublishPendingTarget[], WaOptionRow[]]
+      > => {
+        try {
+          const result = await Promise.all([
+          prisma.socialPost.findMany({
+            where: buildPostWhere(filters),
+            orderBy:
+              filters.published === "published"
+                ? [{ publishedAt: "desc" }, { updatedAt: "desc" }]
+                : [{ updatedAt: "desc" }],
+            skip: (page - 1) * perPage,
+            take: perPage,
+            include: { product: { select: { name: true, slug: true } } },
+          }),
+          prisma.socialPost.count({ where: buildPostWhere(filters) }),
+          prisma.socialPost.findMany({
+            where: {
+              publishedAt: null,
+              channels: { hasSome: ["facebook", "instagram"] },
+            },
+            orderBy: { updatedAt: "desc" },
+            select: { id: true, title: true },
+          }),
+          prisma.socialPost.findMany({
+            orderBy: { updatedAt: "desc" },
+            take: 60,
+            select: {
+              id: true,
+              title: true,
+              body: true,
+              hashtags: true,
+              product: { select: { slug: true } },
+            },
+          }),
+          ]) as unknown as [
+            PostWithProduct[],
+            number,
+            PublishPendingTarget[],
+            WaOptionRow[],
+          ];
+          return result;
+        } catch (error) {
+          console.error("[admin/marketing] posts load failed:", error);
+          return [[], 0, [], []];
+        }
+      })(),
       prisma.copyTemplate.findMany({ orderBy: { name: "asc" } }).catch(() => []),
       loadAssetRows().catch(() => []),
       prisma.marketingSettings
@@ -114,7 +210,9 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
       loadBulkProducts().catch(() => []),
     ]);
 
-  const postRows: MarketingPostRow[] = posts.map((post) => ({
+  const [postsRaw, postsTotal, pendingTargetsRaw, waOptionRows] = postResults;
+
+  const postRows: MarketingPostRow[] = postsRaw.map((post) => ({
     id: post.id,
     title: post.title,
     body: post.body,
@@ -156,13 +254,15 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
   for (const send of waSends) {
     (sentMap[send.campaignId] ??= []).push(send.phone);
   }
-  const waPostOptions: WaPostOption[] = postRows.map((post) => ({
+  const waPostOptions: WaPostOption[] = waOptionRows.map((post) => ({
     id: post.id,
     title: post.title,
     body: post.body,
     hashtags: post.hashtags,
-    productSlug: post.productSlug,
+    productSlug: post.product?.slug ?? null,
   }));
+
+  const pendingTargets: PublishPendingTarget[] = pendingTargetsRaw;
 
   const bulkProducts: BulkProductOption[] = bulkProductsRaw.map((option) => ({
     id: option.id,
@@ -204,7 +304,14 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
           “Publicar” publica al instante; “Publicar pendientes” hace la corrida en
           secuencia con todo lo no publicado.
         </p>
-        <PostsAdmin posts={postRows} />
+        <PostsAdmin
+          posts={postRows}
+          filters={filters}
+          page={page}
+          perPage={perPage}
+          total={postsTotal}
+          pendingTargets={pendingTargets}
+        />
 
         <h3 className="admin-mkt-subtitle">Crear en masa</h3>
         <p className="admin-field-hint">
