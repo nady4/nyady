@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -94,24 +93,6 @@ function NavContent() {
   const searchParams = useSearchParams();
   const reduxCartIds = useAppSelector((state) => state.cart);
   const [fetchedCartHasItems, setFetchedCartHasItems] = useState(false);
-  const router = useRouter();
-
-  // Catalog text search, mirrored from ?q= so input agrees with SSR.
-  const [searchValue, setSearchValue] = useState(searchParams.get("q") ?? "");
-  useEffect(() => {
-    const q = searchParams.get("q") ?? "";
-    queueMicrotask(() => setSearchValue(q));
-  }, [searchParams]);
-
-  const submitSearch = (event: React.FormEvent) => {
-    event.preventDefault();
-    const q = searchValue.trim();
-    if (!q) {
-      router.push("/catalog");
-      return;
-    }
-    router.push(`/catalog?q=${encodeURIComponent(q)}`);
-  };
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.email) {
@@ -259,25 +240,6 @@ function NavContent() {
         </div>
 
         <div className="right-content">
-          <form className="nav-search" role="search" onSubmit={submitSearch}>
-            <input
-              type="search"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Buscar sandalias..."
-              aria-label="Buscar productos"
-              enterKeyHint="search"
-            />
-            <button type="submit" aria-label="Buscar">
-              <Image
-                src="/assets/icons/search.svg"
-                alt=""
-                aria-hidden="true"
-                width={16}
-                height={16}
-              />
-            </button>
-          </form>
           {session && (
             <Link href="/cart" className="cart-link" aria-label={`Carrito${hasCartItems ? ": tenés productos" : " (vacío)"}`}>
               <Image
@@ -358,26 +320,6 @@ function NavContent() {
       </div>
 
       <div className={`mobile-menu ${menuOpen ? "open" : "closed"}`} id="mobile-menu">
-        <form className="mobile-search" role="search" onSubmit={submitSearch}>
-          <input
-            type="search"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            placeholder="Buscar sandalias..."
-            aria-label="Buscar productos"
-            enterKeyHint="search"
-            autoComplete="off"
-          />
-          <button type="submit" aria-label="Buscar">
-            <Image
-              src="/assets/icons/search.svg"
-              alt=""
-              aria-hidden="true"
-              width={16}
-              height={16}
-            />
-          </button>
-        </form>
         {session ? (
           <>
             {ACCOUNT_LINKS.map((link) => (

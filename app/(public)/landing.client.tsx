@@ -165,34 +165,6 @@ export default function LandingClient({
                 </div>
               ))}
             </div>
-            {count > 1 && (
-              <div className="carousel-controls">
-                <button
-                  type="button"
-                  className="carousel-control prev"
-                  aria-label="Producto anterior"
-                  onClick={goPrev}
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  className="carousel-control next"
-                  aria-label="Producto siguiente"
-                  onClick={goNext}
-                >
-                  ›
-                </button>
-                <button
-                  type="button"
-                  className="carousel-control pause"
-                  aria-label={isPaused ? "Reanudar rotación del carrusel" : "Pausar rotación del carrusel"}
-                  onClick={() => setIsPaused(!isPaused)}
-                >
-                  {isPaused ? "▶" : "❚❚"}
-                </button>
-              </div>
-            )}
           </div>
         )}
       </section>
