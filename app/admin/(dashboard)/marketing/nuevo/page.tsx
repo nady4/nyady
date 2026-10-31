@@ -16,6 +16,7 @@ const EMPTY_INITIAL: ComposerInitial = {
   hashtags: [],
   channels: [],
   media: [],
+  mediaType: "image",
   productId: null,
   campaign: "",
   scheduledAt: "",

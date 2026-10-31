@@ -5,6 +5,7 @@ import { NextAuthProvider } from "@/providers/NextAuthProvider";
 import NavBar from "@/components/NavBar";
 import SiteFooter from "@/components/SiteFooter";
 import Toast from "@/components/Toast";
+import AttributionCapture from "@/components/AttributionCapture";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const viewport: Viewport = {
@@ -107,6 +108,7 @@ export default function RootLayout({
         </a>
         <ReduxProvider>
           <NextAuthProvider>
+            <AttributionCapture />
             <NavBar />
             <main id="contenido">{children}</main>
             <SiteFooter />

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import TagInput from "@/components/admin/ui/TagInput";
 import MediaPicker from "@/components/admin/marketing/MediaPicker";
+import VideoPicker from "@/components/admin/marketing/VideoPicker";
 import AiCopyPanel from "@/components/admin/marketing/AiCopyPanel";
 import PostPreview from "@/components/admin/marketing/PostPreview";
 import {
@@ -43,6 +44,7 @@ export interface ComposerInitial {
   hashtags: string[];
   channels: string[];
   media: string[];
+  mediaType: "image" | "video";
   productId: string | null;
   campaign: string;
   scheduledAt: string;
@@ -66,6 +68,7 @@ interface ComposerState {
   hashtags: string[];
   channels: string[];
   media: string[];
+  mediaType: "image" | "video";
   productId: string | null;
   campaign: string;
   scheduledAt: string;
@@ -98,6 +101,7 @@ export default function PostComposer({
     hashtags: initial.hashtags,
     channels: initial.channels,
     media: initial.media,
+    mediaType: initial.mediaType,
     productId: initial.productId,
     campaign: initial.campaign,
     scheduledAt: initial.scheduledAt,
@@ -268,6 +272,7 @@ export default function PostComposer({
     hashtags: state.hashtags,
     channels: state.channels,
     media: state.media,
+    mediaType: state.mediaType,
     productId: state.productId,
     campaign: state.campaign || null,
     status,
@@ -509,13 +514,63 @@ export default function PostComposer({
           </div>
 
           <div className="admin-card">
-            <h3 className="admin-card-title">Imágenes</h3>
-            <MediaPicker
-              media={state.media}
-              onChange={(urls) => setState({ ...state, media: urls })}
-              productPhotoUrls={selectedProduct?.photoUrls ?? []}
-              assets={assets}
-            />
+            <div className="admin-mkt-stats-head">
+              <h3 className="admin-card-title">
+                {state.mediaType === "video" ? "Video (reel)" : "Imágenes"}
+              </h3>
+              <div className="admin-mkt-chips">
+                <button
+                  type="button"
+                  className={`admin-mkt-chip${state.mediaType === "image" ? " is-active" : ""}`}
+                  onClick={() =>
+                    setState({
+                      ...state,
+                      mediaType: "image",
+                      // A reel keeps media[0] = video: switching to images
+                      // drops it so the carousel does not publish the mp4.
+                      media: state.mediaType === "video" ? [] : state.media,
+                    })
+                  }
+                >
+                  Imágenes
+                </button>
+                <button
+                  type="button"
+                  className={`admin-mkt-chip${state.mediaType === "video" ? " is-active" : ""}`}
+                  onClick={() =>
+                    setState({
+                      ...state,
+                      mediaType: "video",
+                      media: state.mediaType === "video" ? state.media : [],
+                    })
+                  }
+                >
+                  Video / reel
+                </button>
+              </div>
+            </div>
+
+            {state.mediaType === "video" ? (
+              <>
+                <p className="admin-field-hint">
+                  Instagram publica el video como reel (Meta lo descarga de la
+                  URL pública). Facebook recibe la portada con el link al
+                  producto.
+                </p>
+                <VideoPicker
+                  media={state.media}
+                  onChange={(urls) => setState({ ...state, media: urls })}
+                  productPhotoUrls={selectedProduct?.photoUrls ?? []}
+                />
+              </>
+            ) : (
+              <MediaPicker
+                media={state.media}
+                onChange={(urls) => setState({ ...state, media: urls })}
+                productPhotoUrls={selectedProduct?.photoUrls ?? []}
+                assets={assets}
+              />
+            )}
           </div>
 
           <div className="admin-form-actions admin-mkt-savebar">

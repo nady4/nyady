@@ -5,13 +5,16 @@ import { blobClientUploadStatus } from "@/lib/marketing/blob-status";
 
 export const runtime = "nodejs";
 
-const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB
+const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 MB (photos)
+const MAX_VIDEO_SIZE_BYTES = 60 * 1024 * 1024; // 60 MB (reels)
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
   "image/avif",
 ];
+// Videos are only accepted under the social/ prefix (reels for Instagram).
+const ALLOWED_VIDEO_TYPES = ["video/mp4"];
 const ALLOWED_PREFIXES = ["products/", "banners/", "social/"];
 
 // GET /api/admin/upload
@@ -53,9 +56,14 @@ export async function POST(request: Request): Promise<NextResponse> {
         if (!ALLOWED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
           throw new Error("Ruta de carga no permitida");
         }
+        // Reels (video) only make sense under social/; photos keep the
+        // stricter limit everywhere else.
+        const isSocial = pathname.startsWith("social/");
         return {
-          allowedContentTypes: ALLOWED_TYPES,
-          maximumSizeInBytes: MAX_SIZE_BYTES,
+          allowedContentTypes: isSocial
+            ? [...ALLOWED_TYPES, ...ALLOWED_VIDEO_TYPES]
+            : ALLOWED_TYPES,
+          maximumSizeInBytes: isSocial ? MAX_VIDEO_SIZE_BYTES : MAX_SIZE_BYTES,
           addRandomSuffix: true,
         };
       },

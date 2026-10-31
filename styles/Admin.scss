@@ -3846,3 +3846,166 @@ th.admin-col-number {
     color: $warning-text;
   }
 }
+
+// --- Phase 5: measurement engine + content planner ----------------------------
+
+.admin-mkt-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+// "Lo que funciona" card (top posts by index).
+.admin-mkt-top {
+  max-width: 980px;
+
+  .admin-mkt-top-table {
+    font-size: 0.85rem;
+
+    th,
+    td {
+      white-space: nowrap;
+    }
+
+    td:first-child {
+      white-space: normal;
+      min-width: 220px;
+    }
+  }
+}
+
+// Funnel panel.
+.admin-mkt-funnel {
+  max-width: 1080px;
+
+  h4.admin-content-section-title {
+    margin-top: 1.4rem;
+    font-size: 0.95rem;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+}
+
+// Planner (preferences + calendar).
+.admin-mkt-planner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.admin-mkt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.admin-mkt-chip {
+  font-family: $body-font;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid $border-color;
+  background-color: $bg-color;
+  color: $text-muted;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: $accent-color;
+    color: $text-color;
+  }
+
+  &.is-active {
+    background-color: rgba($accent-color, 0.16);
+    border-color: $accent-color;
+    color: $text-color;
+  }
+}
+
+.admin-mkt-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0.8rem 0 1.4rem;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.admin-mkt-day {
+  border: 1px solid $border-color;
+  border-radius: 0.6rem;
+  padding: 0.5rem;
+  min-height: 120px;
+  background-color: rgba($border-color, 0.15);
+}
+
+.admin-mkt-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: $text-muted;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid $border-color;
+  margin-bottom: 0.4rem;
+
+  strong {
+    color: $text-color;
+  }
+}
+
+.admin-mkt-day-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed $border-color;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .admin-button.small {
+    align-self: flex-start;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.7rem;
+  }
+}
+
+.admin-mkt-day-time {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: $text-color;
+}
+
+.admin-mkt-day-pillar {
+  font-weight: 600;
+  color: $text-color;
+}
+
+.admin-mkt-day-status {
+  font-size: 0.72rem;
+}
+
+// Referral program card.
+.admin-mkt-referrals {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  table {
+    font-size: 0.85rem;
+  }
+}

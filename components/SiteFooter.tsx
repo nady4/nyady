@@ -3,6 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { fraunces } from "@/app/fonts";
+import {
+  DEFAULT_WHATSAPP_NUMBER,
+  whatsappLink,
+} from "@/lib/marketing/contact";
 import "@/styles/Footer.scss";
 
 /**
@@ -62,7 +66,7 @@ export default function SiteFooter() {
             />
           </a>
           <a
-            href="https://wa.me/5491178120252"
+            href={whatsappLink(DEFAULT_WHATSAPP_NUMBER, "¡Hola! Te escribo desde la web de NYADY 👠")}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="WhatsApp (se abre en una nueva pestaña)"

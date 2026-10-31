@@ -1,6 +1,10 @@
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/marketing/crypto";
-import { publishFacebookPost, publishInstagramPost } from "@/lib/marketing/meta";
+import {
+  publishFacebookPost,
+  publishInstagramPost,
+  publishInstagramReel,
+} from "@/lib/marketing/meta";
 import type { SocialPost } from "@prisma/client";
 import { getSiteUrl } from "@/lib/site-url";
 import { buildPostLink } from "@/lib/marketing/utm";
@@ -113,6 +117,15 @@ export async function publishPostEverywhere(
     .join("\n\n");
   const instagramCaption = buildMessage(post);
 
+  // Video posts (mediaType "video") carry the .mp4 in media[0] and an
+  // optional cover in media[1]. Instagram publishes them as REELS; Facebook
+  // gets the cover photo + the product link (posting a video to a Page needs
+  // extra permissions we do not request yet).
+  const isVideo = post.mediaType === "video";
+  const videoUrl = isVideo ? post.media[0] ?? null : null;
+  const videoCover = isVideo ? post.media[1] ?? null : null;
+  const coverImage = isVideo ? videoCover : post.media[0] ?? null;
+
   // Per-channel skip: a channel that already has an external id (fbPostId /
   // igMediaId) is NOT re-published — this keeps "Publicar" idempotent when
   // only one channel succeeded before (e.g. FB ok + IG rate-limited) and
@@ -135,7 +148,7 @@ export async function publishPostEverywhere(
           message,
           // Photo post when the cover exists (caption text); link/text post
           // otherwise (link preview + clickable).
-          imageUrl: post.media[0] ?? null,
+          imageUrl: coverImage,
           link: buildPostLinkSafe(post, link, "facebook"),
         });
         results.facebook = { ok: true, id: fb.id, url: fb.permalink ?? null };
@@ -168,12 +181,20 @@ export async function publishPostEverywhere(
       // IG reads its own caption: the link travels as plain text (no
       // hyperlink in IG captions). Media must be public https URLs.
       try {
-        const ig = await publishInstagramPost({
-          igUserId: accounts.instagram.igUserId,
-          pageToken: accounts.instagram.pageToken,
-          imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
-          caption: instagramCaption,
-        });
+        const ig = isVideo
+          ? await publishInstagramReel({
+              igUserId: accounts.instagram.igUserId,
+              pageToken: accounts.instagram.pageToken,
+              videoUrl: videoUrl ?? "",
+              caption: instagramCaption,
+              coverUrl: videoCover,
+            })
+          : await publishInstagramPost({
+              igUserId: accounts.instagram.igUserId,
+              pageToken: accounts.instagram.pageToken,
+              imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
+              caption: instagramCaption,
+            });
         results.instagram = { ok: true, id: ig.id, url: ig.permalink ?? null };
       } catch (error) {
         results.instagram = {
@@ -287,6 +308,25 @@ export interface QueueOutcome {
   attempted: number;
   publishedPosts: number;
   failures: string[];
+  /** True when the queue did not run because auto-publish is off. */
+  skipped?: boolean;
+  /** Human-readable explanation when skipped. */
+  reason?: string;
+}
+
+/**
+ * Unattended publishing is OFF by default (MarketingSettings.autoPublish).
+ *
+ * The scheduled runners (Vercel cron + the GitHub Actions workflow) call
+ * `runPublishQueue()` without `force`, so they publish nothing until the
+ * admin flips the switch. The admin's own buttons ("Publicar", "Correr
+ * cola") pass `force: true` — those are deliberate, manual actions.
+ */
+export async function isAutoPublishEnabled(): Promise<boolean> {
+  const settings = await prisma.marketingSettings
+    .findUnique({ where: { id: "default" }, select: { autoPublish: true } })
+    .catch(() => null);
+  return settings?.autoPublish === true;
 }
 
 /**
@@ -295,7 +335,22 @@ export interface QueueOutcome {
  * "Publicar ahora" paths publish immediately instead of going through here;
  * failures that leave lastError set still show in the post list.
  */
-export async function runPublishQueue(limit = QUEUE_BATCH_SIZE): Promise<QueueOutcome> {
+export async function runPublishQueue(
+  limit = QUEUE_BATCH_SIZE,
+  options: { force?: boolean } = {}
+): Promise<QueueOutcome> {
+  if (!options.force && !(await isAutoPublishEnabled())) {
+    return {
+      attempted: 0,
+      publishedPosts: 0,
+      failures: [],
+      skipped: true,
+      reason:
+        "Publicación automática desactivada: la cola programada no publica nada. " +
+        "Usá “Publicar” o “Correr cola” desde el admin, o activá el interruptor en Marketing.",
+    };
+  }
+
   const siteUrl = getSiteUrl();
   const due = await prisma.socialPost.findMany({
     where: {

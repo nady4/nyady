@@ -28,6 +28,19 @@ export async function uploadAdminImage(
   file: File,
   pathnamePrefix: string
 ): Promise<{ url: string }> {
+  return uploadAdminMedia(file, pathnamePrefix);
+}
+
+/**
+ * Uploads an admin media file (photo or reel) to the Blob store.
+ *
+ * The allowed content types depend on the prefix: videos (mp4) are only
+ * accepted under `social/` (see /api/admin/upload).
+ */
+export async function uploadAdminMedia(
+  file: File,
+  pathnamePrefix: string
+): Promise<{ url: string }> {
   const status = await getBlobUploadStatusAction();
   if (!status.ok) {
     throw new Error(status.error ?? "Las subidas no están disponibles");

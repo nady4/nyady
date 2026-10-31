@@ -42,6 +42,8 @@ interface PostInput {
   hashtags: string[];
   channels: string[];
   media: string[];
+  /** "image" (feed/carousel) or "video" (media[0] = the mp4 → IG reel). */
+  mediaType?: "image" | "video";
   productId: string | null;
   campaign: string | null;
   status: "draft" | "ready";
@@ -62,6 +64,7 @@ export interface MarketingPostData {
   hashtags: string[];
   channels: string[];
   media: string[];
+  mediaType: "image" | "video";
   productId: string | null;
   campaign: string | null;
   status: string;
@@ -120,6 +123,7 @@ function parsePostInput(input: PostInput): {
 
   const campaign = input.campaign?.trim().slice(0, 60) || null;
   const status = input.status === "ready" ? "ready" : "draft";
+  const mediaType = input.mediaType === "video" ? "video" : "image";
   const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null;
   if (scheduledAt && Number.isNaN(scheduledAt.getTime())) {
     return { ok: false, error: "La fecha de publicación programada es inválida" };
@@ -133,6 +137,7 @@ function parsePostInput(input: PostInput): {
       hashtags,
       channels,
       media,
+      mediaType,
       productId: input.productId?.trim() || null,
       campaign,
       status,
@@ -226,6 +231,7 @@ export async function duplicateMarketingPostAction(
         hashtags: source.hashtags,
         channels: source.channels,
         media: source.media,
+        mediaType: source.mediaType,
         productId: source.productId,
         campaign: source.campaign,
         status: "draft",
@@ -455,10 +461,10 @@ export async function deleteMarketingAssetAction(
 // --- Settings ----------------------------------------------------------------
 
 interface MarketingSettingsInput {
-  brandVoice: string | null;
-  defaultHashtags: string[];
-  instagramHandle: string | null;
-  whatsappPhone: string | null;
+  brandVoice?: string | null;
+  defaultHashtags?: string[];
+  instagramHandle?: string | null;
+  whatsappPhone?: string | null;
 }
 
 export async function saveMarketingSettingsAction(
@@ -466,32 +472,54 @@ export async function saveMarketingSettingsAction(
 ): Promise<AdminActionResult> {
   if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
 
-  const brandVoice = input.brandVoice?.trim() || null;
-  if (brandVoice && brandVoice.length > 1500) {
-    return { ok: false, error: "La voz de marca es demasiado larga (máx. 1500)" };
-  }
-  const defaultHashtags: string[] = [];
-  for (const raw of input.defaultHashtags ?? []) {
-    const tag = String(raw ?? "").trim().replace(/^#/, "");
-    if (tag && !defaultHashtags.some((h) => h.toLowerCase() === tag.toLowerCase())) {
-      defaultHashtags.push(tag);
+  // Partial update: a field that is not sent (undefined) keeps its current
+  // value; a field sent as null clears it.
+  const data: {
+    brandVoice?: string | null;
+    defaultHashtags?: string[];
+    instagramHandle?: string | null;
+    whatsappPhone?: string | null;
+  } = {};
+
+  if (input.brandVoice !== undefined) {
+    const brandVoice = input.brandVoice?.trim() || null;
+    if (brandVoice && brandVoice.length > 1500) {
+      return { ok: false, error: "La voz de marca es demasiado larga (máx. 1500)" };
     }
-    if (defaultHashtags.length >= MAX_HASHTAGS) break;
+    data.brandVoice = brandVoice;
   }
-  const instagramHandle =
-    input.instagramHandle?.trim().replace(/^@/, "")?.slice(0, 40) || null;
-  const whatsappPhone = input.whatsappPhone?.replace(/[^\d+]/g, "").slice(0, 16) || null;
+
+  if (input.defaultHashtags !== undefined) {
+    const defaultHashtags: string[] = [];
+    for (const raw of input.defaultHashtags ?? []) {
+      const tag = String(raw ?? "").trim().replace(/^#/, "");
+      if (tag && !defaultHashtags.some((h) => h.toLowerCase() === tag.toLowerCase())) {
+        defaultHashtags.push(tag);
+      }
+      if (defaultHashtags.length >= MAX_HASHTAGS) break;
+    }
+    data.defaultHashtags = defaultHashtags;
+  }
+
+  if (input.instagramHandle !== undefined) {
+    data.instagramHandle =
+      input.instagramHandle?.trim().replace(/^@/, "")?.slice(0, 40) || null;
+  }
+
+  if (input.whatsappPhone !== undefined) {
+    data.whatsappPhone = input.whatsappPhone?.replace(/[^\d+]/g, "").slice(0, 16) || null;
+  }
 
   try {
     await prisma.marketingSettings.upsert({
       where: { id: "default" },
-      update: { brandVoice, defaultHashtags, instagramHandle, whatsappPhone },
+      update: data,
       create: {
         id: "default",
-        brandVoice,
-        defaultHashtags,
-        instagramHandle,
-        whatsappPhone,
+        brandVoice: data.brandVoice ?? null,
+        defaultHashtags: data.defaultHashtags ?? [],
+        instagramHandle: data.instagramHandle ?? null,
+        whatsappPhone: data.whatsappPhone ?? null,
       },
     });
   } catch (error) {
@@ -702,21 +730,51 @@ export async function runPublishQueueAction(): Promise<{
   attempted?: number;
   published?: number;
   failures?: string[];
+  skipped?: boolean;
+  reason?: string;
 }> {
   if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
 
   try {
-    const outcome = await runPublishQueue();
+    // Manual run: the admin pressed "Correr cola", so it publishes even when
+    // the unattended switch is off (the scheduled runners do not).
+    const outcome = await runPublishQueue(5, { force: true });
     revalidateMarketing();
     return {
       ok: true,
       attempted: outcome.attempted,
       published: outcome.publishedPosts,
       failures: outcome.failures,
+      skipped: outcome.skipped,
+      reason: outcome.reason,
     };
   } catch (error) {
     console.error("[admin/marketing] queue failed:", error);
     return { ok: false, error: "No se pudo correr el queue de publicación" };
+  }
+}
+
+/**
+ * Master switch for unattended publishing. While off, the scheduled queue
+ * (Vercel cron + GitHub Actions) never publishes: only the admin's manual
+ * buttons do.
+ */
+export async function setAutoPublishAction(
+  enabled: boolean
+): Promise<AdminActionResult> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+
+  try {
+    await prisma.marketingSettings.upsert({
+      where: { id: "default" },
+      update: { autoPublish: enabled },
+      create: { id: "default", autoPublish: enabled },
+    });
+    revalidateMarketing();
+    return { ok: true };
+  } catch (error) {
+    console.error("[admin/marketing] auto publish toggle failed:", error);
+    return { ok: false, error: "No se pudo cambiar el interruptor" };
   }
 }
 
@@ -1149,5 +1207,154 @@ export async function getMarketingTemplatesAction(): Promise<{
   } catch (error) {
     console.error("[admin/marketing] template list failed:", error);
     return { ok: false, error: "No se pudo listar las plantillas" };
+  }
+}
+
+// --- Learning loop: turn a winner into new posts (phase 5) ---------------------
+
+export interface PostVariant {
+  hook: string;
+  body: string;
+  hashtags: string[];
+  cta: string;
+}
+
+export interface PostVariantContext {
+  title: string;
+  body: string;
+  hashtags: string[];
+  channels: string[];
+  media: string[];
+  productId: string | null;
+  campaign: string | null;
+}
+
+export interface GeneratePostVariantsResult {
+  ok: boolean;
+  error?: string;
+  variants?: PostVariant[];
+  context?: PostVariantContext;
+}
+
+/**
+ * Generates three new copies of a post that already worked (the "index"
+ * leader). The post keeps its product, media and channels, so the admin only
+ * has to pick the angle it wants to try next.
+ */
+export async function generatePostVariantsAction(
+  postId: string
+): Promise<GeneratePostVariantsResult> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+
+  const post = await prisma.socialPost.findUnique({
+    where: { id: postId },
+    include: { product: true },
+  });
+  if (!post) return { ok: false, error: "Post inexistente" };
+
+  const settings = await prisma.marketingSettings.findUnique({
+    where: { id: "default" },
+  });
+  const preferences = await prisma.contentPreference
+    .findUnique({ where: { id: "default" } })
+    .catch(() => null);
+
+  const pillar = post.campaign?.startsWith("auto-")
+    ? post.campaign.slice("auto-".length)
+    : null;
+
+  const result = await generateCopyVariants({
+    brandVoice: settings?.brandVoice ?? null,
+    defaultHashtags: settings?.defaultHashtags ?? [],
+    manualBrief: [
+      "Este post ya funcionó bien: hay que publicar una versión nueva con otro ángulo.",
+      `Título original: ${post.title}`,
+      `Copy original: ${post.body.slice(0, 600)}`,
+    ].join("\n"),
+    tone: 1,
+    channels: post.channels.filter((c): c is CopyChannel =>
+      c === "facebook" || c === "instagram" || c === "whatsapp"
+    ),
+    siteUrl: getSiteUrl(),
+    instagramHandle: settings?.instagramHandle ?? null,
+    product: post.product
+      ? {
+          name: post.product.name,
+          slug: post.product.slug,
+          price: post.product.price.toNumber(),
+          category: post.product.category,
+          colors: post.product.colors,
+          sizes: post.product.sizes,
+          description: post.product.description,
+        }
+      : null,
+    pillar,
+    objective: null,
+    format: null,
+    audience: preferences?.audience ?? null,
+    forbiddenTopics: preferences?.forbiddenTopics ?? [],
+    defaultCta: preferences?.defaultCta ?? null,
+  });
+
+  if (!result.ok || !result.variants) {
+    return { ok: false, error: result.error ?? "La IA no devolvió variantes" };
+  }
+
+  return {
+    ok: true,
+    variants: result.variants,
+    context: {
+      title: post.title,
+      body: post.body,
+      hashtags: post.hashtags,
+      channels: post.channels,
+      media: post.media,
+      productId: post.productId,
+      campaign: post.campaign,
+    },
+  };
+}
+
+/**
+ * Creates a draft SocialPost from one of the generated variants, reusing the
+ * source post's media, channels and product.
+ */
+export async function createDraftFromVariantAction(
+  sourcePostId: string,
+  variant: PostVariant
+): Promise<AdminActionResult & { postId?: string }> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+
+  const source = await prisma.socialPost.findUnique({
+    where: { id: sourcePostId },
+  });
+  if (!source) return { ok: false, error: "Post inexistente" };
+
+  const body = [variant.hook, variant.body, variant.cta]
+    .filter((part) => part && part.trim())
+    .join("\n\n")
+    .trim();
+
+  if (!body) return { ok: false, error: "La variante está vacía" };
+
+  try {
+    const draft = await prisma.socialPost.create({
+      data: {
+        title: `${source.title} (v2)`.slice(0, 120),
+        body: body.slice(0, 4000),
+        hashtags: (variant.hashtags ?? []).slice(0, 30),
+        channels: source.channels,
+        media: source.media,
+        productId: source.productId,
+        campaign: source.campaign,
+        status: "draft",
+        scheduledAt: null,
+      },
+    });
+    revalidateMarketing();
+    return { ok: true, postId: draft.id };
+  } catch (error) {
+    console.error("[admin/marketing] create variant draft failed:", error);
+    return { ok: false, error: "No se pudo crear el borrador" };
   }
 }

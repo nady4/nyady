@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/marketing/crypto";
 import { formatAdminDate, formatAdminDateTime } from "@/lib/admin/format";
+import { scorePost } from "@/lib/marketing/scoring";
 
 /**
  * Phase 3: insights sync. Pulls lifetime metrics for published posts and
@@ -365,6 +366,34 @@ export interface MarketingStatsData {
     impressions: number;
     reach: number;
     clicks: number;
+    /** Phase 5: weighted interactions per 1000 reached accounts. */
+    index: number;
+    engagementRate: number;
+  }[];
+  /** Posts ranked by index (the "what works" list). */
+  topPosts: {
+    id: string;
+    title: string;
+    campaign: string | null;
+    permalink: string | null;
+    publishedAtText: string;
+    reach: number;
+    clicks: number;
+    index: number;
+    engagementRate: number;
+  }[];
+  /** The opposite list: the pieces that underperformed (with reach, so a
+   * tiny post is not judged as a "bad" one). */
+  bottomPosts: {
+    id: string;
+    title: string;
+    campaign: string | null;
+    permalink: string | null;
+    publishedAtText: string;
+    reach: number;
+    clicks: number;
+    index: number;
+    engagementRate: number;
   }[];
   totals: { likes: number; comments: number; shares: number; saves: number; impressions: number; reach: number; clicks: number };
 }
@@ -403,6 +432,7 @@ export async function loadMarketingStats(): Promise<MarketingStatsData> {
     .filter((post) => post.metrics.length > 0)
     .map((post) => {
       const latest = post.metrics[0];
+      const score = scorePost(latest);
       return {
         id: post.id,
         title: post.title,
@@ -417,8 +447,37 @@ export async function loadMarketingStats(): Promise<MarketingStatsData> {
         impressions: latest.impressions,
         reach: latest.reach,
         clicks: latest.clicks,
+        index: score.index,
+        engagementRate: score.engagementRate,
       };
     });
+
+  // Phase 5: the "what works" ranking. Ties are broken by reach, so a small
+  // post with an excellent response can outrank a big post nobody reacted to.
+  const toRow = (post: (typeof posts)[number]) => ({
+    id: post.id,
+    title: post.title,
+    campaign: post.campaign,
+    permalink: post.permalink,
+    publishedAtText: post.publishedAtText,
+    reach: post.reach,
+    clicks: post.clicks,
+    index: post.index,
+    engagementRate: post.engagementRate,
+  });
+
+  const topPosts = [...posts]
+    .sort((a, b) => b.index - a.index || b.reach - a.reach)
+    .slice(0, 5)
+    .map(toRow);
+
+  // The other half of the measurement: posts that did NOT work. Only the
+  // ones with a real reach count — a post nobody saw is not a "failure".
+  const bottomPosts = posts
+    .filter((post) => post.reach >= 50)
+    .sort((a, b) => a.index - b.index || a.reach - b.reach)
+    .slice(0, 3)
+    .map(toRow);
 
   const totals = {
     likes: 0,
@@ -455,6 +514,8 @@ export async function loadMarketingStats(): Promise<MarketingStatsData> {
         : null,
     },
     posts,
+    topPosts,
+    bottomPosts,
     totals,
   };
 }

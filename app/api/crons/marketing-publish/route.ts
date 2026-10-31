@@ -17,6 +17,8 @@ async function handle(request: Request): Promise<NextResponse> {
   }
 
   try {
+    // No `force`: the scheduled runner never publishes while the
+    // auto-publish switch is off (MarketingSettings.autoPublish).
     const outcome = await runPublishQueue();
     return NextResponse.json({ ok: true, ...outcome });
   } catch (error) {

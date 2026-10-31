@@ -3,24 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_DATABASE_URL")
-
 }
 
 model User {
-  id         String      @id @default(uuid())
-  address    Address?    @relation(fields: [addressId], references: [id])
-  orders     Order[]
-  wishlist   WishList[]
-  cart       Cart[]
+  id       String     @id @default(uuid())
+  address  Address?   @relation(fields: [addressId], references: [id])
+  orders   Order[]
+  wishlist WishList[]
+  cart     Cart[]
 
-  username   String
-  email      String      @unique
-  password   String
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  username  String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Null until the user confirms their email via the verification link.
   emailVerified DateTime?
@@ -38,12 +37,12 @@ model User {
   // lib/auth.ts) but their orders and history are preserved.
   archivedAt DateTime?
 
-  addressId  String?     @unique
+  addressId String? @unique
 }
 
 model VerificationToken {
   id         String   @id @default(uuid())
-  identifier String   // user email
+  identifier String // user email
   token      String   @unique // sha256 hash of the token sent by email
   expires    DateTime
 
@@ -55,7 +54,7 @@ model VerificationToken {
 // be replayed. Shorter TTL than email confirmation (credential change).
 model PasswordResetToken {
   id         String   @id @default(uuid())
-  identifier String   // user email
+  identifier String // user email
   token      String   @unique // sha256 hash of the token sent by email
   expires    DateTime
 
@@ -63,8 +62,8 @@ model PasswordResetToken {
 }
 
 model Address {
-  id         String    @id @default(uuid())
-  user       User?
+  id   String @id @default(uuid())
+  user User?
 
   street     String
   city       String
@@ -74,92 +73,93 @@ model Address {
 }
 
 model WishList {
-  id         String    @id @default(uuid())
-  user       User      @relation(fields: [userId], references: [id])
-  product    Product   @relation(fields: [productId], references: [id])
+  id      String  @id @default(uuid())
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
-  userId     String
-  productId  String
+  userId    String
+  productId String
 
   @@unique([userId, productId])
 }
 
 model Cart {
-  id            String    @id @default(uuid())
-  user          User      @relation(fields: [userId], references: [id])
-  product       Product   @relation(fields: [productId], references: [id])
+  id      String  @id @default(uuid())
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
-  userId        String
-  productId    String
-  quantity     Int       @default(1)
-  selectedSize String?
-  selectedColor String?
+  userId             String
+  productId          String
+  quantity           Int     @default(1)
+  selectedSize       String?
+  selectedColor      String?
   selectedTacoOption String?
 
   @@unique([userId, productId, selectedSize, selectedColor, selectedTacoOption])
 }
 
 model Product {
-  id          String       @id @default(cuid())
-  orderItems  OrderItem[]
-  wishLists   WishList[]
-  carts       Cart[]
-  socialPosts SocialPost[]
+  id           String        @id @default(cuid())
+  orderItems   OrderItem[]
+  wishLists    WishList[]
+  carts        Cart[]
+  socialPosts  SocialPost[]
   socialAssets SocialAsset[]
+  contentPlans ContentPlan[]
 
   // Human-readable unique URL id, e.g. "abril-negro". Used by
   // /products/[slug]; the cuid keeps resolving via a 301 redirect.
-  slug       String     @unique
+  slug String @unique
 
-  name       String
-  photo      String
-  price      Decimal    @db.Decimal(14, 2)
+  name  String
+  photo String
+  price Decimal @db.Decimal(14, 2)
 
   // Internal purchase cost (admin-only, never exposed to clients). New
   // products default to retail price - 10.000 placeholder until a real cost
   // is entered; readable/editable from the admin form.
   purchasePrice Decimal? @db.Decimal(14, 2)
-  category   String
-  stock      Int
-  code       String?
-  purchaseName String?
-  available  Boolean   @default(true)
-  sizes      String[]
-  colors    String[]
-  photos    Json?
-  description String?
-  tacoOptions String[]
+  category      String
+  stock         Int
+  code          String?
+  purchaseName  String?
+  available     Boolean  @default(true)
+  sizes         String[]
+  colors        String[]
+  photos        Json?
+  description   String?
+  tacoOptions   String[]
 
   // Soft delete: archived products are hidden from the storefront and from
   // the default admin list. Kept so past orders still resolve the product.
   archivedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 model OrderItem {
-  id         String   @id @default(uuid())
-  order      Order    @relation(fields: [orderId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
+  id      String  @id @default(uuid())
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
 
-  quantity   Int
+  quantity Int
 
   // Snapshot of the cart-time selection, so /orders can render the exact
   // variant that was purchased even if the product's color list is later
   // edited. Mirrors Cart.selectedColor / selectedSize / selectedTacoOption.
-  selectedColor String?
-  selectedSize String?
+  selectedColor      String?
+  selectedSize       String?
   selectedTacoOption String?
 
   // Snapshots of the product at purchase time, so order history and admin
   // reports stay correct even if the product is later renamed, repriced or
   // deleted. Null for pre-snapshot rows; UIs fall back to the product relation.
-  unitPrice    Decimal?  @db.Decimal(14, 2)
+  unitPrice    Decimal? @db.Decimal(14, 2)
   productName  String?
   productPhoto String?
 
-  orderId    String
-  productId  String
+  orderId   String
+  productId String
 }
 
 model Order {
@@ -167,14 +167,14 @@ model Order {
   user       User        @relation(fields: [userId], references: [id])
   orderItems OrderItem[]
 
-  status     String
-  total      Decimal    @db.Decimal(14, 2)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  status    String
+  total     Decimal  @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // "web" = checkout through Mercado Pago; "manual" = created from the admin
   // dashboard (phone/WhatsApp sales). Manual orders never touch the MP webhook.
-  source     String      @default("web")
+  source String @default("web")
 
   // Set by the admin when the order leaves "En Preparación" and is handed
   // over / dispatched WITHOUT a Zipnova shipment yet (e.g. entrega a
@@ -183,13 +183,13 @@ model Order {
   dispatchedAt DateTime?
 
   // Internal notes visible only in the admin dashboard.
-  notes      String?
+  notes String?
 
   // Soft delete: archived orders disappear from the default admin list but
   // remain in the buyer's /orders history and in reports.
   archivedAt DateTime?
 
-  userId     String
+  userId String
 
   // Recipient data captured at checkout — Zipnova's create-shipment
   // endpoint requires name, document (DNI) and phone, none of which are
@@ -215,24 +215,45 @@ model Order {
   // discountAmount are snapshots so /orders can show the discount even if the
   // coupon row is later deleted or edited.
   couponId       String?
-  coupon         Coupon?  @relation(fields: [couponId], references: [id])
+  coupon         Coupon? @relation(fields: [couponId], references: [id])
   couponCode     String?
-  discountAmount Decimal    @default(0) @db.Decimal(14, 2)
+  discountAmount Decimal @default(0) @db.Decimal(14, 2)
+
+  // Marketing attribution (phase 5). Captured from the first-party cookie
+  // written by components/AttributionCapture.tsx, so a visitor who lands on a
+  // UTM-tagged social link keeps the origin across the whole session and the
+  // order ends up attributed to the post/campaign that brought it.
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+
+  // Referral code (a Coupon flagged as referral) that brought this order.
+  referralCode String?
 }
 
 model Coupon {
-  id         String   @id @default(uuid())
-  code       String   @unique
-  type       String   // "PERCENT" | "FIXED"
-  value      Decimal  @db.Decimal(10, 2)  // percent (0-100) or fixed ARS amount
-  active     Boolean  @default(true)
+  id         String    @id @default(uuid())
+  code       String    @unique
+  type       String // "PERCENT" | "FIXED"
+  value      Decimal   @db.Decimal(10, 2) // percent (0-100) or fixed ARS amount
+  active     Boolean   @default(true)
   expiresAt  DateTime?
-  usageLimit Int?     // null = unlimited (within one-per-user)
-  usedCount  Int      @default(0)
-  onePerUser Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  usageLimit Int? // null = unlimited (within one-per-user)
+  usedCount  Int       @default(0)
+  onePerUser Boolean   @default(true)
+  createdAt  DateTime  @default(now())
 
-  orders     Order[]
+  // Referral program (phase 5). A referral is a regular coupon (the money
+  // math never changes) with an owner: the customer who spreads the code.
+  // The order keeps `couponCode`/`referralCode`, so the admin funnel can
+  // attribute sales to the referrer and to the campaign that distributed it.
+  isReferral     Boolean @default(false)
+  referrerUserId String?
+  referrerName   String?
+  sourceCampaign String?
+
+  orders Order[]
 }
 
 // Admin-managed promotional imagery shown on the storefront. placement picks
@@ -258,8 +279,8 @@ model Banner {
 // before the admin dashboard. wholesaleTiers holds the editable volume
 // discount tiers (units/percent/label) consumed by lib/discounts math.
 model StoreSettings {
-  id             String   @id @default("default")
-  storeName      String   @default("NYADY")
+  id             String  @id @default("default")
+  storeName      String  @default("NYADY")
   contactEmail   String?
   whatsapp       String?
   instagram      String?
@@ -273,7 +294,7 @@ model StoreSettings {
   heroCtaLabel String?
   heroCtaHref  String?
 
-  updatedAt    DateTime @updatedAt
+  updatedAt DateTime @updatedAt
 }
 
 // Marketing / social content library. A SocialPost is a reusable piece of
@@ -287,6 +308,9 @@ model SocialPost {
   hashtags    String[]
   channels    String[] // "facebook" | "instagram" | "whatsapp"
   media       String[] // blob URLs; media[0] is the cover
+  // "image" (feed photo / carousel) or "video" (media[0] = the .mp4, optional
+  // media[1] = cover image). Videos are published as IG reels.
+  mediaType   String    @default("image")
   product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
   productId   String?
   campaign    String? // free-form collection name used for grouping/filtering
@@ -305,7 +329,7 @@ model SocialPost {
   lastError   String?
 
   // Lifetime metric snapshots (phase 3).
-  metrics     SocialPostMetric[]
+  metrics SocialPostMetric[]
 
   @@index([status, scheduledAt])
   @@index([campaign])
@@ -318,16 +342,16 @@ model SocialPost {
 // and the same (non-expiring, long-lived) Page token that publishes to it.
 // Tokens are AES-256-GCM encrypted (lib/marketing/crypto.ts) at rest.
 model SocialAccount {
-  id          String       @id @default(cuid())
-  channel     String       @unique // "facebook" | "instagram"
+  id          String   @id @default(cuid())
+  channel     String   @unique // "facebook" | "instagram"
   pageId      String?
   pageName    String?
   igUserId    String?
   igUsername  String?
   tokenEnc    String // AES-256-GCM blob: iv|tag|ciphertext (base64)
   scopes      String[]
-  connectedAt DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  connectedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 // Daily metrics snapshot per published post (phase 3). One row per
@@ -415,14 +439,87 @@ model SocialAsset {
 // Singleton row (id = "default") with the AI brand voice prompt, default
 // hashtags and the IG/WA handles used by share links and previews.
 model MarketingSettings {
-  id              String    @id @default("default")
-  brandVoice      String?
-  defaultHashtags String[]
-  instagramHandle String?
-  whatsappPhone   String?
+  id                 String    @id @default("default")
+  brandVoice         String?
+  defaultHashtags    String[]
+  instagramHandle    String?
+  whatsappPhone      String?
   // Last successful insights sync (phase 3), for the admin panel status.
   lastInsightsSyncAt DateTime?
-  updatedAt       DateTime  @updatedAt
+  // Master switch for unattended publishing. When false (the default) the
+  // scheduled queue NEVER publishes by itself — only the admin pressing
+  // "Publicar" / "Correr cola" does. The Vercel cron and the GitHub Actions
+  // workflow both go through the same guard.
+  autoPublish        Boolean   @default(false)
+  updatedAt          DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5 — content engine: preferences + editorial calendar.
+//
+// The goal is to stop deciding "what to post" by hand every day: the admin
+// declares how the brand talks (preferences) and what the week looks like
+// (plan), and the system generates the copy, links it to real catalog data
+// and feeds the existing publish queue. Every generated post keeps its plan
+// row, so performance can be compared pillar by pillar.
+// ---------------------------------------------------------------------------
+
+// Singleton row (id = "default"): the automatable rules the AI and the
+// scheduler follow. Everything is optional — an empty preference set simply
+// means "use the defaults".
+model ContentPreference {
+  id String @id @default("default")
+
+  // Editorial pillars the brand posts about: "proceso", "estilo",
+  // "prueba_social", "promo", "detras_camaras", "sorteo", "novedad".
+  pillars         String[] @default([])
+  // Content formats: "post", "carrusel", "reel", "historia".
+  formats         String[] @default([])
+  // Objectives a piece of content can pursue: "alcance", "interaccion",
+  // "conversion", "seguidores".
+  objectives      String[] @default([])
+  // Topics the AI must never mention (competitors, claims, etc).
+  forbiddenTopics String[] @default([])
+  // Target audience description, injected into every AI prompt.
+  audience        String?
+  // Default call to action appended when the AI does not write one.
+  defaultCta      String?
+  // How many posts per week per channel, and the hours the audience is
+  // actually online (HH:MM, Argentina time). The insights sync can propose
+  // better hours from real reach data.
+  postsPerWeek    Int      @default(4)
+  bestHours       String[] @default([])
+  // Hard cap on promotional posts per week (keeps the feed from turning
+  // into a discount board).
+  maxPromoPerWeek Int      @default(1)
+
+  updatedAt DateTime @updatedAt
+}
+
+// One planned piece of content. `date` + `time` are the editorial slot (in
+// Argentina time); `scheduledAt` on the linked SocialPost is what the publish
+// queue actually reads.
+model ContentPlan {
+  id        String   @id @default(cuid())
+  date      DateTime // day of the slot (normalized to midnight, AR time)
+  time      String // "HH:MM" in Argentina time
+  channel   String // "facebook" | "instagram" | "both"
+  pillar    String // editorial pillar (see ContentPreference.pillars)
+  format    String // "post" | "carrusel" | "reel" | "historia"
+  objective String // "alcance" | "interaccion" | "conversion" | "seguidores"
+  idea      String? // the brief / angle for this slot
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  // "planned" | "draft" | "published" | "skipped"
+  status    String   @default("planned")
+  // Link to the SocialPost generated for this slot (null until generated).
+  postId    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([pillar])
 }
 
 // Admin-editable info/landing pages (e.g. /info/elaboracion). Content is

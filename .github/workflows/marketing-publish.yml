@@ -1,0 +1,37 @@
+name: Marketing publish queue
+
+# The Vercel Hobby plan only allows one cron run per day, which is not
+# enough to publish 2-3 times a day (the sweet spot for a new account).
+# GitHub Actions is free for this workload and can hit the very same
+# protected endpoint the Vercel cron uses, so both can coexist:
+#   - Vercel cron  -> daily backstop (vercel.json)
+#   - this workflow -> every 4 hours
+#
+# The endpoint is protected by CRON_SECRET (lib/marketing/cron-auth.ts):
+# configure it as a repository secret named CRON_SECRET with the same value
+# used in the Vercel environment.
+
+on:
+  schedule:
+    # 00:04, 04:01, 08:01, 12:01, 16:01, 20:01 UTC (00:01, 04:01, 08:01, 11:01,
+    # 13:01 and 17:01 Argentina time).
+    - cron: "1 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Run the marketing publish queue
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish due posts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          set -euo pipefail
+          SITE="${SITE_URL:-https://nyady.com}"
+          echo "Running publish queue against $SITE"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-delay 30 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "$SITE/api/crons/marketing-publish"

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { getCartProducts } from "@/actions/cart";
 import { ShippingSelection } from "@/actions/shipping";
@@ -9,6 +10,12 @@ import { getStoreWholesaleTiers } from "@/lib/store-settings";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
+import {
+  ATTRIBUTION_COOKIE,
+  REFERRAL_COOKIE,
+  parseAttributionCookie,
+  normalizeReferralCode,
+} from "@/lib/marketing/attribution";
 
 interface CheckoutRequestBody {
   recipientName?: string;
@@ -122,6 +129,16 @@ export async function POST(req: Request) {
     const shippingCost = shippingSelection?.shippingCost ?? 0;
     const total = discounts.discountedSubtotal + shippingCost;
 
+    // Marketing attribution: the first-party cookie written when the visitor
+    // landed on a tracked social link. Absent cookie = direct traffic.
+    const cookieStore = await cookies();
+    const attribution = parseAttributionCookie(
+      cookieStore.get(ATTRIBUTION_COOKIE)?.value
+    );
+    const referralCookie = normalizeReferralCode(
+      cookieStore.get(REFERRAL_COOKIE)?.value
+    );
+
     // Create the order WITHOUT coupon fields first. The coupon is only
     // consumed (usedCount incremented + couponId recorded) once the MP
     // preference is successfully created — otherwise a failed preference
@@ -135,6 +152,11 @@ export async function POST(req: Request) {
         recipientName: recipientName || null,
         recipientDocument: recipientDocument || null,
         recipientPhone: recipientPhone || null,
+        utmSource: attribution?.utmSource ?? null,
+        utmMedium: attribution?.utmMedium ?? null,
+        utmCampaign: attribution?.utmCampaign ?? null,
+        utmContent: attribution?.utmContent ?? null,
+        referralCode: referralCookie ?? null,
         shippingSelection: shippingSelection
           ? (shippingSelection as unknown as Prisma.InputJsonValue)
           : undefined,
@@ -226,12 +248,22 @@ export async function POST(req: Request) {
     // total) but must not fail the response.
     if (validatedCouponId) {
       try {
+        // A referral coupon IS the attribution: when the buyer used one, the
+        // order is credited to the customer who shared the code.
+        const referralCoupon = await prisma.coupon.findUnique({
+          where: { id: validatedCouponId },
+          select: { isReferral: true, code: true },
+        });
+
         await prisma.order.update({
           where: { id: order.id },
           data: {
             couponId: validatedCouponId,
             couponCode: validatedCoupon ? validatedCoupon.code : null,
             discountAmount: discounts.totalDiscount,
+            ...(referralCoupon?.isReferral
+              ? { referralCode: referralCoupon.code }
+              : {}),
           },
         });
         await prisma.coupon.update({

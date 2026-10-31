@@ -45,7 +45,63 @@ export interface CopyRequest {
   siteUrl: string;
   instagramHandle: string | null;
   product: CopyProductData | null;
+  /** Editorial pillar (see CONTENT_PILLARS). Shapes the angle of the copy. */
+  pillar?: string | null;
+  /** Goal of the piece: "alcance" | "interaccion" | "conversion" | "seguidores". */
+  objective?: string | null;
+  /** Format: "post" | "carrusel" | "reel" | "historia". */
+  format?: string | null;
+  /** Description of the audience (from the content preferences). */
+  audience?: string | null;
+  /** Topics the copy must never mention. */
+  forbiddenTopics?: string[];
+  /** Default call to action used when the model does not write one. */
+  defaultCta?: string | null;
 }
+
+/** Editorial pillars the planner can schedule. */
+export const CONTENT_PILLARS = [
+  "proceso",
+  "estilo",
+  "prueba_social",
+  "promo",
+  "detras_camaras",
+  "sorteo",
+  "novedad",
+] as const;
+
+/** Goals a piece of content can pursue. */
+export const CONTENT_OBJECTIVES = [
+  "alcance",
+  "interaccion",
+  "conversion",
+  "seguidores",
+] as const;
+
+/** Formats the planner can schedule. */
+export const CONTENT_FORMATS = ["post", "carrusel", "reel", "historia"] as const;
+
+const PILLAR_BRIEFS: Record<string, string> = {
+  proceso:
+    "el oficio: cómo se hace el calzado a mano, materiales, terminaciones, el taller",
+  estilo:
+    "estilo: cómo combinarlo, qué sigue bien, talles, outfits, seasonality",
+  prueba_social:
+    "prueba social: reseñas, fotos de clientas,andover real, confianza",
+  promo: "promo: descuentos, stock, lanzamientos, urgencia real (sin inventar)",
+  detras_camaras:
+    "detrás de cámaras: la marca, el día a día, el equipo, los pedidos, el empaque",
+  sorteo: "sorteo: giveaway, cómo participar, premio y condiciones",
+  novedad: "novedad: modelos nuevos, restock, cambios en la tienda",
+};
+
+const OBJECTIVE_BRIEFS: Record<string, string> = {
+  alcance: "que alcance gente nueva: gancho fuerte, contenido compartible",
+  interaccion: "que comenten y guarden: pregunta, opinión, encuesta, tip útil",
+  conversion: "que lleven a comprar: urgencia, precio, link claro, scarcity real",
+  seguidores:
+    "que sigan la cuenta: el valor claro de la marca, comunidad, qué viene después",
+};
 
 export interface CopyVariant {
   hook: string;
@@ -93,10 +149,34 @@ function userPrompt(req: CopyRequest): string {
     lines.push(`Instrucciones de voz de marca del dueño (máxima prioridad):`);
     lines.push(req.brandVoice.slice(0, 600));
   }
+  if (req.audience) {
+    lines.push(`Audiencia objetivo: ${req.audience.slice(0, 300)}`);
+  }
   if (req.defaultHashtags.length > 0) {
     lines.push(
       `Hashtags actuales de la marca (incluselos si el copy lo pide, nunca los borres): ${req.defaultHashtags.join(", ")}`
     );
+  }
+  if (req.forbiddenTopics && req.forbiddenTopics.length > 0) {
+    lines.push(
+      `Nunca mencionés estos temas: ${req.forbiddenTopics.join(", ").slice(0, 300)}`
+    );
+  }
+  if (req.pillar) {
+    lines.push(
+      `Pilar editorial: ${req.pillar} — ${PILLAR_BRIEFS[req.pillar] ?? req.pillar}.`
+    );
+  }
+  if (req.objective) {
+    lines.push(
+      `Objetivo del post: ${req.objective} — ${OBJECTIVE_BRIEFS[req.objective] ?? req.objective}.`
+    );
+  }
+  if (req.format) {
+    lines.push(`Formato: ${req.format}.`);
+  }
+  if (req.defaultCta) {
+    lines.push(`Llamado a la acción por defecto de la marca: ${req.defaultCta.slice(0, 200)}`);
   }
   if (req.manualBrief) {
     lines.push(`Brief del dueño para este post:`);
@@ -131,6 +211,171 @@ function userPrompt(req: CopyRequest): string {
   return lines.join("\n");
 }
 
+// --- Content plan ideas (phase 5) ---------------------------------------------
+
+export interface PlanIdea {
+  /** Day in Argentina time, "YYYY-MM-DD". */
+  day: string;
+  /** Publication slot, "HH:MM". */
+  time: string;
+  channel: "facebook" | "instagram" | "both";
+  pillar: string;
+  format: string;
+  objective: string;
+  /** The angle of the piece (used as the brief for the copy generator). */
+  idea: string;
+  /** Product to feature (name as it appears in the catalog), if any. */
+  productName: string | null;
+}
+
+export interface PlanIdeasResult {
+  ok: boolean;
+  ideas?: PlanIdea[];
+  error?: string;
+}
+
+const planIdeaSchema = z.object({
+  day: z.string().min(1),
+  time: z.string().min(1),
+  channel: z.enum(["facebook", "instagram", "both"]),
+  pillar: z.string().min(1),
+  format: z.string().min(1),
+  objective: z.string().min(1),
+  idea: z.string().min(1).max(300),
+  productName: z.string().max(80).nullable().optional(),
+});
+
+function planSystemPrompt(): string {
+  return [
+    "Sos el planificador de contenido de NYADY (sandalias y calzado de taco artesanal, Argentina).",
+    "Armás un calendario de contenido para las redes de la marca.",
+    "Reglas duras:",
+    "- Usás SOLO los datos que te pasan: productos, pilares y objetivos disponibles.",
+    "- No inventás productos, precios, promos ni fechas de evento.",
+    "- Cada idea es una pieza concreta y publicable, no un titular genérico.",
+    '- Respondés EXCLUSIVAMENTE un array JSON válido (sin markdown, sin explicaciones):',
+    '[{"day":"YYYY-MM-DD","time":"HH:MM","channel":"instagram","pillar":"proceso","format":"reel","objective":"seguidores","idea":"Ángulo en una frase","productName":"Nombre exacto del producto o null"}]',
+    "- day SIEMPRE dentro de los días que te paso.",
+    "- time en formato HH:MM, usando las horas sugeridas.",
+    "- Alternás pilares: no encadenes dos ideas del mismo pilar.",
+  ].join("\n");
+}
+
+function planUserPrompt(params: {
+  days: string[];
+  pillars: string[];
+  formats: string[];
+  objectives: string[];
+  bestHours: string[];
+  audience: string | null;
+  brandVoice: string | null;
+  forbiddenTopics: string[];
+  products: { name: string; category: string }[];
+  postsPerWeek: number;
+}): string {
+  const lines: string[] = [];
+  lines.push(`Días a planificar (todos en hora Argentina): ${params.days.join(", ")}`);
+  lines.push(`Cantidad de piezas a proponer: ${params.postsPerWeek}`);
+  lines.push(
+    `Pilares disponibles: ${params.pillars.length ? params.pillars.join(", ") : "proceso, estilo, prueba_social, promo, detras_camaras, novedad"}`
+  );
+  lines.push(
+    `Formatos disponibles: ${params.formats.length ? params.formats.join(", ") : "post, carrusel, reel, historia"}`
+  );
+  lines.push(
+    `Objetivos disponibles: ${params.objectives.length ? params.objectives.join(", ") : "alcance, interaccion, conversion, seguidores"}`
+  );
+  lines.push(
+    `Horas sugeridas (usá solo estas): ${params.bestHours.length ? params.bestHours.join(", ") : "11:00, 19:30"}`
+  );
+  if (params.audience) lines.push(`Audiencia: ${params.audience.slice(0, 300)}`);
+  if (params.brandVoice) lines.push(`Voz de marca: ${params.brandVoice.slice(0, 400)}`);
+  if (params.forbiddenTopics.length) {
+    lines.push(`Temas prohibidos: ${params.forbiddenTopics.join(", ")}`);
+  }
+  if (params.products.length) {
+    lines.push("Productos del catálogo (usá el nombre exacto si lo mencionás):");
+    for (const product of params.products) {
+      lines.push(`- ${product.name} (${product.category})`);
+    }
+  } else {
+    lines.push("No hay productos cargados: las ideas deben ser de marca, no de producto.");
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Proposes the content plan for a set of days. The result is normalized
+ * against the allowed pillars/formats/objectives so a hallucinated value
+ * can never reach the calendar.
+ */
+export async function generatePlanIdeas(params: {
+  days: string[];
+  pillars: string[];
+  formats: string[];
+  objectives: string[];
+  bestHours: string[];
+  audience: string | null;
+  brandVoice: string | null;
+  forbiddenTopics: string[];
+  products: { name: string; category: string }[];
+  postsPerWeek: number;
+}): Promise<PlanIdeasResult> {
+  if (params.days.length === 0) {
+    return { ok: false, error: "No hay días para planificar" };
+  }
+
+  const reply = await callModel(
+    planSystemPrompt(),
+    planUserPrompt(params),
+    0.9
+  );
+  if (!reply.ok) return { ok: false, error: reply.error };
+
+  const extracted = extractJsonArray(reply.text);
+  if (!extracted) {
+    console.error("[marketing/ai] unparseable plan response:", reply.text.slice(0, 400));
+    return { ok: false, error: "La IA respondió en un formato inesperado. Probá de nuevo." };
+  }
+
+  const parsed = z.array(planIdeaSchema).safeParse(extracted);
+  if (!parsed.success || parsed.data.length === 0) {
+    console.error("[marketing/ai] plan schema mismatch:", JSON.stringify(extracted).slice(0, 600));
+    return { ok: false, error: "La IA no devolvió un plan utilizable. Probá de nuevo." };
+  }
+
+  const allowedDays = new Set(params.days);
+  const allowedPillars = new Set(params.pillars.length ? params.pillars : CONTENT_PILLARS);
+  const allowedFormats = new Set(params.formats.length ? params.formats : CONTENT_FORMATS);
+  const allowedObjectives = new Set(params.objectives.length ? params.objectives : CONTENT_OBJECTIVES);
+  const allowedHours = new Set(params.bestHours.length ? params.bestHours : ["11:00", "19:30"]);
+
+  const ideas: PlanIdea[] = [];
+  for (const idea of parsed.data) {
+    if (!allowedDays.has(idea.day)) continue;
+    const time = /^\d{2}:\d{2}$/.test(idea.time) ? idea.time : params.bestHours[0] ?? "11:00";
+    ideas.push({
+      day: idea.day,
+      time: allowedHours.has(time) ? time : params.bestHours[0] ?? "11:00",
+      channel: idea.channel,
+      pillar: allowedPillars.has(idea.pillar) ? idea.pillar : [...allowedPillars][0],
+      format: allowedFormats.has(idea.format) ? idea.format : [...allowedFormats][0],
+      objective: allowedObjectives.has(idea.objective)
+        ? idea.objective
+        : [...allowedObjectives][0],
+      idea: idea.idea,
+      productName: idea.productName ?? null,
+    });
+  }
+
+  if (ideas.length === 0) {
+    return { ok: false, error: "La IA propuso ideas fuera de los días pedidos. Probá de nuevo." };
+  }
+
+  return { ok: true, ideas };
+}
+
+
 /** Best-effort JSON extraction: models sometimes wrap arrays in prose/fences. */
 function extractJsonArray(text: string): unknown {
   const cleaned = text.trim().replace(/^```(?:json)?/i, "").replace(/```\s*$/, "").trim();
@@ -152,7 +397,18 @@ export interface CopyResult {
   error?: string;
 }
 
-export async function generateCopyVariants(req: CopyRequest): Promise<CopyResult> {
+type ModelReply = { ok: true; text: string } | { ok: false; error: string };
+
+/**
+ * Single entry point to the OpenCode Go API. Returns the assistant text
+ * (falling back to the reasoning trace when a GLM model burns its tokens
+ * mid-thinking and leaves the final answer empty).
+ */
+async function callModel(
+  system: string,
+  user: string,
+  temperature = 0.8
+): Promise<ModelReply> {
   const apiKey = process.env.OPENCODE_API_KEY;
   if (!apiKey) {
     return {
@@ -176,10 +432,10 @@ export async function generateCopyVariants(req: CopyRequest): Promise<CopyResult
       body: JSON.stringify({
         model: DEFAULT_MODEL,
         messages: [
-          { role: "system", content: systemPrompt() },
-          { role: "user", content: userPrompt(req) },
+          { role: "system", content: system },
+          { role: "user", content: user },
         ],
-        temperature: 0.8,
+        temperature,
         max_tokens: MAX_TOKENS,
       }),
       signal: controller.signal,
@@ -191,7 +447,8 @@ export async function generateCopyVariants(req: CopyRequest): Promise<CopyResult
     if (res.status === 429) {
       return {
         ok: false,
-        error: "Llegaste al límite de uso de tu plan Go por ahora. Probá de nuevo más tarde.",
+        error:
+          "Llegaste al límite de uso de tu plan Go por ahora. Probá de nuevo más tarde.",
       };
     }
     if (res.status === 402) {
@@ -228,28 +485,41 @@ export async function generateCopyVariants(req: CopyRequest): Promise<CopyResult
         message.data?.choices[0]?.message?.reasoning ??
         "")
       : "";
-    const extracted = extractJsonArray(content) || extractJsonArray(reasoningTrace);
-    if (!extracted) {
-      console.error(
-        `[marketing/ai] unparseable response (content.len=${content.length}, reasoning.len=${reasoningTrace.length}):`,
-        String(content || reasoningTrace).slice(0, 500)
-      );
-      return { ok: false, error: "La IA respondió en un formato inesperado. Probá de nuevo." };
+    const text = content || reasoningTrace;
+    if (!text) {
+      console.error("[marketing/ai] empty model response");
+      return { ok: false, error: "La IA respondió vacío. Probá de nuevo." };
     }
-
-    const parsed = responseSchema.safeParse(extracted);
-    if (!parsed.success) {
-      console.error("[marketing/ai] schema mismatch:", JSON.stringify(extracted).slice(0, 600));
-      return { ok: false, error: "La IA devolvió variantes incompletas. Probá de nuevo." };
-    }
-    return { ok: true, variants: parsed.data };
+    return { ok: true, text };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       return { ok: false, error: "La IA tardó demasiado. Probá de nuevo." };
     }
-    console.error("[marketing/ai] generate failed:", error);
-    return { ok: false, error: "No se pudieron generar variantes (error de red)." };
+    console.error("[marketing/ai] model call failed:", error);
+    return { ok: false, error: "No se pudo generar contenido (error de red)." };
   } finally {
     clearTimeout(timer);
   }
 }
+
+export async function generateCopyVariants(req: CopyRequest): Promise<CopyResult> {
+  const reply = await callModel(systemPrompt(), userPrompt(req), 0.8);
+  if (!reply.ok) return { ok: false, error: reply.error };
+
+  const extracted = extractJsonArray(reply.text);
+  if (!extracted) {
+    console.error(
+      `[marketing/ai] unparseable response (len=${reply.text.length}):`,
+      String(reply.text).slice(0, 500)
+    );
+    return { ok: false, error: "La IA respondió en un formato inesperado. Probá de nuevo." };
+  }
+
+  const parsed = responseSchema.safeParse(extracted);
+  if (!parsed.success) {
+    console.error("[marketing/ai] schema mismatch:", JSON.stringify(extracted).slice(0, 600));
+    return { ok: false, error: "La IA devolvió variantes incompletas. Probá de nuevo." };
+  }
+  return { ok: true, variants: parsed.data };
+}
+

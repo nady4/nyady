@@ -5,6 +5,8 @@ import TemplatesAdmin from "@/components/admin/marketing/TemplatesAdmin";
 import AssetsAdmin from "@/components/admin/marketing/AssetsAdmin";
 import MarketingSettingsCard from "@/components/admin/marketing/MarketingSettingsCard";
 import SocialConnectionsCard from "@/components/admin/marketing/SocialConnectionsCard";
+import TopPostsCard from "@/components/admin/marketing/TopPostsCard";
+import PublishModeCard from "@/components/admin/marketing/PublishModeCard";
 import BulkComposer, {
   type BulkProductOption,
 } from "@/components/admin/marketing/BulkComposer";
@@ -190,6 +192,8 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
           lastSyncAtText: null,
           followers: { facebook: null, instagram: null },
           posts: [],
+          topPosts: [],
+          bottomPosts: [],
           totals: {
             likes: 0,
             comments: 0,
@@ -285,9 +289,20 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
     <main className="admin-page admin-page-wide">
       <div className="admin-page-header">
         <h1 className="admin-title">Marketing</h1>
-        <Link href="/admin/marketing/nuevo" className="admin-button primary">
-          + Nuevo post
-        </Link>
+        <div className="admin-mkt-nav">
+          <Link href="/admin/marketing/calendario" className="admin-button">
+            Planificador
+          </Link>
+          <Link href="/admin/marketing/embudo" className="admin-button">
+            Embudo
+          </Link>
+          <Link href="/admin/marketing/referidos" className="admin-button">
+            Referidos
+          </Link>
+          <Link href="/admin/marketing/nuevo" className="admin-button primary">
+            + Nuevo post
+          </Link>
+        </div>
       </div>
 
       {metaState && (
@@ -297,8 +312,20 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
       )}
 
       <section className="admin-content-section">
+        <PublishModeCard autoPublish={settings?.autoPublish === true} />
+      </section>
+
+      <section className="admin-content-section">
         <h2 className="admin-content-section-title">Estadísticas</h2>
         <MarketingStatsCard stats={stats} />
+      </section>
+
+      <section className="admin-content-section">
+        <h2 className="admin-content-section-title">Qué funciona</h2>
+        <TopPostsCard
+          topPosts={stats.topPosts}
+          bottomPosts={stats.bottomPosts}
+        />
       </section>
 
       <section className="admin-content-section">

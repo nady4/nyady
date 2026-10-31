@@ -35,6 +35,7 @@ export default async function EditMarketingPostPage({
     hashtags: post.hashtags,
     channels: post.channels,
     media: post.media,
+    mediaType: post.mediaType === "video" ? "video" : "image",
     productId: post.productId,
     campaign: post.campaign ?? "",
     scheduledAt: post.scheduledAt

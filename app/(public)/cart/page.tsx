@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import {
@@ -53,6 +53,9 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<CouponLike | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  // Guard so the referral auto-apply below runs once per mount (a ref, not
+  // state: setting state synchronously inside an effect is a lint error).
+  const referralAppliedRef = useRef(false);
 
   const userId = session?.user?.id;
 
@@ -138,6 +141,49 @@ export default function CartPage() {
       cancelled = true;
     };
   }, [status, userId]);
+
+  // Referral links (?ref=CODIGO) carry the code in a first-party cookie
+  // (written by components/AttributionCapture.tsx). Apply it automatically so
+  // the buyer does not have to type it: one less step between the click and
+  // the discount. The server re-validates the coupon at checkout anyway.
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (referralAppliedRef.current) return;
+
+    let code: string | null = null;
+    try {
+      const match = document.cookie
+        .split("; ")
+        .find((entry) => entry.startsWith("nyady_ref="));
+      if (match) code = decodeURIComponent(match.slice("nyady_ref=".length));
+    } catch {
+      code = null;
+    }
+    if (!code) return;
+
+    referralAppliedRef.current = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/coupons/validate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (data.ok && data.coupon) {
+          setAppliedCoupon({
+            code: data.coupon.code,
+            type: data.coupon.type,
+            value: data.coupon.value
+          });
+          setCouponInput(data.coupon.code);
+          setCouponError(null);
+        }
+      } catch {
+        // A broken referral cookie must never block the cart.
+      }
+    })();
+  }, [status]);
 
   // Quantity is keyed on cartId (the specific size/color/taco row), never on
   // the product alone: the same product can sit in the cart as several

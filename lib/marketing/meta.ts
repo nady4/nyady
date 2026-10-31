@@ -582,26 +582,136 @@ async function createIgContainer(
 
 async function pollIgContainer(
   containerId: string,
-  pageToken: string
+  pageToken: string,
+  options: { timeoutMs?: number; label?: string; lenient?: boolean } = {}
 ): Promise<void> {
-  const deadline = Date.now() + 75_000;
+  const deadline = Date.now() + (options.timeoutMs ?? 75_000);
+  const label = options.label ?? "la imagen";
   while (Date.now() < deadline) {
-    const json = (await metaFetch(
-      metaGraphUrl(containerId, new URLSearchParams({
-        fields: "status_code",
-        access_token: pageToken,
-      }))
-    )) as { status_code?: string };
+    const json = await (async () => {
+      try {
+        return (await metaFetch(
+          metaGraphUrl(containerId, new URLSearchParams({
+            fields: "status_code",
+            access_token: pageToken,
+          }))
+        )) as { status_code?: string };
+      } catch (error) {
+        // A container that is still being processed can answer with a
+        // temporary error. Only the reel flow (lenient) keeps polling
+        // instead of failing; images fail fast.
+        if (
+          options.lenient &&
+          error instanceof MetaError &&
+          /HTTP 4|HTTP 5/.test(error.message)
+        ) {
+          return { status_code: "IN_PROGRESS" };
+        }
+        throw error;
+      }
+    })();
     const status = json.status_code;
     if (status === "FINISHED") return;
     if (status === "ERROR" || status === "EXPIRED") {
       throw new MetaError(
-        "El contenedor de Instagram falló al procesarse (ERROR/EXPIRED); reintentá"
+        `El contenedor de Instagram falló al procesarse (ERROR/EXPIRED); reintentá (${label})`
       );
     }
     await new Promise((resolve) => setTimeout(resolve, 3000));
   }
   throw new MetaError(
-    "Instagram sigue procesando la imagen (tarda más de lo normal). Reintentá en un rato."
+    `Instagram sigue procesando ${label} (tarda más de lo normal). Reintentá en un rato.`
   );
+}
+
+// --- Instagram reels (video) --------------------------------------------------
+
+export interface InstagramReelInput {
+  igUserId: string;
+  pageToken: string;
+  /** Public https URL of the .mp4 (Vercel Blob). */
+  videoUrl: string;
+  caption: string;
+  /** Optional cover image (https) used as the reel thumbnail. */
+  coverUrl?: string | null;
+}
+
+/**
+ * IG: publishes a video as a REEL (media_type=REELS, shared to feed).
+ *
+ * Meta fetches the video from the public URL, so the file must be reachable
+ * from the internet (Vercel Blob) and in a format IG accepts (H.264 mp4).
+ * The container can take a while to process, hence the longer poll.
+ */
+export async function publishInstagramReel(
+  input: InstagramReelInput
+): Promise<MetaPublishResult> {
+  const { igUserId, pageToken, videoUrl, caption, coverUrl } = input;
+
+  if (!/^https:\/\//.test(videoUrl)) {
+    throw new MetaError(
+      "El reel necesita una URL https pública (subilo al Blob desde el composer)"
+    );
+  }
+  if (isCaptionTooLong(caption.length)) {
+    throw new MetaError(
+      "El caption de Instagram supera 2200 caracteres; acortalon y guardá el post"
+    );
+  }
+
+  const body: Record<string, string> = {
+    media_type: "REELS",
+    video_url: videoUrl,
+    caption,
+    share_to_feed: "true",
+    access_token: pageToken,
+  };
+  if (coverUrl && /^https:\/\//.test(coverUrl)) {
+    body.cover_url = coverUrl;
+  }
+
+  const containerJson = (await metaFetch(metaGraphUrl(`${igUserId}/media`), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    timeoutMs: 60_000,
+  })) as { id?: string };
+  if (!containerJson.id) {
+    throw new MetaError("Meta no creó el contenedor del reel de Instagram");
+  }
+
+  // Video processing is slower than an image: poll for up to 5 minutes.
+  await pollIgContainer(containerJson.id, pageToken, {
+    timeoutMs: 300_000,
+    label: "el reel",
+    lenient: true,
+  });
+
+  const publishJson = (await metaFetch(metaGraphUrl(`${igUserId}/media_publish`), {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: new URLSearchParams({
+      creation_id: containerJson.id,
+      access_token: pageToken,
+    }).toString(),
+    timeoutMs: 60_000,
+  })) as { id?: string };
+  if (!publishJson.id) {
+    throw new MetaError("Meta no devolvió el id del reel de Instagram");
+  }
+
+  let permalink: string | undefined;
+  try {
+    const media = (await metaFetch(
+      metaGraphUrl(publishJson.id, new URLSearchParams({
+        fields: "permalink",
+        access_token: pageToken,
+      }))
+    )) as { permalink?: string };
+    permalink = media.permalink;
+  } catch (error) {
+    console.error("[meta] ig reel permalink fetch failed:", error);
+  }
+
+  return { id: publishJson.id, permalink };
 }
