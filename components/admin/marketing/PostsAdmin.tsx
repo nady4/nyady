@@ -121,8 +121,16 @@ export default function PostsAdmin({
           total: pendingTargets.length,
           current: target.title,
         });
+        let result: {
+          ok: boolean;
+          error?: string;
+          results?: Partial<{
+            facebook: { ok: boolean; url: string | null; error?: string };
+            instagram: { ok: boolean; url: string | null; error?: string };
+          }>;
+        } | undefined;
         try {
-          const result = await publishMarketingPostAction(target.id);
+          result = await publishMarketingPostAction(target.id);
           if (result.ok) {
             const summary = Object.entries(result.results ?? {})
               .map(([channelName, outcome]) =>
@@ -153,7 +161,11 @@ export default function PostsAdmin({
           failed += 1;
           lines.push(`✗ ${target.title} — error de conexión`);
         }
-        if (index < pendingTargets.length - 1) await wait(BULK_DELAY_MS);
+        // Graph budget pause: 40s after IG work, 4s for FB-only posts.
+        if (index < pendingTargets.length - 1) {
+          const didInstagram = result?.results?.instagram !== undefined;
+          await wait(didInstagram ? 40_000 : BULK_DELAY_MS);
+        }
       }
       setMessage({
         kind: failed > 0 && ok === 0 ? "error" : "ok",

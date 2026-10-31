@@ -123,6 +123,8 @@ export async function publishPostEverywhere(
   if (post.channels.includes("facebook")) {
     if (!needsFacebook) {
       results.facebook = { ok: true, id: post.fbPostId ?? "", url: post.fbPermalink ?? null };
+    } else if (Date.now() < channelThrottledUntil.facebook) {
+      results.facebook = { ok: false, error: cooldownLabel("facebook") };
     } else if (!accounts.facebook) {
       results.facebook = { ok: false, error: "Facebook no está conectado" };
     } else {
@@ -140,7 +142,10 @@ export async function publishPostEverywhere(
       } catch (error) {
         results.facebook = {
           ok: false,
-          error: error instanceof Error ? error.message : "Error publicando en Facebook",
+          error: friendlyChannelError(
+            "facebook",
+            error instanceof Error ? error.message : "Error publicando en Facebook"
+          ),
         };
       }
     }
@@ -153,6 +158,10 @@ export async function publishPostEverywhere(
         id: post.igMediaId ?? "",
         url: post.igPermalink ?? null,
       };
+    } else if (Date.now() < channelThrottledUntil.instagram) {
+      // Circuit breaker open: don't spend Graph calls while the app is
+      // throttled — the post stays pending and can be retried later.
+      results.instagram = { ok: false, error: cooldownLabel("instagram") };
     } else if (!accounts.instagram) {
       results.instagram = { ok: false, error: "Instagram no está conectado" };
     } else {
@@ -169,7 +178,8 @@ export async function publishPostEverywhere(
       } catch (error) {
         results.instagram = {
           ok: false,
-          error: friendlyInstagramError(
+          error: friendlyChannelError(
+            "instagram",
             error instanceof Error ? error.message : "Error publicando en Instagram"
           ),
         };
@@ -180,20 +190,46 @@ export async function publishPostEverywhere(
   return { results };
 }
 
-/** Maps raw Graph errors into admin-readable messages, highlighting rate limits. */
-function friendlyInstagramError(message: string): string {
-  const lower = message.toLowerCase();
-  if (
-    lower.includes("rate limit") ||
-    lower.includes("too many") ||
-    lower.includes("reduce the amount") ||
-    lower.includes("#2207042") ||
-    lower.includes("application request limit")
-  ) {
-    return "IG: límite de publicación alcanzado (~100 posts API/24h). Reintentá en unas horas o mañana — el post queda pendiente y “Publicar” reenvía solo el canal faltante.";
+/**
+ * App-level Graph throttling (HTTP 403 "Application request limit reached")
+ * rides on request VOLUME — one IG carousel costs ~10-17 calls, so a 23-post
+ * bulk run trips it instantly and every blind retry keeps it tripped.
+ * Solution: circuit breaker — when Meta says "limit hit", the channel gets a
+ * 30-minute cooldown during which publish attempts short-circuit (no Graph
+ * calls at all) and the posts stay pending; FB keeps publishing meanwhile.
+ */
+const CHANNEL_COOLDOWN_MS = 30 * 60_000;
+const channelThrottledUntil: Record<"facebook" | "instagram", number> = {
+  facebook: 0,
+  instagram: 0,
+};
+
+function isAppRequestLimit(message: string): boolean {
+  return (
+    message.toLowerCase().includes("application request limit") ||
+    message.toLowerCase().includes('"code":4') ||
+    message.toLowerCase().includes("(#4)")
+  );
+}
+
+function cooldownLabel(channel: "facebook" | "instagram"): string {
+  const until = new Date(Date.now() + CHANNEL_COOLDOWN_MS);
+  return `${channel === "instagram" ? "IG" : "FB"} en cooldown por límite de la app (30 min, hasta ~${until.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}). Los posts quedan pendientes: “Publicar” reintenta solo este canal.`;
+}
+
+/** Maps raw Graph errors into admin-readable messages + trip the breaker. */
+function friendlyChannelError(
+  channel: "facebook" | "instagram",
+  message: string
+): string {
+  if (isAppRequestLimit(message)) {
+    channelThrottledUntil[channel] = Date.now() + CHANNEL_COOLDOWN_MS;
+    return cooldownLabel(channel);
   }
-  if (lower.includes("#9007") || lower.includes("media id was not found")) {
-    return "IG: el contenedor expiró (24h) o la media ya no existe; reintentá la publicación.";
+  if (channel === "instagram") {
+    if (message.toLowerCase().includes("#9007") || message.toLowerCase().includes("media id was not found")) {
+      return "IG: el contenedor expiró (24h) o la media ya no existe; reintentá la publicación.";
+    }
   }
   return message;
 }
@@ -263,11 +299,25 @@ export async function runPublishQueue(limit = QUEUE_BATCH_SIZE): Promise<QueueOu
   const siteUrl = getSiteUrl();
   const due = await prisma.socialPost.findMany({
     where: {
-      status: "ready",
-      publishedAt: null,
-      scheduledAt: { lte: new Date() },
+      OR: [
+        // Explicitly scheduled posts (ready + due).
+        {
+          status: "ready",
+          publishedAt: null,
+          scheduledAt: { lte: new Date() },
+        },
+        // Partial publishes (a channel failed, e.g. IG app-rate-limited):
+        // the pending channel retries automatically, whatever the status.
+        {
+          publishedAt: { not: null },
+          OR: [
+            { channels: { has: "facebook" }, fbPostId: null },
+            { channels: { has: "instagram" }, igMediaId: null },
+          ],
+        },
+      ],
     },
-    orderBy: { scheduledAt: "asc" },
+    orderBy: { updatedAt: "asc" },
     take: limit,
   });
 

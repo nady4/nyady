@@ -79,12 +79,20 @@ export default function PublishBulkCard({
         total: targets.length,
         current: target.title,
       });
+      let result: {
+        ok: boolean;
+        error?: string;
+        results?: Partial<{
+          facebook: { ok: boolean; url: string | null; error?: string };
+          instagram: { ok: boolean; url: string | null; error?: string };
+        }>;
+      } | undefined;
       try {
         // Drafts get flipped to ready first (toggle is idempotent per state).
         if (includeDrafts && selected.drafts.some((d) => d.id === target.id)) {
           await toggleMarketingPostStatusAction(target.id);
         }
-        const result = await publishMarketingPostAction(target.id);
+        result = await publishMarketingPostAction(target.id);
         if (result.ok) {
           const channelSummaries = Object.entries(result.results ?? {})
             .map(([channel, outcome]) =>
@@ -111,8 +119,14 @@ export default function PublishBulkCard({
         failed += 1;
         lines.push(`✗ ${target.title} — error de conexión`);
       }
-      // Pause between POSTs to stay away from the rolling 24h-window burst.
-      if (index < targets.length - 1) await delay(DELAY_BETWEEN_POSTS_MS);
+      // Graph budget: an IG carousel burns 12-17 calls; stretch to ~40s so
+      // the app stays under the ~200 calls / 10min token window. FB-only
+      // rows (1-2 calls) keep the short 4s pause. `result` may be undefined
+      // on network failures (handled above, fall back to the short pause).
+      if (index < targets.length - 1) {
+        const didInstagram = result?.results?.instagram !== undefined;
+        await delay(didInstagram ? 40_000 : DELAY_BETWEEN_POSTS_MS);
+      }
     }
 
     setProgress(null);
