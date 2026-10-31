@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
+import { uploadAdminImage } from "@/lib/marketing/blob-upload";
 
 interface ImagePickerProps {
   /** Current image URL ("" = none). */
@@ -36,10 +36,7 @@ export default function ImagePicker({
     setError(null);
     setUploading(true);
     try {
-      const blob = await upload(`${folder}${file.name}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload",
-      });
+      const blob = await uploadAdminImage(file, folder);
       onChange(blob.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo subir la imagen");

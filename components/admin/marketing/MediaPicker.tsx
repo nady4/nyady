@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
+import { uploadAdminImage } from "@/lib/marketing/blob-upload";
 
 interface MediaPickerProps {
   media: string[];
@@ -78,10 +78,7 @@ export default function MediaPicker({
     }
     setUploading(true);
     try {
-      const blob = await upload(`social/${file.name}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload",
-      });
+      const blob = await uploadAdminImage(file, "social/");
       onChange([...media, blob.url]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo subir la imagen");

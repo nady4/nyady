@@ -101,43 +101,66 @@ interface InsightObject {
   values?: { value?: unknown }[];
 }
 
-/** FB: lifetime post insights (impressions/unique/clicks) + reactions + shares. */
+/**
+ * FB: lifetime post metrics.
+ *
+ * Metric names drift between Graph API versions, and a single invalid name
+ * fails the whole request with (#100). So each candidate metric is fetched
+ * separately and the ones that fail are simply skipped — plus reactions come
+ * from the insights metric `post_reactions_by_type_total` (the
+ * `reactions.summary` field needs the extra `pages_read_user_content`
+ * permission, which this app doesn't request).
+ */
 async function fetchFacebookMetrics(
   fbPostId: string,
   pageToken: string
 ): Promise<PostMetrics> {
   const metrics: PostMetrics = { ...EMPTY_METRICS };
-  try {
-    const insights = (await graphJson(`${fbPostId}/insights`, new URLSearchParams({
-      metric: "post_impressions,post_impressions_unique,post_clicks",
-      access_token: pageToken,
-    }))) as { data?: InsightObject[] };
-    for (const item of insights.data ?? []) {
-      const value = insightNumber(item.values?.[0]?.value);
-      if (item.name === "post_impressions") metrics.impressions = value;
-      if (item.name === "post_impressions_unique") metrics.reach = value;
-      if (item.name === "post_clicks") metrics.clicks = value;
+
+  const candidates: { name: string; apply: (value: number) => void }[] = [
+    { name: "post_impressions", apply: (v) => (metrics.impressions = v) },
+    { name: "post_impressions_unique", apply: (v) => (metrics.reach = v) },
+    { name: "post_clicks", apply: (v) => (metrics.clicks = v) },
+    { name: "post_reactions_by_type_total", apply: (v) => (metrics.likes = v) },
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const insights = (await graphJson(`${fbPostId}/insights`, new URLSearchParams({
+        metric: candidate.name,
+        access_token: pageToken,
+      }))) as { data?: InsightObject[] };
+      const value = insightNumber(insights.data?.[0]?.values?.[0]?.value);
+      candidate.apply(value);
+    } catch (error) {
+      // Metric unavailable with the current permissions/version: skip it
+      // silently (the panel simply shows 0 for that metric).
+      console.warn(
+        `[insights] fb metric "${candidate.name}" no disponible: ${
+          error instanceof Error ? error.message.slice(0, 120) : "?"
+        }`
+      );
     }
-  } catch (error) {
-    console.error("[insights] fb insights failed:", error);
   }
+
   try {
     const post = (await graphJson(fbPostId, new URLSearchParams({
-      fields: "reactions.summary(total_count).summary(true),shares",
+      fields: "shares",
       access_token: pageToken,
-    }))) as {
-      reactions?: { summary?: { total_count?: number } };
-      shares?: { count?: number };
-    };
-    metrics.likes = insightNumber(post.reactions?.summary?.total_count);
+    }))) as { shares?: { count?: number } };
     metrics.shares = insightNumber(post.shares?.count);
-  } catch (error) {
-    console.error("[insights] fb post fields failed:", error);
+  } catch {
+    // shares needs pages_read_user_content too — optional.
   }
+
   return metrics;
 }
 
-/** IG: media fields (like/comments) + lifetime insights (impressions/reach/saved). */
+/**
+ * IG: media fields (like/comments) + lifetime insights. IG insights need the
+ * `instagram_manage_insights` permission; without it Meta answers (#10) and
+ * those metrics stay at 0 (the panel notes it).
+ */
 async function fetchInstagramMetrics(
   igMediaId: string,
   pageToken: string
@@ -151,7 +174,11 @@ async function fetchInstagramMetrics(
     metrics.likes = insightNumber(media.like_count);
     metrics.comments = insightNumber(media.comments_count);
   } catch (error) {
-    console.error("[insights] ig media fields failed:", error);
+    console.warn(
+      `[insights] ig media fields failed: ${
+        error instanceof Error ? error.message.slice(0, 120) : "?"
+      }`
+    );
   }
   try {
     const insights = (await graphJson(`${igMediaId}/insights`, new URLSearchParams({
@@ -165,7 +192,11 @@ async function fetchInstagramMetrics(
       if (item.name === "saved") metrics.saves = value;
     }
   } catch (error) {
-    console.error("[insights] ig insights failed:", error);
+    console.warn(
+      `[insights] ig insights no disponible (hace falta el permiso instagram_manage_insights): ${
+        error instanceof Error ? error.message.slice(0, 120) : "?"
+      }`
+    );
   }
   return metrics;
 }

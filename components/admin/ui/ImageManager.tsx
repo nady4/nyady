@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
+import { uploadAdminImage } from "@/lib/marketing/blob-upload";
 import { fraunces } from "@/app/fonts";
 
 interface ImageManagerProps {
@@ -72,10 +72,7 @@ export default function ImageManager({
       const folder = `products/${crypto.randomUUID()}`;
       const uploaded: string[] = [];
       for (const file of list) {
-        const blob = await upload(`${folder}/${file.name}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/admin/upload",
-        });
+        const blob = await uploadAdminImage(file, `${folder}/`);
         uploaded.push(blob.url);
       }
 

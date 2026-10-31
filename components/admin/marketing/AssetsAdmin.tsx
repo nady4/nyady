@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
+import { uploadAdminImage } from "@/lib/marketing/blob-upload";
 import {
   createMarketingAssetAction,
   deleteMarketingAssetAction,
@@ -51,10 +51,7 @@ export default function AssetsAdmin({ assets }: { assets: MarketingAssetRow[] })
     if (!file) return;
     setUploading(true);
     try {
-      const blob = await upload(`social/${file.name}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload",
-      });
+      const blob = await uploadAdminImage(file, "social/");
       const createResult = await createMarketingAssetAction(blob.url, null, "");
       if (!createResult.ok) {
         flash({ kind: "error", text: createResult.error ?? "No se pudo registrar la imagen" });
@@ -63,7 +60,10 @@ export default function AssetsAdmin({ assets }: { assets: MarketingAssetRow[] })
       flash({ kind: "ok", text: "Imagen guardada. Asignale una etiqueta si querés." });
       router.refresh();
     } catch (err) {
-      flash({ kind: "error", text: err instanceof Error ? err.message : "No se pudo subir" });
+      flash({
+        kind: "error",
+        text: err instanceof Error ? err.message : "No se pudo subir",
+      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

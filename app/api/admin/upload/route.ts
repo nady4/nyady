@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { isAdmin } from "@/lib/admin";
+import { blobClientUploadStatus } from "@/lib/marketing/blob-status";
 
 export const runtime = "nodejs";
 
@@ -13,11 +14,22 @@ const ALLOWED_TYPES = [
 ];
 const ALLOWED_PREFIXES = ["products/", "banners/", "social/"];
 
+// GET /api/admin/upload
+// Readiness probe for the admin image pickers: browser uploads need a
+// read-write Blob token (the OIDC connection only covers server-side writes).
+export async function GET(): Promise<NextResponse> {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+  const status = blobClientUploadStatus();
+  return NextResponse.json(status);
+}
+
 // POST /api/admin/upload
-// Vercel Blob client-upload token endpoint. The browser asks for a token and
-// then PUTs the file straight to Blob storage, avoiding request-body limits.
-// The admin session cookie is validated here (the proxy matcher doesn't
-// cover /api/admin/*).
+// Vercel Blob client-upload token endpoint. The browser asks for a token
+// here and then PUTs the file straight to Blob storage, avoiding
+// request-body limits. The admin session cookie is validated here (the
+// proxy matcher doesn't cover /api/admin/*).
 export async function POST(request: Request): Promise<NextResponse> {
   let body: HandleUploadBody;
   try {
@@ -33,6 +45,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const json = await handleUpload({
       body,
       request,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
       onBeforeGenerateToken: async (pathname) => {
         if (!(await isAdmin())) {
           throw new Error("No autorizado");
@@ -56,8 +69,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     const raw =
       error instanceof Error ? error.message : "No se pudo subir la imagen";
     const isAuth = raw.toLowerCase().includes("no autorizado");
-    const friendly = /blob.*token|BLOB_READ_WRITE_TOKEN|access token/i.test(raw)
-      ? "Las subidas no están configuradas: falta el token de Vercel Blob (BLOB_READ_WRITE_TOKEN)"
+    const missingToken =
+      raw.toLowerCase().includes("read-write token") ||
+      raw.toLowerCase().includes("no blob credentials");
+    const friendly = missingToken
+      ? blobClientUploadStatus().error ?? raw
       : raw.includes("No autorizado") || raw.includes("no permitida")
         ? raw
         : "No se pudo subir la imagen";

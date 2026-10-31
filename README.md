@@ -243,7 +243,13 @@ ADMIN_TOKEN=yourStrongRandomToken
 # With the store connected to the Vercel project (Project → Storage → Blob),
 # auth is OIDC-based: on Vercel deployments nothing needs to be configured;
 # locally run `vercel env pull` to get BLOB_STORE_ID / VERCEL_OIDC_TOKEN.
-# Alternatively paste a full BLOB_READ_WRITE_TOKEN into .env for local use.
+#
+# IMPORTANT: uploads FROM THE BROWSER (admin image pickers, marketing
+# library) use the Blob "client token" flow, which requires a READ-WRITE
+# token (the OIDC connection only covers server-side writes). Create one in
+# the Blob dashboard → Store → Tokens → Create Token (Read-Write) and set it
+# here as BLOB_READ_WRITE_TOKEN, otherwise the admin shows "subidas no
+# configuradas" and no image can be uploaded.
 # `**.public.blob.vercel-storage.com` is already allowlisted in next.config.ts.
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxx
 
