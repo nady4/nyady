@@ -116,7 +116,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
       ? first(params.published)
       : "",
   };
-  const perPage = 20;
+  const perPage = 5;
   const page = Math.max(1, Number(first(params.page)) || 1);
   // Defensive load: a failure in any loader must never 500 the whole page or
   // blank the admin shell — degrade to empty sections instead.
