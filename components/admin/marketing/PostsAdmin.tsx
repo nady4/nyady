@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -35,8 +35,6 @@ export interface PublishPendingTarget {
   title: string;
 }
 
-const SEARCH_DEBOUNCE_MS = 500;
-
 /**
  * Posts list with server-side pagination: filters/status live in the URL
  * (searchParams) and rows arrive pre-filtered. The "Publicar pendientes"
@@ -62,7 +60,6 @@ export default function PostsAdmin({
     null
   );
   const [busy, setBusy] = useState(false);
-  const [searchValue, setSearchValue] = useState(filters.q);
   // Publish-everything-pending toolbar loop state.
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{
@@ -71,11 +68,6 @@ export default function PostsAdmin({
     current: string;
   } | null>(null);
   const [bulkResults, setBulkResults] = useState<string[]>([]);
-
-  // Keep the search box in sync when navigation resets server filters.
-  useEffect(() => {
-    setSearchValue(filters.q);
-  }, [filters.q]);
 
   /** Merges current filters with overrides and navigates (page resets to 1). */
   const pushFilters = (overrides: Partial<PostsFilters>, pageParam?: number) => {
@@ -89,16 +81,6 @@ export default function PostsAdmin({
     if (targetPage > 1) params.set("page", String(targetPage));
     router.push(`/admin/marketing${params.size > 0 ? `?${params.toString()}` : ""}`);
   };
-
-  // Debounced search: the user types and the URL updates automatically.
-  useEffect(() => {
-    if (searchValue === filters.q) return;
-    const timer = setTimeout(() => {
-      pushFilters({ q: searchValue }, 1);
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchValue]);
 
   const run = async (action: () => Promise<AdminActionResult>, okText = "Listo") => {
     setMessage(null);
@@ -214,10 +196,20 @@ export default function PostsAdmin({
       <div className="admin-mkt-posts-toolbar">
         <input
           type="search"
+          key={filters.q}
+          defaultValue={filters.q}
           className="admin-input"
           placeholder="Buscar por título, copy, campaña o producto…"
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onBlur={(e) => {
+            if (e.target.value.trim() !== filters.q.trim()) {
+              pushFilters({ q: e.target.value.trim() }, 1);
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              pushFilters({ q: e.currentTarget.value.trim() }, 1);
+            }
+          }}
         />
         <select
           className="admin-input"
