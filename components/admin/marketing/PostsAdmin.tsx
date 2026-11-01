@@ -280,7 +280,10 @@ export default function PostsAdmin({
       await syncWithInstagram();
       setMessage({
         kind: failed > 0 ? "error" : "ok",
-        text: `Duplicados de Instagram borrados: ${deleted}${failed > 0 ? ` · fallidos: ${failed}` : ""}.`,
+        text:
+          failed > 0
+            ? `Instagram no deja borrar por API con este token (${failed} sin borrar): abrí cada link de arriba y borrá el post desde Instagram.`
+            : `Duplicados de Instagram borrados: ${deleted}.`,
       });
     } catch {
       setMessage({ kind: "error", text: "Error de conexión. Reintentá." });
