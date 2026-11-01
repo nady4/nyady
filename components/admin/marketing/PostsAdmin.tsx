@@ -8,6 +8,7 @@ import {
   deleteMarketingPostAction,
   duplicateMarketingPostAction,
   publishMarketingPostAction,
+  syncInstagramPostsAction,
 } from "@/actions/admin/marketing";
 import type { AdminActionResult, MarketingPostRow } from "@/types/admin";
 
@@ -68,6 +69,13 @@ export default function PostsAdmin({
     current: string;
   } | null>(null);
   const [bulkResults, setBulkResults] = useState<string[]>([]);
+  // Instagram reconciliation report (posts live on IG but pending here).
+  const [igSync, setIgSync] = useState<{
+    reconciled: { title: string; permalink: string | null }[];
+    missing: { title: string }[];
+    orphans: { permalink: string | null; caption: string }[];
+  } | null>(null);
+  const [igSyncBusy, setIgSyncBusy] = useState(false);
 
   /** Merges current filters with overrides and navigates (page resets to 1). */
   const pushFilters = (overrides: Partial<PostsFilters>, pageParam?: number) => {
@@ -224,8 +232,31 @@ export default function PostsAdmin({
     }
   };
 
+  /** Matches the library against the media actually live on Instagram. */
+  const syncWithInstagram = async () => {
+    if (igSyncBusy) return;
+    setIgSyncBusy(true);
+    setMessage(null);
+    try {
+      const result = await syncInstagramPostsAction();
+      if (!result.ok) {
+        setMessage({ kind: "error", text: result.error ?? "No se pudo sincronizar" });
+        return;
+      }
+      setIgSync({
+        reconciled: result.reconciled ?? [],
+        missing: result.missing ?? [],
+        orphans: result.orphans ?? [],
+      });
+      router.refresh();
+    } catch {
+      setMessage({ kind: "error", text: "Error de conexión. Reintentá." });
+    } finally {
+      setIgSyncBusy(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / perPage));
-  /** Preserves all filters while moving to another page. */
   const pageHref = (targetPage: number): string => {
     const params = new URLSearchParams();
     if (filters.q.trim()) params.set("q", filters.q.trim());
@@ -363,7 +394,60 @@ export default function PostsAdmin({
               : `Publicar pendientes (${pendingTargets.length})`}
           </button>
         )}
+        <button
+          type="button"
+          className="admin-button"
+          disabled={igSyncBusy || busy || bulkBusy}
+          title="Cruza la biblioteca con lo que está publicado en Instagram (evita duplicados)"
+          onClick={() => void syncWithInstagram()}
+        >
+          {igSyncBusy ? "Sincronizando…" : "Sincronizar con Instagram"}
+        </button>
       </div>
+
+      {igSync && (
+        <div className="admin-mkt-igsync">
+          {igSync.reconciled.length > 0 && (
+            <p className="admin-saved-hint">
+              {igSync.reconciled.length} post(s) ya estaban en Instagram: se
+              vincularon (no se vuelven a publicar) —{" "}
+              {igSync.reconciled.map((post) => post.title).join(", ")}.
+            </p>
+          )}
+          {igSync.missing.length > 0 && (
+            <p className="admin-field-hint">
+              {igSync.missing.length} post(s) siguen sin publicarse en Instagram:{" "}
+              {igSync.missing.map((post) => post.title).join(", ")}.
+            </p>
+          )}
+          {igSync.orphans.length > 0 && (
+            <p className="admin-error">
+              {igSync.orphans.length} publicación(es) en Instagram no
+              corresponden a ningún post (¿duplicados?):{" "}
+              {igSync.orphans
+                .map((orphan) =>
+                  orphan.permalink ? (
+                    <a
+                      key={orphan.permalink}
+                      href={orphan.permalink}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      {orphan.caption}
+                    </a>
+                  ) : (
+                    <span key={orphan.caption}>{orphan.caption}</span>
+                  )
+                )
+                .reduce<React.ReactNode[]>(
+                  (acc, node, index) =>
+                    index === 0 ? [node] : [...acc, ", ", node],
+                  []
+                )}
+            </p>
+          )}
+        </div>
+      )}
 
       {bulkProgress && (
         <p className="admin-field-hint" role="status">

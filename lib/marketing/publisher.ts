@@ -5,6 +5,8 @@ import {
   publishInstagramPost,
   publishInstagramReel,
   fetchIgPublishingQuota,
+  fetchIgMediaList,
+  type IgMediaItem,
 } from "@/lib/marketing/meta";
 import type { SocialPost } from "@prisma/client";
 import { getSiteUrl } from "@/lib/site-url";
@@ -70,6 +72,61 @@ function buildMessage(post: SocialPost): string {
     parts.push(post.hashtags.map((h) => (h.startsWith("#") ? h : `#${h}`)).join(" "));
   }
   return parts.filter(Boolean).join("\n\n");
+}
+
+/** Normalized caption for matching (case/accents/whitespace insensitive). */
+export function captionKey(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Finds the IG media that already carries this post's caption.
+ *
+ * A publish whose media id never reached the database (the function died on
+ * Vercel's 60 s budget right after `media_publish`) leaves the post "pending"
+ * here while it is actually live on Instagram. Matching by caption lets us
+ * ADOPT that media instead of publishing the same thing twice — which is
+ * exactly how "Noe" ended up posted twice.
+ */
+export function matchIgMedia(
+  items: IgMediaItem[],
+  post: SocialPost,
+  caption: string
+): IgMediaItem | null {
+  const key = captionKey(caption);
+  if (!key) return null;
+  const prefix = key.slice(0, 60);
+  const firstLine = captionKey(post.body.split("\n")[0] ?? "");
+  // The media must be at least as new as the post (1 h of slack for clock
+  // drift), otherwise an old campaign with the same copy would be adopted.
+  const since = post.createdAt.getTime() - 60 * 60_000;
+
+  for (const item of items) {
+    if (item.timestamp && item.timestamp < since) continue;
+    const mediaKey = captionKey(item.caption);
+    if (!mediaKey) continue;
+    if (prefix && mediaKey.startsWith(prefix)) return item;
+    if (firstLine && mediaKey.includes(firstLine)) return item;
+  }
+  return null;
+}
+
+/** IG media of the connected account (empty list when it cannot be read). */
+async function loadIgMedia(account: {
+  igUserId: string;
+  pageToken: string;
+}): Promise<IgMediaItem[]> {
+  try {
+    return await fetchIgMediaList(account.igUserId, account.pageToken, 50);
+  } catch (error) {
+    console.error("[marketing/publisher] ig media list failed:", error);
+    return [];
+  }
 }
 
 /** Adds utm_source/medium/campaign to the product link (returns link untouched if null). */
@@ -209,36 +266,67 @@ export async function publishPostEverywhere(
       } else if (!accounts.instagram) {
         results.instagram = { ok: false, error: "Instagram no está conectado" };
       } else {
-        // IG reads its own caption: the link travels as plain text (no
-        // hyperlink in IG captions). Media must be public https URLs.
-        try {
-          const ig = isVideo
-            ? await publishInstagramReel({
-                igUserId: accounts.instagram.igUserId,
-                pageToken: accounts.instagram.pageToken,
-                videoUrl: videoUrl ?? "",
-                caption: instagramCaption,
-                coverUrl: videoCover,
-              })
-            : await publishInstagramPost({
-                igUserId: accounts.instagram.igUserId,
-                pageToken: accounts.instagram.pageToken,
-                imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
-                caption: instagramCaption,
+        // Duplicate guard: if this post already went out (the media id was
+        // lost when the function died), adopt the live media instead of
+        // publishing the same thing twice.
+        const existing = matchIgMedia(
+          await loadIgMedia(accounts.instagram),
+          post,
+          instagramCaption
+        );
+        if (existing) {
+          results.instagram = {
+            ok: true,
+            id: existing.id,
+            url: existing.permalink ?? null,
+          };
+        } else {
+          // IG reads its own caption: the link travels as plain text (no
+          // hyperlink in IG captions). Media must be public https URLs.
+          try {
+            // The media id is written to the row the moment Instagram
+            // confirms the publish, so a function that dies afterwards
+            // (60 s budget on Vercel Hobby) never leaves a published post
+            // looking pending — and a retry cannot duplicate it.
+            const onPublished = async (mediaId: string) => {
+              await prisma.socialPost.update({
+                where: { id: post.id },
+                data: {
+                  igMediaId: mediaId,
+                  publishedAt: post.publishedAt ?? new Date(),
+                },
               });
-          results.instagram = { ok: true, id: ig.id, url: ig.permalink ?? null };
-        } catch (error) {
-          const friendly = await friendlyChannelError(
-            "instagram",
-            error instanceof Error ? error.message : "Error publicando en Instagram",
-            accounts.instagram
-              ? {
+            };
+            const ig = isVideo
+              ? await publishInstagramReel({
                   igUserId: accounts.instagram.igUserId,
                   pageToken: accounts.instagram.pageToken,
-                }
-              : null
-          );
-          results.instagram = { ok: false, ...friendly };
+                  videoUrl: videoUrl ?? "",
+                  caption: instagramCaption,
+                  coverUrl: videoCover,
+                  onPublished,
+                })
+              : await publishInstagramPost({
+                  igUserId: accounts.instagram.igUserId,
+                  pageToken: accounts.instagram.pageToken,
+                  imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
+                  caption: instagramCaption,
+                  onPublished,
+                });
+            results.instagram = { ok: true, id: ig.id, url: ig.permalink ?? null };
+          } catch (error) {
+            const friendly = await friendlyChannelError(
+              "instagram",
+              error instanceof Error ? error.message : "Error publicando en Instagram",
+              accounts.instagram
+                ? {
+                    igUserId: accounts.instagram.igUserId,
+                    pageToken: accounts.instagram.pageToken,
+                  }
+                : null
+            );
+            results.instagram = { ok: false, ...friendly };
+          }
         }
       }
     }
@@ -335,6 +423,83 @@ export async function channelCooldownStatus(): Promise<
     }
   }
   return out;
+}
+
+export interface IgSyncReport {
+  /** Posts that were live on IG but pending in the library — now adopted. */
+  reconciled: { id: string; title: string; permalink: string | null }[];
+  /** Posts still not on IG (they need a real publish). */
+  missing: { id: string; title: string }[];
+  /** IG media that matches no post in the library (candidate duplicates). */
+  orphans: { id: string; permalink: string | null; caption: string }[];
+}
+
+/**
+ * Reconciles the library with what is actually live on Instagram.
+ *
+ * When a publish dies after Instagram accepted it (the Vercel Hobby budget is
+ * 60 s and a carousel burns most of it), the post stays "pending" here even
+ * though it is online. This walks the account's recent media, adopts the
+ * matching ones — so they are never published twice — and reports the IG
+ * media that belongs to no post (duplicates to clean up by hand).
+ */
+export async function syncInstagramPosts(): Promise<IgSyncReport> {
+  const accounts = await resolveMetaAccounts();
+  const report: IgSyncReport = { reconciled: [], missing: [], orphans: [] };
+  if (!accounts.instagram) throw new Error("Instagram no está conectado");
+
+  const media = await loadIgMedia(accounts.instagram);
+  const taken = new Set<string>();
+
+  // 1) Pending posts: adopt the live media that carries their caption.
+  const pending = await prisma.socialPost.findMany({
+    where: { channels: { has: "instagram" }, igMediaId: null },
+    orderBy: { createdAt: "asc" },
+  });
+  for (const post of pending) {
+    const caption = buildMessage(post);
+    const match = matchIgMedia(media, post, caption);
+    if (!match) {
+      report.missing.push({ id: post.id, title: post.title });
+      continue;
+    }
+    taken.add(match.id);
+    await prisma.socialPost.update({
+      where: { id: post.id },
+      data: {
+        igMediaId: match.id,
+        igPermalink: match.permalink ?? null,
+        publishedAt: post.publishedAt ?? new Date(),
+        lastError: null,
+      },
+    });
+    report.reconciled.push({
+      id: post.id,
+      title: post.title,
+      permalink: match.permalink ?? null,
+    });
+  }
+
+  // 2) Posts already recorded: mark their media as taken too, so the leftovers
+  //    are the real orphans (published twice, or published by hand).
+  const recorded = await prisma.socialPost.findMany({
+    where: { channels: { has: "instagram" }, igMediaId: { not: null } },
+    select: { igMediaId: true },
+  });
+  for (const post of recorded) {
+    if (post.igMediaId) taken.add(post.igMediaId);
+  }
+
+  for (const item of media) {
+    if (taken.has(item.id)) continue;
+    report.orphans.push({
+      id: item.id,
+      permalink: item.permalink ?? null,
+      caption: item.caption.replace(/\s+/g, " ").trim().slice(0, 80),
+    });
+  }
+
+  return report;
 }
 
 function isAppRequestLimit(message: string): boolean {

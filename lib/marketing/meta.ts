@@ -488,11 +488,55 @@ export async function fetchIgPublishingQuota(
   }
 }
 
+export interface IgMediaItem {
+  id: string;
+  permalink: string | null;
+  caption: string;
+  /** Epoch ms of the publish (null when Meta omits it). */
+  timestamp: number | null;
+}
+
+/**
+ * Recent media of the connected IG account (GET /<IG_ID>/media). Used to
+ * reconcile the library with what is actually live: a publish whose id was
+ * never saved (the function died before the DB write) shows up here, and the
+ * post can be adopted instead of published twice.
+ */
+export async function fetchIgMediaList(
+  igUserId: string,
+  pageToken: string,
+  limit = 50
+): Promise<IgMediaItem[]> {
+  const json = (await metaFetch(
+    metaGraphUrl(`${igUserId}/media`, new URLSearchParams({
+      fields: "id,permalink,caption,timestamp",
+      limit: String(limit),
+      access_token: pageToken,
+    }))
+  )) as {
+    data?: { id: string; permalink?: string; caption?: string; timestamp?: string }[];
+  };
+  return (json.data ?? []).map((item) => ({
+    id: item.id,
+    permalink: item.permalink ?? null,
+    caption: item.caption ?? "",
+    timestamp: item.timestamp ? Date.parse(item.timestamp) : null,
+  }));
+}
+
 export interface InstagramPostInput {
   igUserId: string;
   pageToken: string;
   imageUrls: string[];
   caption: string;
+  /**
+   * Called right after `media_publish` returns the media id, BEFORE the
+   * permalink lookup. The serverless budget (Vercel Hobby: 60 s) can kill the
+   * function mid-flow, so the id has to be on disk before anything else —
+   * otherwise the post is live on Instagram but the library thinks it is
+   * pending, and the next retry publishes a duplicate.
+   */
+  onPublished?: (mediaId: string) => Promise<void> | void;
 }
 
 /**
@@ -502,7 +546,7 @@ export interface InstagramPostInput {
 export async function publishInstagramPost(
   input: InstagramPostInput
 ): Promise<MetaPublishResult> {
-  const { igUserId, pageToken, imageUrls, caption } = input;
+  const { igUserId, pageToken, imageUrls, caption, onPublished } = input;
   if (imageUrls.length === 0) {
     throw new MetaError("El post de Instagram necesita al menos una imagen");
   }
@@ -555,6 +599,9 @@ export async function publishInstagramPost(
   if (!publishJson.id) {
     throw new MetaError("Meta no devolvió el id del posteo de Instagram");
   }
+  // Persist first, ask later: the permalink is a nice-to-have, the media id
+  // is what keeps the library in sync with Instagram.
+  await onPublished?.(publishJson.id);
 
   let permalink: string | undefined;
   try {
@@ -685,6 +732,8 @@ export interface InstagramReelInput {
   caption: string;
   /** Optional cover image (https) used as the reel thumbnail. */
   coverUrl?: string | null;
+  /** Same contract as the image flow: persist the media id immediately. */
+  onPublished?: (mediaId: string) => Promise<void> | void;
 }
 
 /**
@@ -697,7 +746,7 @@ export interface InstagramReelInput {
 export async function publishInstagramReel(
   input: InstagramReelInput
 ): Promise<MetaPublishResult> {
-  const { igUserId, pageToken, videoUrl, caption, coverUrl } = input;
+  const { igUserId, pageToken, videoUrl, caption, coverUrl, onPublished } = input;
 
   if (!/^https:\/\//.test(videoUrl)) {
     throw new MetaError(
@@ -750,6 +799,8 @@ export async function publishInstagramReel(
   if (!publishJson.id) {
     throw new MetaError("Meta no devolvió el id del reel de Instagram");
   }
+  // Persist first, ask later (see publishInstagramPost).
+  await onPublished?.(publishJson.id);
 
   let permalink: string | undefined;
   try {

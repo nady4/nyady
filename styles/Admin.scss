@@ -3509,6 +3509,19 @@ th.admin-col-number {
   font-size: 0.78rem;
 }
 
+// Report of the Instagram reconciliation (posts live on IG vs. library).
+.admin-mkt-igsync {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+  }
+}
+
 .admin-mkt-post-error {
   font-size: 0.78rem;
   white-space: normal;

@@ -11,6 +11,7 @@ import { isMetaConfigured } from "@/lib/marketing/meta";
 import {
   publishAndPersist,
   runPublishQueue,
+  syncInstagramPosts,
 } from "@/lib/marketing/publisher";
 import { runInsightsSync } from "@/lib/marketing/insights";
 import {
@@ -755,6 +756,39 @@ export async function runPublishQueueAction(): Promise<{
   } catch (error) {
     console.error("[admin/marketing] queue failed:", error);
     return { ok: false, error: "No se pudo correr el queue de publicación" };
+  }
+}
+
+/**
+ * Reconciles the marketing library with what is actually live on Instagram:
+ * adopts the media of posts that were published but never recorded (so they
+ * are not published twice) and reports the IG media that belongs to no post.
+ */
+export async function syncInstagramPostsAction(): Promise<{
+  ok: boolean;
+  error?: string;
+  reconciled?: { id: string; title: string; permalink: string | null }[];
+  missing?: { id: string; title: string }[];
+  orphans?: { id: string; permalink: string | null; caption: string }[];
+}> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+  if (!isMetaConfigured()) {
+    return { ok: false, error: "Falta META_APP_ID / META_APP_SECRET en el entorno" };
+  }
+
+  try {
+    const report = await syncInstagramPosts();
+    revalidateMarketing();
+    return { ok: true, ...report };
+  } catch (error) {
+    console.error("[admin/marketing] ig sync failed:", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "No se pudo sincronizar con Instagram",
+    };
   }
 }
 
