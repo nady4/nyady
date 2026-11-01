@@ -106,6 +106,14 @@ export default function SocialConnectionsCard({
               <span className="admin-cell-sub">
                 Página: {connection.facebook.pageName ?? "conectada"}
               </span>
+              <a
+                className="admin-button small"
+                href="/api/admin/marketing/meta/connect"
+                aria-disabled={busy}
+                title="Vuelve a autorizar la cuenta (necesario si Meta agrega permisos)"
+              >
+                Reconectar
+              </a>
               <button
                 type="button"
                 className="admin-button small danger"
@@ -133,6 +141,14 @@ export default function SocialConnectionsCard({
               <span className="admin-cell-sub">
                 @{connection.instagram.username ?? "conectada"}
               </span>
+              <a
+                className="admin-button small"
+                href="/api/admin/marketing/meta/connect"
+                aria-disabled={busy}
+                title="Vuelve a autorizar la cuenta (necesario si Meta agrega permisos)"
+              >
+                Reconectar
+              </a>
               <button
                 type="button"
                 className="admin-button small danger"
@@ -185,8 +201,9 @@ export default function SocialConnectionsCard({
       {connected && !connection.canDeleteIgMedia && (
         <p className="admin-field-hint">
           Para borrar publicaciones de Instagram (duplicados) hace falta el token de
-          usuario de Meta con el permiso <code>instagram_manage_contents</code>: reconectá
-          la cuenta con el botón de abajo y autorizá ese permiso.
+          usuario de Meta con el permiso <code>instagram_manage_contents</code>:{" "}
+          <strong>Reconectá</strong> la cuenta y autorizá ese permiso (si Meta no te lo
+          ofrece, agregalo en el panel de la app: Instagram → API setup → Permissions).
         </p>
       )}
 
