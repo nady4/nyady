@@ -4,6 +4,7 @@ import {
   publishFacebookPost,
   publishInstagramPost,
   publishInstagramReel,
+  fetchIgPublishingQuota,
 } from "@/lib/marketing/meta";
 import type { SocialPost } from "@prisma/client";
 import { getSiteUrl } from "@/lib/site-url";
@@ -81,9 +82,24 @@ function buildPostLinkSafe(
   return buildPostLink(link, post, channel);
 }
 
+export type PublishChannel = "facebook" | "instagram";
+
 export type ChannelResult =
   | { ok: true; id: string; url: string | null }
-  | { ok: false; error: string };
+  | {
+      ok: false;
+      error: string;
+      /**
+       * Global/transient condition (Meta app-level limit, IG publish quota).
+       * It is NOT a per-post failure, so it is never stored in
+       * `SocialPost.lastError` — that is exactly what used to leave a red
+       * "cooldown" error forever on posts that were already published. It is
+       * surfaced once, as a banner, in the admin.
+       */
+      transient?: boolean;
+      /** Epoch ms when the condition clears (cooldown end). */
+      until?: number;
+    };
 
 export interface PublishResults {
   results: {
@@ -136,30 +152,38 @@ export async function publishPostEverywhere(
   if (post.channels.includes("facebook")) {
     if (!needsFacebook) {
       results.facebook = { ok: true, id: post.fbPostId ?? "", url: post.fbPermalink ?? null };
-    } else if (Date.now() < channelThrottledUntil.facebook) {
-      results.facebook = { ok: false, error: cooldownLabel("facebook") };
-    } else if (!accounts.facebook) {
-      results.facebook = { ok: false, error: "Facebook no está conectado" };
     } else {
-      try {
-        const fb = await publishFacebookPost({
-          pageId: accounts.facebook.pageId,
-          pageToken: accounts.facebook.pageToken,
-          message,
-          // Photo post when the cover exists (caption text); link/text post
-          // otherwise (link preview + clickable).
-          imageUrl: coverImage,
-          link: buildPostLinkSafe(post, link, "facebook"),
-        });
-        results.facebook = { ok: true, id: fb.id, url: fb.permalink ?? null };
-      } catch (error) {
+      const cooldown = await readCooldown("facebook");
+      if (cooldown) {
+        // Circuit breaker open: don't spend Graph calls while the app is
+        // throttled — the post stays pending and can be retried later.
         results.facebook = {
           ok: false,
-          error: friendlyChannelError(
+          error: cooldownMessage("facebook", cooldown),
+          transient: true,
+          until: cooldown.until,
+        };
+      } else if (!accounts.facebook) {
+        results.facebook = { ok: false, error: "Facebook no está conectado" };
+      } else {
+        try {
+          const fb = await publishFacebookPost({
+            pageId: accounts.facebook.pageId,
+            pageToken: accounts.facebook.pageToken,
+            message,
+            // Photo post when the cover exists (caption text); link/text post
+            // otherwise (link preview + clickable).
+            imageUrl: coverImage,
+            link: buildPostLinkSafe(post, link, "facebook"),
+          });
+          results.facebook = { ok: true, id: fb.id, url: fb.permalink ?? null };
+        } catch (error) {
+          const friendly = await friendlyChannelError(
             "facebook",
             error instanceof Error ? error.message : "Error publicando en Facebook"
-          ),
-        };
+          );
+          results.facebook = { ok: false, ...friendly };
+        }
       }
     }
   }
@@ -171,39 +195,51 @@ export async function publishPostEverywhere(
         id: post.igMediaId ?? "",
         url: post.igPermalink ?? null,
       };
-    } else if (Date.now() < channelThrottledUntil.instagram) {
-      // Circuit breaker open: don't spend Graph calls while the app is
-      // throttled — the post stays pending and can be retried later.
-      results.instagram = { ok: false, error: cooldownLabel("instagram") };
-    } else if (!accounts.instagram) {
-      results.instagram = { ok: false, error: "Instagram no está conectado" };
     } else {
-      // IG reads its own caption: the link travels as plain text (no
-      // hyperlink in IG captions). Media must be public https URLs.
-      try {
-        const ig = isVideo
-          ? await publishInstagramReel({
-              igUserId: accounts.instagram.igUserId,
-              pageToken: accounts.instagram.pageToken,
-              videoUrl: videoUrl ?? "",
-              caption: instagramCaption,
-              coverUrl: videoCover,
-            })
-          : await publishInstagramPost({
-              igUserId: accounts.instagram.igUserId,
-              pageToken: accounts.instagram.pageToken,
-              imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
-              caption: instagramCaption,
-            });
-        results.instagram = { ok: true, id: ig.id, url: ig.permalink ?? null };
-      } catch (error) {
+      const cooldown = await readCooldown("instagram");
+      if (cooldown) {
+        // Circuit breaker open: don't spend Graph calls while the app is
+        // throttled — the post stays pending and can be retried later.
         results.instagram = {
           ok: false,
-          error: friendlyChannelError(
-            "instagram",
-            error instanceof Error ? error.message : "Error publicando en Instagram"
-          ),
+          error: cooldownMessage("instagram", cooldown),
+          transient: true,
+          until: cooldown.until,
         };
+      } else if (!accounts.instagram) {
+        results.instagram = { ok: false, error: "Instagram no está conectado" };
+      } else {
+        // IG reads its own caption: the link travels as plain text (no
+        // hyperlink in IG captions). Media must be public https URLs.
+        try {
+          const ig = isVideo
+            ? await publishInstagramReel({
+                igUserId: accounts.instagram.igUserId,
+                pageToken: accounts.instagram.pageToken,
+                videoUrl: videoUrl ?? "",
+                caption: instagramCaption,
+                coverUrl: videoCover,
+              })
+            : await publishInstagramPost({
+                igUserId: accounts.instagram.igUserId,
+                pageToken: accounts.instagram.pageToken,
+                imageUrls: post.media.filter((url) => /^https:\/\//.test(url)),
+                caption: instagramCaption,
+              });
+          results.instagram = { ok: true, id: ig.id, url: ig.permalink ?? null };
+        } catch (error) {
+          const friendly = await friendlyChannelError(
+            "instagram",
+            error instanceof Error ? error.message : "Error publicando en Instagram",
+            accounts.instagram
+              ? {
+                  igUserId: accounts.instagram.igUserId,
+                  pageToken: accounts.instagram.pageToken,
+                }
+              : null
+          );
+          results.instagram = { ok: false, ...friendly };
+        }
       }
     }
   }
@@ -216,58 +252,237 @@ export async function publishPostEverywhere(
  * rides on request VOLUME — one IG carousel costs ~10-17 calls, so a 23-post
  * bulk run trips it instantly and every blind retry keeps it tripped.
  * Solution: circuit breaker — when Meta says "limit hit", the channel gets a
- * 30-minute cooldown during which publish attempts short-circuit (no Graph
- * calls at all) and the posts stay pending; FB keeps publishing meanwhile.
+ * cooldown during which publish attempts short-circuit (no Graph calls at all)
+ * and the posts stay pending; FB keeps publishing meanwhile.
+ *
+ * The breaker state lives in the DB (MarketingChannelState) on purpose: the
+ * admin publishes post by post, and every click is a separate serverless
+ * invocation, so an in-memory flag was reset before it could ever protect the
+ * next call — each retry burned more quota and re-tripped the same limit.
  */
-const CHANNEL_COOLDOWN_MS = 30 * 60_000;
-const channelThrottledUntil: Record<"facebook" | "instagram", number> = {
-  facebook: 0,
-  instagram: 0,
+const APP_LIMIT_COOLDOWN_MS = 60 * 60_000; // Meta's app-level window is hourly
+/** IG publishes 100 API posts per rolling 24 h (carousels count as one). */
+const IG_PUBLISH_LIMIT_COOLDOWN_MS = 12 * 60 * 60_000;
+
+interface ChannelCooldown {
+  /** Epoch ms when the cooldown ends. */
+  until: number;
+  /** "app_limit" | "ig_publish_limit" — decides the message. */
+  reason: string;
+}
+
+const cooldownCache: Record<PublishChannel, { at: number; state: ChannelCooldown | null }> = {
+  facebook: { at: 0, state: null },
+  instagram: { at: 0, state: null },
 };
+const COOLDOWN_CACHE_MS = 5_000;
+
+/** Active cooldown for a channel (null when the channel can publish). */
+async function readCooldown(channel: PublishChannel): Promise<ChannelCooldown | null> {
+  const cached = cooldownCache[channel];
+  if (Date.now() - cached.at < COOLDOWN_CACHE_MS) return cached.state;
+  let state: ChannelCooldown | null = null;
+  try {
+    const row = await prisma.marketingChannelState.findUnique({ where: { channel } });
+    if (row?.throttledUntil) {
+      const until = row.throttledUntil.getTime();
+      if (until > Date.now()) state = { until, reason: row.reason ?? "app_limit" };
+    }
+  } catch (error) {
+    console.error("[marketing/publisher] cooldown read failed:", error);
+  }
+  cooldownCache[channel] = { at: Date.now(), state };
+  return state;
+}
+
+async function writeCooldown(
+  channel: PublishChannel,
+  cooldown: ChannelCooldown
+): Promise<void> {
+  cooldownCache[channel] = { at: Date.now(), state: cooldown };
+  try {
+    await prisma.marketingChannelState.upsert({
+      where: { channel },
+      update: {
+        throttledUntil: new Date(cooldown.until),
+        reason: cooldown.reason,
+      },
+      create: {
+        channel,
+        throttledUntil: new Date(cooldown.until),
+        reason: cooldown.reason,
+      },
+    });
+  } catch (error) {
+    console.error("[marketing/publisher] cooldown write failed:", error);
+  }
+}
+
+/** Admin-facing description of the channels currently in cooldown. */
+export async function channelCooldownStatus(): Promise<
+  { channel: PublishChannel; until: number; message: string }[]
+> {
+  const channels: PublishChannel[] = ["facebook", "instagram"];
+  const out: { channel: PublishChannel; until: number; message: string }[] = [];
+  for (const channel of channels) {
+    const cooldown = await readCooldown(channel);
+    if (cooldown) {
+      out.push({
+        channel,
+        until: cooldown.until,
+        message: cooldownMessage(channel, cooldown),
+      });
+    }
+  }
+  return out;
+}
 
 function isAppRequestLimit(message: string): boolean {
+  const lower = message.toLowerCase();
   return (
-    message.toLowerCase().includes("application request limit") ||
-    message.toLowerCase().includes('"code":4') ||
-    message.toLowerCase().includes("(#4)")
+    lower.includes("application request limit") ||
+    lower.includes('"code":4') ||
+    lower.includes("(#4)") ||
+    lower.includes("too many calls") ||
+    lower.includes("rate limit")
   );
 }
 
-function cooldownLabel(channel: "facebook" | "instagram"): string {
-  const until = new Date(Date.now() + CHANNEL_COOLDOWN_MS);
-  return `${channel === "instagram" ? "IG" : "FB"} en cooldown por límite de la app (30 min, hasta ~${until.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}). Los posts quedan pendientes: “Publicar” reintenta solo este canal.`;
+/** IG's own publishing quota (100 API posts / 24 h). */
+function isIgPublishLimit(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes("#2207042") ||
+    lower.includes("content_publishing_limit") ||
+    lower.includes("reduce the amount") ||
+    lower.includes("maximum number of posts") ||
+    lower.includes("too many posts") ||
+    lower.includes("publishing limit")
+  );
 }
 
-/** Maps raw Graph errors into admin-readable messages + trip the breaker. */
-function friendlyChannelError(
-  channel: "facebook" | "instagram",
-  message: string
-): string {
-  if (isAppRequestLimit(message)) {
-    channelThrottledUntil[channel] = Date.now() + CHANNEL_COOLDOWN_MS;
-    return cooldownLabel(channel);
+function clockLabel(until: number): string {
+  // The admin works in Argentina time; the server (Vercel) runs on UTC, so the
+  // zone is explicit — otherwise the "retry after HH:MM" hint is off by 3 h.
+  return new Date(until).toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
+}
+
+function cooldownMessage(channel: PublishChannel, cooldown: ChannelCooldown): string {
+  const who = channel === "instagram" ? "IG" : "FB";
+  if (cooldown.reason === "ig_publish_limit") {
+    return `${who} alcanzó el límite de publicación por API de Instagram (100 posts / 24 h). Los posts de ${who} quedan pendientes: “Publicar” reintenta solo ese canal (próximo intento ~${clockLabel(cooldown.until)}).`;
   }
+  return `${who} está en cooldown por límite de la app de Meta (hasta ~${clockLabel(cooldown.until)}). No se gastan llamadas: los posts de ${who} quedan pendientes y “Publicar” reintenta solo ese canal.`;
+}
+
+/**
+ * Maps raw Graph errors into admin-readable messages. Rate-limit errors are
+ * GLOBAL: they trip the breaker (persisted in the DB) and come back as
+ * `transient` so they are never stored as the post's own error.
+ */
+async function friendlyChannelError(
+  channel: PublishChannel,
+  message: string,
+  igAccount?: { igUserId: string; pageToken: string } | null
+): Promise<{ error: string; transient?: boolean; until?: number }> {
+  const limitHit =
+    isAppRequestLimit(message) || (channel === "instagram" && isIgPublishLimit(message));
+
+  if (limitHit) {
+    let reason = "app_limit";
+    let detail = "";
+    if (channel === "instagram" && igAccount) {
+      // One extra call tells us WHICH limit was hit: Meta's app-level call
+      // budget (retry in ~1 h) or the IG publishing quota (retry in hours).
+      const quota = await fetchIgPublishingQuota(igAccount.igUserId, igAccount.pageToken);
+      if (quota && quota.total > 0 && quota.used >= quota.total) {
+        reason = "ig_publish_limit";
+        detail = ` (${quota.used}/${quota.total} publicaciones usadas en la ventana de 24 h)`;
+      }
+    }
+    const until = Date.now() + (reason === "ig_publish_limit" ? IG_PUBLISH_LIMIT_COOLDOWN_MS : APP_LIMIT_COOLDOWN_MS);
+    const cooldown: ChannelCooldown = { until, reason };
+    await writeCooldown(channel, cooldown);
+    return {
+      error: `${cooldownMessage(channel, cooldown)}${detail}`,
+      transient: true,
+      until,
+    };
+  }
+
   if (channel === "instagram") {
-    if (message.toLowerCase().includes("#9007") || message.toLowerCase().includes("media id was not found")) {
-      return "IG: el contenedor expiró (24h) o la media ya no existe; reintentá la publicación.";
+    if (
+      message.toLowerCase().includes("#9007") ||
+      message.toLowerCase().includes("media id was not found")
+    ) {
+      return { error: "IG: el contenedor expiró (24h) o la media ya no existe; reintentá la publicación." };
     }
   }
-  return message;
+  return { error: message };
 }
 
 interface PersistedResults {
   publishedAt: Date | null;
   errors: string[];
+  /** True when every failure of this attempt was a global/transient one. */
+  transient?: boolean;
 }
 
-/** Persist publish results on the post row (partial-failure safe). */
+/** Splits a stored `lastError` back into its per-channel parts. */
+function splitChannelErrors(text: string | null): Record<PublishChannel, string> {
+  const out: Record<PublishChannel, string> = { facebook: "", instagram: "" };
+  if (!text) return out;
+  for (const line of text.split("\n")) {
+    for (const segment of line.split(/\s·\s/)) {
+      const match = /^(facebook|instagram):\s*(.+)$/.exec(segment.trim());
+      if (match) out[match[1] as PublishChannel] = match[2].trim();
+    }
+  }
+  return out;
+}
+
+/**
+ * Persist publish results on the post row (partial-failure safe).
+ *
+ * Errors belong to a CHANNEL, not to the post: a channel that publishes drops
+ * its old error, and a transient/global failure (Meta app-level limit, IG
+ * quota) is never stored here — it lives in the channel cooldown and is shown
+ * as a banner. That is what keeps published posts from keeping a red error
+ * forever.
+ */
 export async function persistPublishResults(
-  postId: string,
+  post: SocialPost,
   results: PublishResults["results"]
 ): Promise<PersistedResults> {
   const errors: string[] = [];
+  let transient = true;
   for (const [channel, result] of Object.entries(results)) {
-    if (!result.ok) errors.push(`${channel}: ${result.error}`);
+    if (result.ok) continue;
+    errors.push(`${channel}: ${result.error}`);
+    if (!result.transient) transient = false;
+  }
+  if (errors.length === 0) transient = false;
+
+  // Channel state AFTER this attempt.
+  const fbPostId =
+    results.facebook?.ok && results.facebook.id ? results.facebook.id : post.fbPostId;
+  const igMediaId =
+    results.instagram?.ok && results.instagram.id ? results.instagram.id : post.igMediaId;
+
+  const previous = splitChannelErrors(post.lastError);
+  const stored: string[] = [];
+  const pending: PublishChannel[] = [];
+  if (post.channels.includes("facebook") && !fbPostId) pending.push("facebook");
+  if (post.channels.includes("instagram") && !igMediaId) pending.push("instagram");
+  for (const channel of pending) {
+    const attempt = results[channel];
+    const fresh = attempt && !attempt.ok && !attempt.transient ? attempt.error : "";
+    const error = fresh || previous[channel];
+    if (error) stored.push(`${channel}: ${error}`);
   }
 
   const data: {
@@ -277,21 +492,22 @@ export async function persistPublishResults(
     fbPermalink?: string | null;
     igMediaId?: string;
     igPermalink?: string | null;
-  } = { lastError: errors.length > 0 ? errors.join(" · ") : null };
+  } = { lastError: stored.length > 0 ? stored.join(" · ") : null };
 
-  if (results.facebook?.ok) {
+  if (results.facebook?.ok && results.facebook.id) {
     data.fbPostId = results.facebook.id;
     data.fbPermalink = results.facebook.url;
   }
-  if (results.instagram?.ok) {
+  if (results.instagram?.ok && results.instagram.id) {
     data.igMediaId = results.instagram.id;
     data.igPermalink = results.instagram.url;
   }
   const anyOk = results.facebook?.ok || results.instagram?.ok;
-  if (anyOk) data.publishedAt = new Date();
+  // Keep the FIRST publish time: a later channel retry must not move it.
+  if (anyOk && !post.publishedAt) data.publishedAt = new Date();
 
-  await prisma.socialPost.update({ where: { id: postId }, data });
-  return { publishedAt: data.publishedAt ?? null, errors };
+  await prisma.socialPost.update({ where: { id: post.id }, data });
+  return { publishedAt: data.publishedAt ?? null, errors, transient };
 }
 
 /** Publish one post row and persist the outcome. */
@@ -300,7 +516,7 @@ export async function publishAndPersist(
   siteUrl: string
 ): Promise<PublishResults["results"]> {
   const { results } = await publishPostEverywhere(post, siteUrl);
-  await persistPublishResults(post.id, results);
+  await persistPublishResults(post, results);
   return results;
 }
 

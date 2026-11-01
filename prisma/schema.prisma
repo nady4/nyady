@@ -354,6 +354,19 @@ model SocialAccount {
   updatedAt   DateTime @updatedAt
 }
 
+// Publish guard state per Meta channel. Meta's app-level limit ("Application
+// request limit reached") and the IG publishing quota (100 API posts / 24 h)
+// are GLOBAL conditions, not per-post failures: keeping the cooldown in the
+// DB lets the breaker hold across serverless invocations (every admin click
+// is its own invocation, so an in-memory flag never survived) and lets the
+// admin see *why* the posts are still pending.
+model MarketingChannelState {
+  channel        String    @id // "facebook" | "instagram"
+  throttledUntil DateTime?
+  reason         String? // "app_limit" | "ig_publish_limit"
+  updatedAt      DateTime  @updatedAt
+}
+
 // Daily metrics snapshot per published post (phase 3). One row per
 // (post, date); numbers are lifetime Meta values at snapshot time for IG
 // media and accumulated-past values for FB post insights.

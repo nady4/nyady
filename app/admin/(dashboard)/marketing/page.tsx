@@ -20,7 +20,7 @@ import { formatAdminDate, formatAdminDateTime } from "@/lib/admin/format";
 import { loadMarketingStats } from "@/lib/marketing/insights";
 import { loadWaRecipients } from "@/lib/marketing/whatsapp";
 import { isMetaConfigured } from "@/lib/marketing/meta";
-import { metaAccountStatus } from "@/lib/marketing/publisher";
+import { channelCooldownStatus, metaAccountStatus } from "@/lib/marketing/publisher";
 import { getSiteUrl } from "@/lib/site-url";
 import type { Prisma } from "@prisma/client";
 import type {
@@ -122,7 +122,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
   const page = Math.max(1, Number(first(params.page)) || 1);
   // Defensive load: a failure in any loader must never 500 the whole page or
   // blank the admin shell — degrade to empty sections instead.
-  const [postResults, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients, bulkProductsRaw] =
+  const [postResults, templates, assets, settings, metaStatus, stats, waCampaigns, waSends, recipients, bulkProductsRaw, cooldowns] =
     await Promise.all([
       (async (): Promise<
         [PostWithProduct[], number, PublishPendingTarget[], WaOptionRow[]]
@@ -216,6 +216,12 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
         .catch(() => []),
       loadWaRecipients(null).catch(() => []),
       loadBulkProducts().catch(() => []),
+      // Channels in cooldown (Meta app-level limit / IG quota): shown once as
+      // a banner instead of sticking an error on every pending post.
+      channelCooldownStatus().catch((error) => {
+        console.error("[admin/marketing] cooldown status failed:", error);
+        return [];
+      }),
     ]);
 
   const [postsRaw, postsTotal, pendingTargetsRaw, waOptionRows] = postResults;
@@ -335,6 +341,13 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
           “Publicar” publica al instante; “Publicar pendientes” hace la corrida en
           secuencia con todo lo no publicado.
         </p>
+        {cooldowns.length > 0 && (
+          <div className="admin-mkt-cooldown" role="status">
+            {cooldowns.map((cooldown) => (
+              <p key={cooldown.channel}>{cooldown.message}</p>
+            ))}
+          </div>
+        )}
         <PostsAdmin
           posts={postRows}
           filters={filters}

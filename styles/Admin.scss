@@ -3443,6 +3443,26 @@ th.admin-col-number {
   }
 }
 
+// Channel cooldown notice (Meta app-level limit / IG publishing quota).
+// It explains WHY the pending posts are pending, instead of repeating a
+// red error on every single post row.
+.admin-mkt-cooldown {
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.88rem;
+  background-color: rgba($warning-text, 0.12);
+  color: $warning-text;
+
+  p {
+    margin: 0;
+
+    + p {
+      margin-top: 0.35rem;
+    }
+  }
+}
+
 .admin-mkt-meta {
   max-width: 720px;
 }

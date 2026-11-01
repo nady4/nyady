@@ -104,6 +104,39 @@ export default function PostsAdmin({
   const BULK_DELAY_MS = 4000;
   const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  /** Publishes a single post and reports the per-channel outcome. */
+  const publishOne = async (post: MarketingPostRow) => {
+    setMessage(null);
+    setBusy(true);
+    try {
+      const result = await publishMarketingPostAction(post.id);
+      if (!result.ok) {
+        setMessage({ kind: "error", text: result.error ?? "No se pudo publicar" });
+        return;
+      }
+      const failed = Object.entries(result.results ?? {}).filter(([, outcome]) => !outcome.ok);
+      if (failed.length > 0) {
+        setMessage({
+          kind: "error",
+          text: failed
+            .map(
+              ([channel, outcome]) =>
+                `${channel === "facebook" ? "Facebook" : "Instagram"}: ${outcome.error ?? "fallo"}`
+            )
+            .join(" · "),
+        });
+      } else {
+        setMessage({ kind: "ok", text: "Publicado" });
+        setTimeout(() => setMessage(null), 2500);
+      }
+      router.refresh();
+    } catch {
+      setMessage({ kind: "error", text: "Error de conexión. Reintentá." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   /** Sequential Meta publish over every pending target (server-computed full list). */
   const publishPending = async () => {
     if (pendingTargets.length === 0 || bulkBusy || busy) return;
@@ -112,6 +145,7 @@ export default function PostsAdmin({
     setMessage(null);
     let ok = 0;
     let failed = 0;
+    let cooldownMessage: string | null = null;
     const lines: string[] = [];
     try {
       for (let index = 0; index < pendingTargets.length; index += 1) {
@@ -125,8 +159,8 @@ export default function PostsAdmin({
           ok: boolean;
           error?: string;
           results?: Partial<{
-            facebook: { ok: boolean; url: string | null; error?: string };
-            instagram: { ok: boolean; url: string | null; error?: string };
+            facebook: { ok: boolean; url: string | null; error?: string; transient?: boolean };
+            instagram: { ok: boolean; url: string | null; error?: string; transient?: boolean };
           }>;
         } | undefined;
         try {
@@ -153,6 +187,15 @@ export default function PostsAdmin({
               ok += 1;
               lines.push(`✓ ${target.title} — ${summary || "publicado"}`);
             }
+            // A global limit (Meta app-level / IG quota) is not a per-post
+            // failure: stop the run instead of burning one attempt per post.
+            const limited = Object.values(result.results ?? {}).find(
+              (outcome) => !outcome.ok && outcome.transient
+            );
+            if (limited) {
+              cooldownMessage = limited.error ?? null;
+              break;
+            }
           } else {
             failed += 1;
             lines.push(`✗ ${target.title} — ${result.error ?? "fallo"}`);
@@ -168,8 +211,10 @@ export default function PostsAdmin({
         }
       }
       setMessage({
-        kind: failed > 0 && ok === 0 ? "error" : "ok",
-        text: `Publicados: ${ok} · Fallidos: ${failed}.`,
+        kind: cooldownMessage ? "error" : failed > 0 && ok === 0 ? "error" : "ok",
+        text: cooldownMessage
+          ? `Corrida detenida: ${cooldownMessage}`
+          : `Publicados: ${ok} · Fallidos: ${failed}.`,
       });
       router.refresh();
     } finally {
@@ -424,7 +469,6 @@ export default function PostsAdmin({
                       {chip.label} {chip.done ? "✓" : "pendiente"}
                     </span>
                   ))}
-                  {post.campaign && <span className="admin-cell-sub">·· {post.campaign}</span>}
                   {post.productSlug && (
                     <Link
                       href={`/products/${post.productSlug}`}
@@ -486,9 +530,7 @@ export default function PostsAdmin({
                     type="button"
                     className="admin-button small primary"
                     disabled={busy || bulkBusy}
-                    onClick={() =>
-                      void run(() => publishMarketingPostAction(post.id), "Solicitud enviada a Meta")
-                    }
+                    onClick={() => void publishOne(post)}
                   >
                     {publishAction(post)}
                   </button>

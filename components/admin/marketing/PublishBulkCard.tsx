@@ -70,6 +70,7 @@ export default function PublishBulkCard({
     setResults([]);
     let ok = 0;
     let failed = 0;
+    let cooldownMessage: string | null = null;
     const lines: string[] = [];
 
     for (let index = 0; index < targets.length; index += 1) {
@@ -83,8 +84,8 @@ export default function PublishBulkCard({
         ok: boolean;
         error?: string;
         results?: Partial<{
-          facebook: { ok: boolean; url: string | null; error?: string };
-          instagram: { ok: boolean; url: string | null; error?: string };
+          facebook: { ok: boolean; url: string | null; error?: string; transient?: boolean };
+          instagram: { ok: boolean; url: string | null; error?: string; transient?: boolean };
         }>;
       } | undefined;
       try {
@@ -111,6 +112,15 @@ export default function PublishBulkCard({
             ok += 1;
             lines.push(`✓ ${target.title} — ${channelSummaries || "publicado"}`);
           }
+          // Global limit (Meta app-level / IG quota): stop the run instead of
+          // spending one Graph attempt per remaining post.
+          const limited = Object.values(result.results ?? {}).find(
+            (outcome) => !outcome.ok && outcome.transient
+          );
+          if (limited) {
+            cooldownMessage = limited.error ?? null;
+            break;
+          }
         } else {
           failed += 1;
           lines.push(`✗ ${target.title} — ${result.error ?? "fallo"}`);
@@ -132,8 +142,10 @@ export default function PublishBulkCard({
     setProgress(null);
     setResults(lines);
     setMessage({
-      kind: failed > 0 && ok === 0 ? "error" : "ok",
-      text: `Publicados: ${ok} · Fallidos: ${failed}.`
+      kind: cooldownMessage || (failed > 0 && ok === 0) ? "error" : "ok",
+      text: cooldownMessage
+        ? `Corrida detenida: ${cooldownMessage}`
+        : `Publicados: ${ok} · Fallidos: ${failed}.`,
     });
     router.refresh();
   };

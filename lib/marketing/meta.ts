@@ -442,6 +442,52 @@ export function facebookPermalink(pageId: string, postId: string): string {
   return `https://www.facebook.com/${postId}/`;
 }
 
+export interface IgPublishQuota {
+  /** API-published posts used in the current window. */
+  used: number;
+  /** Posts allowed in the window (100 for IG). */
+  total: number;
+  /** Seconds left before the window frees up (Meta reports it). */
+  resetSeconds: number | null;
+}
+
+/**
+ * IG publishing quota (GET /<IG_ID>/content_publishing_limit): 100 API posts
+ * per rolling 24 h. Reading it tells us whether a rate-limit error was the
+ * app-level call budget or the IG quota itself — the first retries in ~1 h,
+ * the second in hours.
+ */
+export async function fetchIgPublishingQuota(
+  igUserId: string,
+  pageToken: string
+): Promise<IgPublishQuota | null> {
+  try {
+    const json = (await metaFetch(
+      metaGraphUrl(`${igUserId}/content_publishing_limit`, new URLSearchParams({
+        access_token: pageToken,
+      }))
+    )) as {
+      data?: {
+        quota_usage?: number;
+        quota_total?: number;
+        reset_time_duration?: number;
+        config?: { quota_total?: number; window_size?: number };
+      }[];
+    };
+    const entry = json.data?.[0];
+    if (!entry) return null;
+    const total = entry.quota_total ?? entry.config?.quota_total ?? 0;
+    return {
+      used: entry.quota_usage ?? 0,
+      total,
+      resetSeconds: entry.reset_time_duration ?? null,
+    };
+  } catch (error) {
+    console.error("[meta] ig content_publishing_limit failed:", error);
+    return null;
+  }
+}
+
 export interface InstagramPostInput {
   igUserId: string;
   pageToken: string;
@@ -585,8 +631,12 @@ async function pollIgContainer(
   pageToken: string,
   options: { timeoutMs?: number; label?: string; lenient?: boolean } = {}
 ): Promise<void> {
-  const deadline = Date.now() + (options.timeoutMs ?? 75_000);
+  const deadline = Date.now() + (options.timeoutMs ?? 90_000);
   const label = options.label ?? "la imagen";
+  // Meta's own guidance is to poll sparsely: every poll is a Graph call and
+  // the app-level budget (~200 calls/hour) is what trips "Application request
+  // limit reached" during a bulk run. Back off instead of hammering.
+  let waitMs = 2_000;
   while (Date.now() < deadline) {
     const json = await (async () => {
       try {
@@ -617,7 +667,8 @@ async function pollIgContainer(
         `El contenedor de Instagram falló al procesarse (ERROR/EXPIRED); reintentá (${label})`
       );
     }
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
+    waitMs = Math.min(waitMs * 2, 15_000);
   }
   throw new MetaError(
     `Instagram sigue procesando ${label} (tarda más de lo normal). Reintentá en un rato.`

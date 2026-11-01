@@ -661,8 +661,8 @@ export interface PublishPostActionResult {
   ok: boolean;
   error?: string;
   results?: Partial<{
-    facebook: { ok: boolean; url: string | null; error?: string };
-    instagram: { ok: boolean; url: string | null; error?: string };
+    facebook: { ok: boolean; url: string | null; error?: string; transient?: boolean; until?: number };
+    instagram: { ok: boolean; url: string | null; error?: string; transient?: boolean; until?: number };
   }>;
 }
 
@@ -704,6 +704,8 @@ export async function publishMarketingPostAction(
               ok: results.facebook.ok,
               url: results.facebook.ok ? results.facebook.url : null,
               error: results.facebook.ok ? undefined : results.facebook.error,
+              transient: results.facebook.ok ? undefined : results.facebook.transient,
+              until: results.facebook.ok ? undefined : results.facebook.until,
             }
           : undefined,
         instagram: results.instagram
@@ -711,6 +713,8 @@ export async function publishMarketingPostAction(
               ok: results.instagram.ok,
               url: results.instagram.ok ? results.instagram.url : null,
               error: results.instagram.ok ? undefined : results.instagram.error,
+              transient: results.instagram.ok ? undefined : results.instagram.transient,
+              until: results.instagram.ok ? undefined : results.instagram.until,
             }
           : undefined,
       },
