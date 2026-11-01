@@ -185,6 +185,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
         instagram: false,
         pageName: null,
         igUsername: null,
+        canDeleteIgMedia: false,
       })),
       loadMarketingStats().catch((error) => {
         console.error("[admin/marketing] stats load failed:", error);
@@ -415,6 +416,7 @@ export default async function AdminMarketingPage({ searchParams }: PageProps) {
               connected: metaStatus.instagram,
               username: metaStatus.igUsername,
             },
+            canDeleteIgMedia: metaStatus.canDeleteIgMedia,
           }}
         />
       </section>

@@ -52,6 +52,7 @@ export default async function NewMarketingPostPage() {
             connected: metaStatus.instagram,
             username: metaStatus.igUsername,
           },
+          canDeleteIgMedia: metaStatus.canDeleteIgMedia,
         }}
       />
     </main>

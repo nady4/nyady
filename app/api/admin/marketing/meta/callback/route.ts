@@ -51,6 +51,7 @@ export async function GET(request: Request): Promise<Response> {
     const connected = await completeMetaConnect(code);
 
     const scopes = SCOPE.split(",");
+    const userTokenEnc = encryptToken(connected.userToken);
     await prisma.socialAccount.upsert({
       where: { channel: "facebook" },
       update: {
@@ -59,6 +60,7 @@ export async function GET(request: Request): Promise<Response> {
         igUserId: null,
         igUsername: null,
         tokenEnc: encryptToken(connected.pageToken),
+        userTokenEnc,
         scopes,
       },
       create: {
@@ -66,6 +68,7 @@ export async function GET(request: Request): Promise<Response> {
         pageId: connected.pageId,
         pageName: connected.pageName,
         tokenEnc: encryptToken(connected.pageToken),
+        userTokenEnc,
         scopes,
       },
     });
@@ -78,6 +81,7 @@ export async function GET(request: Request): Promise<Response> {
           igUserId: connected.ig.id,
           igUsername: connected.ig.username,
           tokenEnc: encryptToken(connected.pageToken),
+          userTokenEnc,
           scopes,
         },
         create: {
@@ -86,6 +90,7 @@ export async function GET(request: Request): Promise<Response> {
           igUserId: connected.ig.id,
           igUsername: connected.ig.username,
           tokenEnc: encryptToken(connected.pageToken),
+          userTokenEnc,
           scopes,
         },
       });

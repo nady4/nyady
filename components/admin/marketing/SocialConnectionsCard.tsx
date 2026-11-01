@@ -182,6 +182,14 @@ export default function SocialConnectionsCard({
         </div>
       )}
 
+      {connected && !connection.canDeleteIgMedia && (
+        <p className="admin-field-hint">
+          Para borrar publicaciones de Instagram (duplicados) hace falta el token de
+          usuario de Meta con el permiso <code>instagram_manage_contents</code>: reconectá
+          la cuenta con el botón de abajo y autorizá ese permiso.
+        </p>
+      )}
+
       {!connected && connection.configured && (
         <p className="admin-field-hint">
           Tocá “Conectar” y autorizá con la cuenta admin de la Página (la app de Meta puede

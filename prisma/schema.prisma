@@ -349,6 +349,10 @@ model SocialAccount {
   igUserId    String?
   igUsername  String?
   tokenEnc    String // AES-256-GCM blob: iv|tag|ciphertext (base64)
+  // Long-lived USER token (same encryption). Meta requires a user access
+  // token — not the Page one — for DELETE /<IG_MEDIA_ID> (borrar una
+  // publicación de IG), so it is stored apart and only used for that.
+  userTokenEnc String?
   scopes      String[]
   connectedAt DateTime @default(now())
   updatedAt   DateTime @updatedAt

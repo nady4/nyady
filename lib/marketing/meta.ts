@@ -18,6 +18,9 @@ export const SCOPE = [
   "pages_manage_posts",
   "instagram_basic",
   "instagram_content_publish",
+  // Needed to DELETE an IG publication (DELETE /<IG_MEDIA_ID>). Meta asks
+  // for it together with a USER access token, not the Page one.
+  "instagram_manage_contents",
   // Needed for me/businesses (the FB4B-owned_pages fallback) and generally
   // expected to travel with pages_* permissions in business-type apps.
   "business_management",
@@ -130,6 +133,12 @@ export interface ConnectedMeta {
   pageId: string;
   pageName: string;
   pageToken: string;
+  /**
+   * Long-lived USER access token. Meta requires a user token (not the Page
+   * one) for DELETE /<IG_MEDIA_ID>, so it travels with the connection and is
+   * stored encrypted; publishing keeps using the Page token.
+   */
+  userToken: string;
   ig: IgBusiness | null;
 }
 
@@ -254,6 +263,7 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
             pageId: pageJson.id,
             pageName: pageJson.name,
             pageToken: pageJson.access_token,
+            userToken: longToken,
             ig: pageJson.instagram_business_account ?? null,
           };
         }
@@ -302,6 +312,7 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
                 pageId: owned.id,
                 pageName: owned.name,
                 pageToken: owned.access_token,
+                userToken: longToken,
                 ig: owned.instagram_business_account ?? null,
               };
             }
@@ -349,6 +360,7 @@ export async function completeMetaConnect(code: string): Promise<ConnectedMeta> 
     pageId: page.id,
     pageName: page.name,
     pageToken: page.access_token,
+    userToken: longToken,
     ig,
   };
 }

@@ -395,4 +395,9 @@ export interface MetaConnectionState {
   configured: boolean;
   facebook: { connected: boolean; pageName: string | null };
   instagram: { connected: boolean; username: string | null };
+  /**
+   * True when the long-lived USER token is stored: Meta only allows
+   * DELETE /<IG_MEDIA_ID> (borrar una publicación) with a user token.
+   */
+  canDeleteIgMedia: boolean;
 }

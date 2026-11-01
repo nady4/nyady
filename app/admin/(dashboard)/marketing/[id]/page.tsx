@@ -71,6 +71,7 @@ export default async function EditMarketingPostPage({
             connected: metaStatus.instagram,
             username: metaStatus.igUsername,
           },
+          canDeleteIgMedia: metaStatus.canDeleteIgMedia,
         }}
       />
     </main>

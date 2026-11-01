@@ -23,7 +23,13 @@ import { buildPostLink } from "@/lib/marketing/utm";
 
 interface ConnectedAccounts {
   facebook: { pageId: string; pageToken: string; pageName: string | null } | null;
-  instagram: { igUserId: string; pageToken: string; igUsername: string | null } | null;
+  instagram: {
+    igUserId: string;
+    pageToken: string;
+    igUsername: string | null;
+    /** Long-lived USER token — only DELETE /<IG_MEDIA_ID> accepts it. */
+    userToken: string | null;
+  } | null;
 }
 
 async function resolveMetaAccounts(): Promise<ConnectedAccounts> {
@@ -34,6 +40,9 @@ async function resolveMetaAccounts(): Promise<ConnectedAccounts> {
     // rotated, tampering) simply means "not connected" until re-connecting.
     const token = decryptToken(row.tokenEnc);
     if (!token) continue;
+    // The user token is optional (it only exists after a re-connect with the
+    // instagram_manage_contents scope).
+    const userToken = row.userTokenEnc ? decryptToken(row.userTokenEnc) : null;
     if (row.channel === "facebook" && row.pageId) {
       accounts.facebook = {
         pageId: row.pageId,
@@ -46,6 +55,7 @@ async function resolveMetaAccounts(): Promise<ConnectedAccounts> {
         igUserId: row.igUserId,
         pageToken: token,
         igUsername: row.igUsername,
+        userToken,
       };
     }
   }
@@ -58,6 +68,7 @@ export async function metaAccountStatus(): Promise<{
   instagram: boolean;
   pageName: string | null;
   igUsername: string | null;
+  canDeleteIgMedia: boolean;
 }> {
   const accounts = await resolveMetaAccounts();
   return {
@@ -65,6 +76,7 @@ export async function metaAccountStatus(): Promise<{
     instagram: accounts.instagram != null,
     pageName: accounts.facebook?.pageName ?? null,
     igUsername: accounts.instagram?.igUsername ?? null,
+    canDeleteIgMedia: Boolean(accounts.instagram?.userToken),
   };
 }
 
@@ -713,9 +725,16 @@ export async function deleteInstagramDuplicates(
   if (!accounts.instagram) {
     throw new Error("Instagram no está conectado");
   }
+  // Meta only accepts a USER access token for DELETE /<IG_MEDIA_ID>.
+  const userToken = accounts.instagram.userToken;
+  if (!userToken) {
+    throw new Error(
+      "Falta el token de usuario de Meta: reconectá la cuenta en “Conexión con Meta” (permiso instagram_manage_contents)."
+    );
+  }
   for (const id of ids.slice(0, 20)) {
     try {
-      await deleteIgMedia(id, accounts.instagram.pageToken);
+      await deleteIgMedia(id, userToken);
       out.deleted.push(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : "No se pudo borrar";
