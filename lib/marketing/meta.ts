@@ -524,6 +524,49 @@ export async function fetchIgMediaList(
   }));
 }
 
+/**
+ * Permalink of a single IG media (GET /<media_id>?fields=permalink). The
+ * media list sometimes comes back without it, and the admin needs the link to
+ * open (and delete) a duplicate.
+ */
+export async function fetchIgMediaPermalink(
+  mediaId: string,
+  pageToken: string
+): Promise<string | null> {
+  try {
+    const media = (await metaFetch(
+      metaGraphUrl(mediaId, new URLSearchParams({
+        fields: "permalink",
+        access_token: pageToken,
+      }))
+    )) as { permalink?: string };
+    return media.permalink ?? null;
+  } catch (error) {
+    console.error("[meta] ig permalink fetch failed:", error);
+    return null;
+  }
+}
+
+/**
+ * Deletes an IG media published through the API (DELETE /<media_id>).
+ * Instagram only allows removing media that this app published — which is
+ * exactly the case for the duplicates a lost publish leaves behind.
+ */
+export async function deleteIgMedia(
+  mediaId: string,
+  pageToken: string
+): Promise<boolean> {
+  const url = metaGraphUrl(mediaId, new URLSearchParams({ access_token: pageToken }));
+  const res = await fetch(url, { method: "DELETE" });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new MetaError(
+      `Meta no pudo borrar la publicación ${mediaId}: ${text.slice(0, 200) || res.statusText}`
+    );
+  }
+  return true;
+}
+
 export interface InstagramPostInput {
   igUserId: string;
   pageToken: string;

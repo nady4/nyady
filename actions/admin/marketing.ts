@@ -12,6 +12,7 @@ import {
   publishAndPersist,
   runPublishQueue,
   syncInstagramPosts,
+  deleteInstagramDuplicates,
 } from "@/lib/marketing/publisher";
 import { runInsightsSync } from "@/lib/marketing/insights";
 import {
@@ -788,6 +789,35 @@ export async function syncInstagramPostsAction(): Promise<{
         error instanceof Error
           ? error.message
           : "No se pudo sincronizar con Instagram",
+    };
+  }
+}
+
+/**
+ * Deletes the IG publications that belong to no post (duplicates). Only media
+ * published through this app can be removed by the API.
+ */
+export async function deleteInstagramDuplicatesAction(ids: string[]): Promise<{
+  ok: boolean;
+  error?: string;
+  deleted?: string[];
+  failed?: { id: string; error: string }[];
+}> {
+  if (!(await ensureAdmin()).ok) return { ok: false, error: "No autorizado" };
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { ok: false, error: "No hay publicaciones para borrar" };
+  }
+
+  try {
+    const result = await deleteInstagramDuplicates(ids);
+    revalidateMarketing();
+    return { ok: true, ...result };
+  } catch (error) {
+    console.error("[admin/marketing] ig duplicate delete failed:", error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error ? error.message : "No se pudieron borrar los duplicados",
     };
   }
 }

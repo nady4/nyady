@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
+  deleteInstagramDuplicatesAction,
   deleteMarketingPostAction,
   duplicateMarketingPostAction,
   publishMarketingPostAction,
@@ -73,7 +74,7 @@ export default function PostsAdmin({
   const [igSync, setIgSync] = useState<{
     reconciled: { title: string; permalink: string | null }[];
     missing: { title: string }[];
-    orphans: { permalink: string | null; caption: string }[];
+    orphans: { id: string; permalink: string | null; caption: string }[];
   } | null>(null);
   const [igSyncBusy, setIgSyncBusy] = useState(false);
 
@@ -256,6 +257,36 @@ export default function PostsAdmin({
     }
   };
 
+  /** Removes the IG publications that belong to no post (duplicates). */
+  const deleteDuplicates = async () => {
+    if (!igSync || igSync.orphans.length === 0 || igSyncBusy) return;
+    const count = igSync.orphans.length;
+    if (!window.confirm(`¿Borrar ${count} publicación(es) duplicada(s) de Instagram?`)) {
+      return;
+    }
+    setIgSyncBusy(true);
+    try {
+      const result = await deleteInstagramDuplicatesAction(
+        igSync.orphans.map((orphan) => orphan.id)
+      );
+      if (!result.ok) {
+        setMessage({ kind: "error", text: result.error ?? "No se pudieron borrar" });
+        return;
+      }
+      const deleted = result.deleted?.length ?? 0;
+      const failed = result.failed?.length ?? 0;
+      setMessage({
+        kind: failed > 0 ? "error" : "ok",
+        text: `Duplicados de Instagram borrados: ${deleted}${failed > 0 ? ` · fallidos: ${failed}` : ""}.`,
+      });
+      await syncWithInstagram();
+    } catch {
+      setMessage({ kind: "error", text: "Error de conexión. Reintentá." });
+    } finally {
+      setIgSyncBusy(false);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / perPage));
   const pageHref = (targetPage: number): string => {
     const params = new URLSearchParams();
@@ -421,30 +452,42 @@ export default function PostsAdmin({
             </p>
           )}
           {igSync.orphans.length > 0 && (
-            <p className="admin-error">
-              {igSync.orphans.length} publicación(es) en Instagram no
-              corresponden a ningún post (¿duplicados?):{" "}
-              {igSync.orphans
-                .map((orphan) =>
-                  orphan.permalink ? (
-                    <a
-                      key={orphan.permalink}
-                      href={orphan.permalink}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >
-                      {orphan.caption}
-                    </a>
-                  ) : (
-                    <span key={orphan.caption}>{orphan.caption}</span>
+            <>
+              <p className="admin-error">
+                {igSync.orphans.length} publicación(es) en Instagram no
+                corresponden a ningún post (¿duplicados?):{" "}
+                {igSync.orphans
+                  .map((orphan) =>
+                    orphan.permalink ? (
+                      <a
+                        key={orphan.id}
+                        href={orphan.permalink}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
+                        {orphan.caption}
+                      </a>
+                    ) : (
+                      <span key={orphan.id}>{orphan.caption}</span>
+                    )
                   )
-                )
-                .reduce<React.ReactNode[]>(
-                  (acc, node, index) =>
-                    index === 0 ? [node] : [...acc, ", ", node],
-                  []
-                )}
-            </p>
+                  .reduce<React.ReactNode[]>(
+                    (acc, node, index) =>
+                      index === 0 ? [node] : [...acc, ", ", node],
+                    []
+                  )}
+              </p>
+              <p>
+                <button
+                  type="button"
+                  className="admin-button small danger"
+                  disabled={igSyncBusy}
+                  onClick={() => void deleteDuplicates()}
+                >
+                  Borrar {igSync.orphans.length} duplicado(s) de Instagram
+                </button>
+              </p>
+            </>
           )}
         </div>
       )}

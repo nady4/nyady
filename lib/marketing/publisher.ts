@@ -6,6 +6,8 @@ import {
   publishInstagramReel,
   fetchIgPublishingQuota,
   fetchIgMediaList,
+  fetchIgMediaPermalink,
+  deleteIgMedia,
   type IgMediaItem,
 } from "@/lib/marketing/meta";
 import type { SocialPost } from "@prisma/client";
@@ -494,7 +496,11 @@ export async function syncInstagramPosts(): Promise<IgSyncReport> {
     if (taken.has(item.id)) continue;
     report.orphans.push({
       id: item.id,
-      permalink: item.permalink ?? null,
+      // The list endpoint sometimes omits the permalink; ask for it once so
+      // the admin can open the duplicate straight from the report.
+      permalink:
+        item.permalink ??
+        (await fetchIgMediaPermalink(item.id, accounts.instagram.pageToken)),
       caption: item.caption.replace(/\s+/g, " ").trim().slice(0, 80),
     });
   }
@@ -683,6 +689,42 @@ export async function publishAndPersist(
   const { results } = await publishPostEverywhere(post, siteUrl);
   await persistPublishResults(post, results);
   return results;
+}
+
+export interface IgDuplicate {
+  id: string;
+  permalink: string | null;
+  caption: string;
+}
+
+/**
+ * Deletes IG media that belongs to no post (duplicates left by a publish
+ * whose id never reached the database). Only media published through this app
+ * can be removed, so this is limited to the duplicates we created.
+ */
+export async function deleteInstagramDuplicates(
+  ids: string[]
+): Promise<{ deleted: string[]; failed: { id: string; error: string }[] }> {
+  const accounts = await resolveMetaAccounts();
+  const out: { deleted: string[]; failed: { id: string; error: string }[] } = {
+    deleted: [],
+    failed: [],
+  };
+  if (!accounts.instagram) {
+    throw new Error("Instagram no está conectado");
+  }
+  for (const id of ids.slice(0, 20)) {
+    try {
+      await deleteIgMedia(id, accounts.instagram.pageToken);
+      out.deleted.push(id);
+    } catch (error) {
+      out.failed.push({
+        id,
+        error: error instanceof Error ? error.message : "No se pudo borrar",
+      });
+    }
+  }
+  return out;
 }
 
 export interface QueueOutcome {
