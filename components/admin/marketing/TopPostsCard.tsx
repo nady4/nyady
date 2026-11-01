@@ -133,9 +133,6 @@ export default function TopPostsCard({
                   ) : (
                     post.title
                   )}
-                  {post.campaign ? (
-                    <span className="admin-cell-sub"> · {post.campaign}</span>
-                  ) : null}
                 </td>
                 <td>
                   <strong>{post.index}</strong>
@@ -234,9 +231,6 @@ export default function TopPostsCard({
                       ) : (
                         post.title
                       )}
-                      {post.campaign ? (
-                        <span className="admin-cell-sub"> · {post.campaign}</span>
-                      ) : null}
                     </td>
                     <td>
                       <strong>{post.index}</strong>

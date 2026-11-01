@@ -139,12 +139,7 @@ export default function MarketingStatsCard({ stats }: { stats: MarketingStatsDat
               <tbody>
                 {stats.posts.map((post) => (
                   <tr key={post.id}>
-                    <td title={post.campaign ?? ""}>
-                      {post.title}
-                      {post.campaign ? (
-                        <span className="admin-cell-sub"> · {post.campaign}</span>
-                      ) : null}
-                    </td>
+                    <td title={post.campaign ?? ""}>{post.title}</td>
                     <td>{post.publishedAtText}</td>
                     <td>{post.reach.toLocaleString("es-AR")}</td>
                     <td>{post.likes.toLocaleString("es-AR")}</td>
