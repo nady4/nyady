@@ -275,11 +275,13 @@ export default function PostsAdmin({
       }
       const deleted = result.deleted?.length ?? 0;
       const failed = result.failed?.length ?? 0;
+      // Refresh the report FIRST: the sync clears the message, so the result
+      // of the deletion has to be set afterwards to survive.
+      await syncWithInstagram();
       setMessage({
         kind: failed > 0 ? "error" : "ok",
         text: `Duplicados de Instagram borrados: ${deleted}${failed > 0 ? ` · fallidos: ${failed}` : ""}.`,
       });
-      await syncWithInstagram();
     } catch {
       setMessage({ kind: "error", text: "Error de conexión. Reintentá." });
     } finally {

@@ -559,10 +559,15 @@ export async function deleteIgMedia(
   const url = metaGraphUrl(mediaId, new URLSearchParams({ access_token: pageToken }));
   const res = await fetch(url, { method: "DELETE" });
   const text = await res.text();
+  console.log(`[meta] ig delete ${mediaId} -> HTTP ${res.status}: ${text.slice(0, 300)}`);
   if (!res.ok) {
     throw new MetaError(
       `Meta no pudo borrar la publicación ${mediaId}: ${text.slice(0, 200) || res.statusText}`
     );
+  }
+  // IG answers {"success": true} when the media is gone.
+  if (/"success"\s*:\s*false/.test(text)) {
+    throw new MetaError(`Meta no borró la publicación ${mediaId}: ${text.slice(0, 200)}`);
   }
   return true;
 }

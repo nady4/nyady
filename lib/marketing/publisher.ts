@@ -718,10 +718,9 @@ export async function deleteInstagramDuplicates(
       await deleteIgMedia(id, accounts.instagram.pageToken);
       out.deleted.push(id);
     } catch (error) {
-      out.failed.push({
-        id,
-        error: error instanceof Error ? error.message : "No se pudo borrar",
-      });
+      const message = error instanceof Error ? error.message : "No se pudo borrar";
+      console.error("[marketing/publisher] ig duplicate delete failed:", id, message);
+      out.failed.push({ id, error: message });
     }
   }
   return out;
